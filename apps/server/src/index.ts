@@ -1,5 +1,5 @@
 import { devToolsMiddleware } from "@ai-sdk/devtools";
-import { google } from "@ai-sdk/google";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { onError } from "@orpc/server";
@@ -74,11 +74,18 @@ app.use("/*", async (c, next) => {
   await next();
 });
 
+// Create OpenAI-compatible client
+const openai = createOpenAICompatible({
+  name: "openai-compatible",
+  baseURL: env.OPENAI_BASE_URL,
+  apiKey: env.OPENAI_API_KEY,
+});
+
 app.post("/ai", async (c) => {
   const body = await c.req.json();
   const uiMessages = body.messages || [];
   const model = wrapLanguageModel({
-    model: google("gemini-2.5-flash"),
+    model: openai(env.OPENAI_MODEL),
     middleware: devToolsMiddleware(),
   });
   const result = streamText({

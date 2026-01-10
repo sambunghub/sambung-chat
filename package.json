@@ -16,6 +16,7 @@
       "@orpc/zod": "^1.12.2",
       "better-auth": "^1.4.9",
       "ai": "^6.0.3",
+      "@ai-sdk/openai-compatible": "^2.0.3",
       "@orpc/client": "^1.12.2",
       "drizzle-orm": "^0.45.1",
       "@types/pg": "^8.15.6"
@@ -39,6 +40,7 @@
     "db:down": "turbo -F @sambung-chat/db db:down"
   },
   "dependencies": {
+    "@ai-sdk/openai-compatible": "^2.0.4",
     "@sambung-chat/env": "workspace:*",
     "dotenv": "catalog:",
     "zod": "catalog:"
