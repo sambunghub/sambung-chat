@@ -2,6 +2,33 @@
 
 Documentation untuk AI agents yang bekerja pada package UI ini.
 
+## 🚨 MANDATORY PRE-BUILD CHECKLIST
+
+**SEBELUM melakukan build apapun, WAJIB lakukan ini dulu:**
+
+```bash
+# Step 1: Type check dengan bun
+bun run check
+
+# Step 2: Type check dengan svelte-check untuk detail error
+npx svelte-check --tsconfig ./tsconfig.json
+
+# Step 3: Jika ada error, BACA dan PERBAIKI error tersebut
+# Contoh untuk melihat error spesifik:
+npx svelte-check --tsconfig ./tsconfig.json 2>&1 | grep -A 2 "NavigationRail"
+
+# Step 4: HANYA setelah type check bersih, baru boleh build
+bun run build
+```
+
+**RULE: Jika type check gagal, JANGAN lanjut ke build!**
+
+Error TypeScript yang paling umum:
+- `const` dengan `$state` → Ganti ke `let`
+- Import `lucide-svelte` → Ganti ke `@lucide/svelte`
+- Type tidak dikenali → Tambahkan type annotation
+- Props tidak benar → Cek interface Props
+
 ## 🤖 Kontrak untuk AI Agents
 
 ### ⛔ CRITICAL: JANGAN EDIT `src/lib/components/ui/`

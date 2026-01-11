@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { cn } from '../../utils';
-	import type { HTMLButtonElement } from 'svelte/elements';
-	import { Tooltip } from '../ui/tooltip';
+	import * as Tooltip from '../ui/tooltip';
 	import { Button } from '../ui/button';
 	import { MessageSquare, Sparkles, Settings } from '@lucide/svelte';
 
@@ -33,24 +32,26 @@
 <nav class={cn('w-16 bg-card border-r border-border flex flex-col items-center py-4 gap-2', className)}>
 	<div class="flex-1 flex flex-col items-center gap-1 w-full">
 		{#each navItems as item (item.id)}
-			<Tooltip content={item.label} placement="right">
-				<Button
-					variant={currentPath === item.path ? 'secondary' : 'ghost'}
-					size="icon"
-					class={cn(
-						'relative w-12 h-12 rounded-lg transition-all duration-200',
-						currentPath === item.path
-							? 'bg-primary text-primary-foreground shadow-sm'
-							: 'hover:bg-muted'
-					)}
-					onclick={() => onNavigate?.(item.path)}
-					aria-label={item.label}
-					aria-current={currentPath === item.path ? 'page' : undefined}
-				>
-					{@const Icon = item.icon}
-					<Icon class="w-5 h-5" />
-				</Button>
-			</Tooltip>
+			<Tooltip.Root delayDuration={200}>
+				<Tooltip.Trigger>
+					<Button
+						variant={currentPath === item.path ? 'secondary' : 'ghost'}
+						size="icon"
+						class={cn(
+							'relative w-12 h-12 rounded-lg transition-all duration-200',
+							currentPath === item.path
+								? 'bg-primary text-primary-foreground shadow-sm'
+								: 'hover:bg-muted'
+						)}
+						onclick={() => onNavigate?.(item.path)}
+					>
+						<svelte:component this={item.icon} class="w-5 h-5" />
+					</Button>
+				</Tooltip.Trigger>
+				<Tooltip.Content side="right">
+					{item.label}
+				</Tooltip.Content>
+			</Tooltip.Root>
 		{/each}
 	</div>
 
@@ -67,28 +68,3 @@
 		{/if}
 	</div>
 </nav>
-
-<style>
-	/* Tooltip custom styling */
-	:global([data-state='delayed-open']) > :global(.tooltip-content) {
-		z-index: 50;
-		overflow: hidden;
-		border-radius: 0.375rem;
-		background-color: hsl(var(--color-primary));
-		padding: 0.375rem 0.75rem;
-		font-size: 0.75rem;
-		color: hsl(var(--color-primary-foreground));
-		animation: tooltip-in 0.2s ease-out;
-	}
-
-	@keyframes tooltip-in {
-		from {
-			opacity: 0;
-			transform: scale(0.95);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1);
-		}
-	}
-</style>
