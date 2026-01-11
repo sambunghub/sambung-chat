@@ -3,7 +3,7 @@
 	import type { HTMLButtonElement } from 'svelte/elements';
 	import { Tooltip } from '../ui/tooltip';
 	import { Button } from '../ui/button';
-	import { MessageSquare, Sparkles, Settings } from 'lucide-svelte';
+	import { MessageSquare, Sparkles, Settings } from '@lucide/svelte';
 
 	export interface NavigationRailProps {
 		currentPath?: string;
@@ -47,7 +47,8 @@
 					aria-label={item.label}
 					aria-current={currentPath === item.path ? 'page' : undefined}
 				>
-					<svelte:component this={item.icon} class="w-5 h-5" />
+					{@const Icon = item.icon}
+					<Icon class="w-5 h-5" />
 				</Button>
 			</Tooltip>
 		{/each}
@@ -70,6 +71,24 @@
 <style>
 	/* Tooltip custom styling */
 	:global([data-state='delayed-open']) > :global(.tooltip-content) {
-		@apply z-50 overflow-hidden rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground animate-in fade-in-0 zoom-in-95;
+		z-index: 50;
+		overflow: hidden;
+		border-radius: 0.375rem;
+		background-color: hsl(var(--color-primary));
+		padding: 0.375rem 0.75rem;
+		font-size: 0.75rem;
+		color: hsl(var(--color-primary-foreground));
+		animation: tooltip-in 0.2s ease-out;
+	}
+
+	@keyframes tooltip-in {
+		from {
+			opacity: 0;
+			transform: scale(0.95);
+		}
+		to {
+			opacity: 1;
+			transform: scale(1);
+		}
 	}
 </style>

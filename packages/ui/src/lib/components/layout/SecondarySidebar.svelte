@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { cn } from '../../utils';
 	import { Button } from '../ui/button';
-	import { Plus, Search } from 'lucide-svelte';
+	import { Plus, Search } from '@lucide/svelte';
 	import type { Snippet } from 'svelte';
 	import type { HTMLInputElement } from 'svelte/elements';
 
@@ -27,8 +27,8 @@
 		footer
 	}: Props = $props();
 
-	let searchInput: HTMLInputElement;
-	const isTablet = $state(false);
+	let searchInput = $state<HTMLInputElement | undefined>(undefined);
+	let isTablet = $state(false);
 
 	// Detect tablet mode for collapsed sidebar
 	$effect(() => {
@@ -112,6 +112,6 @@
 
 <style>
 	input::placeholder {
-		@apply text-muted-foreground;
+		color: hsl(var(--color-muted-foreground));
 	}
 </style>
