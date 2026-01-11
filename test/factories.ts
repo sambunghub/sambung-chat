@@ -10,7 +10,9 @@ import { chats, messages, prompts, apiKeys, user } from '@sambung-chat/db/schema
 
 // Helper to generate random strings
 const randomString = (length: number) => {
-  return Math.random().toString(36).substring(2, 2 + length);
+  return Math.random()
+    .toString(36)
+    .substring(2, 2 + length);
 };
 
 // Helper to generate random UUID
@@ -59,18 +61,24 @@ export const messageFactory = {
   },
 
   createPair: async (chatId: number, userContent: string, assistantContent: string) => {
-    const [userMsg] = await db.insert(messages).values({
-      chatId,
-      role: 'user',
-      content: userContent,
-    }).returning();
+    const [userMsg] = await db
+      .insert(messages)
+      .values({
+        chatId,
+        role: 'user',
+        content: userContent,
+      })
+      .returning();
 
-    const [assistantMsg] = await db.insert(messages).values({
-      chatId,
-      role: 'assistant',
-      content: assistantContent,
-      metadata: { model: 'gpt-4', tokens: 100 },
-    }).returning();
+    const [assistantMsg] = await db
+      .insert(messages)
+      .values({
+        chatId,
+        role: 'assistant',
+        content: assistantContent,
+        metadata: { model: 'gpt-4', tokens: 100 },
+      })
+      .returning();
 
     return { userMsg, assistantMsg };
   },
@@ -128,10 +136,13 @@ export const userFactory = {
 
   create: async (overrides = {}) => {
     const data = userFactory.build(overrides);
-    const [newUser] = await db.insert(user).values({
-      ...data,
-      passwordHash: 'hashed_password_placeholder', // In real tests, use bcrypt
-    }).returning();
+    const [newUser] = await db
+      .insert(user)
+      .values({
+        ...data,
+        passwordHash: 'hashed_password_placeholder', // In real tests, use bcrypt
+      })
+      .returning();
     return newUser;
   },
 };
@@ -151,7 +162,7 @@ export const scenarioFactory = {
       await messageFactory.createPair(
         chat.id,
         `User message ${i + 1}`,
-        `Assistant response ${i + 1}`,
+        `Assistant response ${i + 1}`
       );
     }
 

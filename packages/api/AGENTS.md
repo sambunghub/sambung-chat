@@ -51,7 +51,7 @@ export const myRouter = router({
     }),
     resolve: async ({ input, context }) => {
       return { items: [] };
-    }
+    },
   },
 
   // Mutation - POST/PUT/DELETE requests
@@ -61,8 +61,8 @@ export const myRouter = router({
     }),
     resolve: async ({ input, context }) => {
       return { id: 1, ...input };
-    }
-  }
+    },
+  },
 });
 ```
 

@@ -109,12 +109,12 @@ sambung-chat/
 
 ### Minimum Coverage Targets
 
-| Layer | Target | Enforced |
-|-------|--------|----------|
-| **Backend (API)** | 80% | ✅ CI Required |
-| **Database (Schema)** | 70% | ✅ CI Required |
-| **Frontend (Components)** | 70% | ⚠️ Recommended |
-| **E2E (Critical Paths)** | 100% | ✅ CI Required |
+| Layer                     | Target | Enforced       |
+| ------------------------- | ------ | -------------- |
+| **Backend (API)**         | 80%    | ✅ CI Required |
+| **Database (Schema)**     | 70%    | ✅ CI Required |
+| **Frontend (Components)** | 70%    | ⚠️ Recommended |
+| **E2E (Critical Paths)**  | 100%   | ✅ CI Required |
 
 ### Critical Paths (Must Cover)
 
@@ -145,13 +145,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/',
-        'test/',
-        '**/*.test.ts',
-        '**/*.spec.ts',
-        '**/dist/**',
-      ],
+      exclude: ['node_modules/', 'test/', '**/*.test.ts', '**/*.spec.ts', '**/dist/**'],
     },
   },
   resolve: {
@@ -159,7 +153,7 @@ export default defineConfig({
       '@sambung-chat/api': './packages/api/src',
       '@sambung-chat/db': './packages/db/src',
       '@sambung-chat/ui': './packages/ui/src',
-      '$lib': './apps/web/src/lib',
+      $lib: './apps/web/src/lib',
     },
   },
 });
@@ -260,9 +254,7 @@ describe('chatRouter - Unit Tests', () => {
     });
 
     it('should only return chats for current user', async () => {
-      const mockChats = [
-        { id: 1, userId: 'test-user-id', title: 'My Chat' },
-      ];
+      const mockChats = [{ id: 1, userId: 'test-user-id', title: 'My Chat' }];
 
       vi.mocked(db.select).mockReturnValue({
         from: vi.fn().mockReturnValue({
@@ -479,7 +471,7 @@ describe('chatRouter - Integration Tests', () => {
     const chats = await testClient.chat.getAll();
 
     expect(chats.length).toBeGreaterThanOrEqual(2);
-    chats.forEach(chat => {
+    chats.forEach((chat) => {
       expect(chat.userId).toBe(testUser.id);
     });
   });
@@ -503,9 +495,7 @@ describe('chatRouter - Integration Tests', () => {
     });
 
     // Try to access as first user
-    await expect(
-      testClient.chat.getById({ id: otherChat.id })
-    ).rejects.toThrow();
+    await expect(testClient.chat.getById({ id: otherChat.id })).rejects.toThrow();
   });
 
   it('should update chat title', async () => {
@@ -531,9 +521,7 @@ describe('chatRouter - Integration Tests', () => {
     await testClient.chat.delete({ id: chat.id });
 
     // Verify deletion
-    await expect(
-      testClient.chat.getById({ id: chat.id })
-    ).rejects.toThrow();
+    await expect(testClient.chat.getById({ id: chat.id })).rejects.toThrow();
   });
 });
 ```
@@ -746,22 +734,28 @@ export async function teardownTestDB() {
 }
 
 export async function seedTestData(userData) {
-  const [user] = await db.insert(users).values({
-    email: userData.email,
-    name: userData.name,
-    passwordHash: await hash(userData.password),
-  }).returning();
+  const [user] = await db
+    .insert(users)
+    .values({
+      email: userData.email,
+      name: userData.name,
+      passwordHash: await hash(userData.password),
+    })
+    .returning();
 
   return user;
 }
 
 export async function createTestChat(userId, overrides = {}) {
-  const [chat] = await db.insert(chats).values({
-    userId,
-    title: 'Test Chat',
-    modelId: 'gpt-4',
-    ...overrides,
-  }).returning();
+  const [chat] = await db
+    .insert(chats)
+    .values({
+      userId,
+      title: 'Test Chat',
+      modelId: 'gpt-4',
+      ...overrides,
+    })
+    .returning();
 
   return chat;
 }
@@ -799,6 +793,7 @@ bun test packages/api/src/routers/__tests__/chat.test.ts
 ### VS Code Integration
 
 **Recommended Extensions:**
+
 - `vitest.explorer` - Test explorer UI
 - `Playwright Test for VSCode` - E2E test explorer
 
@@ -864,6 +859,7 @@ test:
 **Problem:** Tests timeout after 5 seconds
 
 **Solution:**
+
 ```typescript
 test('should stream response', async () => {
   // Increase timeout for this test
@@ -878,6 +874,7 @@ test('should stream response', async () => {
 **Problem:** Tests fail with connection refused
 
 **Solution:**
+
 ```bash
 # Start test database
 bun run db:start
@@ -891,6 +888,7 @@ bun run db:studio
 **Problem:** vi.mock() doesn't mock the module
 
 **Solution:**
+
 ```typescript
 // Move mock to top of file, before imports
 vi.mock('@sambung-chat/db', () => ({

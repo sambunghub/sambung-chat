@@ -1,11 +1,12 @@
-import { createEnv } from "@t3-oss/env-core";
-import { z } from "zod";
+import { createEnv } from '@t3-oss/env-core';
+import { z } from 'zod';
 
 export const env = createEnv({
-  clientPrefix: "PUBLIC_",
+  clientPrefix: 'PUBLIC_',
   client: {
     PUBLIC_SERVER_URL: z.url(),
   },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   runtimeEnv: (import.meta as any).env,
   emptyStringAsUndefined: true,
 });

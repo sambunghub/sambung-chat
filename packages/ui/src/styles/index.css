@@ -1,5 +1,5 @@
 /* Main Stylesheet */
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* Import design tokens */
 @import './tokens.css';

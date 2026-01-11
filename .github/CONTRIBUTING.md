@@ -225,15 +225,20 @@ async function getChat(id: any): Promise<any> {
 // ✅ Good
 export const chatRouter = {
   create: protectedProcedure
-    .input(z.object({
-      title: z.string().min(1),
-      modelId: z.string(),
-    }))
+    .input(
+      z.object({
+        title: z.string().min(1),
+        modelId: z.string(),
+      })
+    )
     .handler(async ({ input, context }) => {
-      const chat = await db.insert(chats).values({
-        userId: context.session.user.id,
-        ...input,
-      }).returning();
+      const chat = await db
+        .insert(chats)
+        .values({
+          userId: context.session.user.id,
+          ...input,
+        })
+        .returning();
       return chat[0];
     }),
 };
@@ -270,11 +275,11 @@ SambungChat follows a strict backend-first development methodology.
 
 ```typescript
 // packages/db/src/schema/chat.ts
-export const chats = pgTable("chats", {
-  id: serial("id").primaryKey(),
-  userId: uuid("user_id").references(() => users.id),
-  title: text("title").notNull(),
-  modelId: text("model_id").notNull(),
+export const chats = pgTable('chats', {
+  id: serial('id').primaryKey(),
+  userId: uuid('user_id').references(() => users.id),
+  title: text('title').notNull(),
+  modelId: text('model_id').notNull(),
 });
 ```
 
@@ -284,8 +289,7 @@ export const chats = pgTable("chats", {
 // packages/api/src/routers/chat.ts
 export const chatRouter = {
   getAll: protectedProcedure.handler(async ({ context }) => {
-    return await db.select().from(chats)
-      .where(eq(chats.userId, context.session.user.id));
+    return await db.select().from(chats).where(eq(chats.userId, context.session.user.id));
   }),
 };
 ```
@@ -297,7 +301,7 @@ export const chatRouter = {
 describe('chatRouter', () => {
   it('should return user chats', async () => {
     const result = await chatRouter.getAll.handler({
-      context: mockContext
+      context: mockContext,
     });
     expect(result).toBeInstanceOf(Array);
   });
@@ -319,11 +323,11 @@ describe('chatRouter', () => {
 
 ### Test Coverage
 
-| Layer | Minimum Coverage |
-|-------|------------------|
-| Backend (API) | 80% |
-| Frontend (Components) | 70% |
-| E2E (Critical Paths) | 100% |
+| Layer                 | Minimum Coverage |
+| --------------------- | ---------------- |
+| Backend (API)         | 80%              |
+| Frontend (Components) | 70%              |
+| E2E (Critical Paths)  | 100%             |
 
 ### Running Tests
 
@@ -347,16 +351,19 @@ bun test:coverage
 ### Writing Tests
 
 **Unit Tests:**
+
 - Test business logic in isolation
 - Mock external dependencies
 - Fast execution (< 1s per test)
 
 **Integration Tests:**
+
 - Test API endpoints
 - Use test database
 - Verify end-to-end flows
 
 **E2E Tests:**
+
 - Test critical user paths
 - Use Playwright
 - Cover: auth, chat creation, messaging
@@ -379,16 +386,16 @@ We use [Conventional Commits](https://www.conventionalcommits.org/):
 
 ### Types
 
-| Type | Usage |
-|------|-------|
-| `feat` | New feature |
-| `fix` | Bug fix |
-| `docs` | Documentation changes |
-| `style` | Code style changes (formatting) |
-| `refactor` | Code refactoring |
-| `test` | Adding or updating tests |
-| `chore` | Maintenance tasks |
-| `perf` | Performance improvements |
+| Type       | Usage                           |
+| ---------- | ------------------------------- |
+| `feat`     | New feature                     |
+| `fix`      | Bug fix                         |
+| `docs`     | Documentation changes           |
+| `style`    | Code style changes (formatting) |
+| `refactor` | Code refactoring                |
+| `test`     | Adding or updating tests        |
+| `chore`    | Maintenance tasks               |
+| `perf`     | Performance improvements        |
 
 ### Examples
 
@@ -445,21 +452,25 @@ docs(readme): update installation instructions
 
 ```markdown
 ## Description
+
 Brief description of changes
 
 ## Type of Change
+
 - [ ] Bug fix
 - [ ] New feature
 - [ ] Breaking change
 - [ ] Documentation update
 
 ## Testing
+
 - [ ] Unit tests added/updated
 - [ ] Integration tests added/updated
 - [ ] E2E tests added/updated
 - [ ] All tests passing
 
 ## Checklist
+
 - [ ] Code follows style guidelines
 - [ ] Self-review completed
 - [ ] Documentation updated
@@ -467,6 +478,7 @@ Brief description of changes
 - [ ] Comments added to complex code
 
 ## Related Issues
+
 Fixes #123
 Related to #456
 ```
@@ -501,14 +513,14 @@ sambung-chat/
 
 ### Where to Put Code
 
-| What | Where |
-|------|-------|
-| New API endpoint | `packages/api/src/routers/[feature].ts` |
-| Database table | `packages/db/src/schema/[table].ts` |
-| UI component | `packages/ui/src/components/[Component].svelte` |
-| Page route | `apps/web/src/routes/[route]/+page.svelte` |
+| What             | Where                                              |
+| ---------------- | -------------------------------------------------- |
+| New API endpoint | `packages/api/src/routers/[feature].ts`            |
+| Database table   | `packages/db/src/schema/[table].ts`                |
+| UI component     | `packages/ui/src/components/[Component].svelte`    |
+| Page route       | `apps/web/src/routes/[route]/+page.svelte`         |
 | Utility function | `apps/web/src/lib/utils.ts` or appropriate package |
-| Tests | Co-located: `__tests__/` next to source |
+| Tests            | Co-located: `__tests__/` next to source            |
 
 ---
 

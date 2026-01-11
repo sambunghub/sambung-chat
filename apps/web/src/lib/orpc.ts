@@ -1,10 +1,10 @@
-import type { AppRouterClient } from "@sambung-chat/api/routers/index";
+import type { AppRouterClient } from '@sambung-chat/api/routers/index';
 
-import { PUBLIC_SERVER_URL } from "$env/static/public";
-import { createORPCClient } from "@orpc/client";
-import { RPCLink } from "@orpc/client/fetch";
-import { createTanstackQueryUtils } from "@orpc/tanstack-query";
-import { QueryCache, QueryClient } from "@tanstack/svelte-query";
+import { PUBLIC_SERVER_URL } from '$env/static/public';
+import { createORPCClient } from '@orpc/client';
+import { RPCLink } from '@orpc/client/fetch';
+import { createTanstackQueryUtils } from '@orpc/tanstack-query';
+import { QueryCache, QueryClient } from '@tanstack/svelte-query';
 
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
@@ -19,7 +19,7 @@ export const link = new RPCLink({
   fetch(url, options) {
     return fetch(url, {
       ...options,
-      credentials: "include",
+      credentials: 'include',
     });
   },
 });

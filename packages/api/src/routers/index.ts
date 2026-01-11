@@ -1,17 +1,17 @@
-import type { RouterClient } from "@orpc/server";
+import type { RouterClient } from '@orpc/server';
 
-import { protectedProcedure, publicProcedure } from "../index";
-import { todoRouter } from "./todo";
-import { chatRouter } from "./chat";
-import { messageRouter } from "./message";
+import { protectedProcedure, publicProcedure } from '../index';
+import { todoRouter } from './todo';
+import { chatRouter } from './chat';
+import { messageRouter } from './message';
 
 export const appRouter = {
   healthCheck: publicProcedure.handler(() => {
-    return "OK";
+    return 'OK';
   }),
   privateData: protectedProcedure.handler(({ context }) => {
     return {
-      message: "This is private",
+      message: 'This is private',
       user: context.session?.user,
     };
   }),

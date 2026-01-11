@@ -34,18 +34,18 @@
 
 ### Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| **Frontend** | SvelteKit 5, Svelte 5 Runes, TailwindCSS |
-| **UI Components** | shadcn-svelte, bits-ui, Lucide Icons |
-| **Backend** | Hono (TypeScript) |
-| **API Layer** | ORPC (OpenAPI-compatible RPC) |
-| **Database** | PostgreSQL + Drizzle ORM |
-| **Authentication** | Better Auth |
-| **Validation** | Zod |
-| **Query** | TanStack Query |
-| **Runtime** | Bun |
-| **Monorepo** | Turborepo |
+| Layer              | Technology                               |
+| ------------------ | ---------------------------------------- |
+| **Frontend**       | SvelteKit 5, Svelte 5 Runes, TailwindCSS |
+| **UI Components**  | shadcn-svelte, bits-ui, Lucide Icons     |
+| **Backend**        | Hono (TypeScript)                        |
+| **API Layer**      | ORPC (OpenAPI-compatible RPC)            |
+| **Database**       | PostgreSQL + Drizzle ORM                 |
+| **Authentication** | Better Auth                              |
+| **Validation**     | Zod                                      |
+| **Query**          | TanStack Query                           |
+| **Runtime**        | Bun                                      |
+| **Monorepo**       | Turborepo                                |
 
 ---
 
@@ -102,6 +102,7 @@ bun run dev
 ```
 
 **Access the application:**
+
 - Frontend: http://localhost:5173
 - API: http://localhost:3000
 
@@ -147,44 +148,44 @@ sambung-chat/
 
 ### Development
 
-| Command | Description |
-|---------|-------------|
-| `bun run dev` | Start all services (web + server + db) |
-| `bun run dev:web` | Start only web application |
-| `bun run dev:server` | Start only server |
-| `bun run check-types` | Check TypeScript types |
+| Command               | Description                            |
+| --------------------- | -------------------------------------- |
+| `bun run dev`         | Start all services (web + server + db) |
+| `bun run dev:web`     | Start only web application             |
+| `bun run dev:server`  | Start only server                      |
+| `bun run check-types` | Check TypeScript types                 |
 
 ### Build
 
-| Command | Description |
-|---------|-------------|
-| `bun run build` | Build all applications |
+| Command              | Description              |
+| -------------------- | ------------------------ |
+| `bun run build`      | Build all applications   |
 | `bun run dev:native` | Build and run native app |
 
 ### Database
 
-| Command | Description |
-|---------|-------------|
-| `bun run db:start` | Start PostgreSQL via Docker |
-| `bun run db:stop` | Stop PostgreSQL |
-| `bun run db:push` | Push schema to database |
-| `bun run db:studio` | Open Drizzle Studio UI |
-| `bun run db:generate` | Generate migration files |
-| `bun run db:migrate` | Run database migrations |
-| `bun run db:down` | Remove database container |
+| Command               | Description                 |
+| --------------------- | --------------------------- |
+| `bun run db:start`    | Start PostgreSQL via Docker |
+| `bun run db:stop`     | Stop PostgreSQL             |
+| `bun run db:push`     | Push schema to database     |
+| `bun run db:studio`   | Open Drizzle Studio UI      |
+| `bun run db:generate` | Generate migration files    |
+| `bun run db:migrate`  | Run database migrations     |
+| `bun run db:down`     | Remove database container   |
 
 ---
 
 ## Supported AI Providers
 
-| Provider | Status | Models |
-|----------|--------|--------|
-| **OpenAI** | ✅ Supported | GPT-4, GPT-3.5-turbo |
+| Provider              | Status       | Models                         |
+| --------------------- | ------------ | ------------------------------ |
+| **OpenAI**            | ✅ Supported | GPT-4, GPT-3.5-turbo           |
 | **OpenAI-Compatible** | ✅ Supported | Any OpenAI-compatible endpoint |
-| **Anthropic** | 🚧 Planned | Claude 3 Opus, Sonnet, Haiku |
-| **Google** | 🚧 Planned | Gemini Pro, Ultra |
-| **Groq** | 🚧 Planned | Llama 3, Mixtral |
-| **Ollama** | 🚧 Planned | Local models |
+| **Anthropic**         | 🚧 Planned   | Claude 3 Opus, Sonnet, Haiku   |
+| **Google**            | 🚧 Planned   | Gemini Pro, Ultra              |
+| **Groq**              | 🚧 Planned   | Llama 3, Mixtral               |
+| **Ollama**            | 🚧 Planned   | Local models                   |
 
 ---
 
@@ -223,16 +224,16 @@ See [ROADMAP.md](plan-reference/ROADMAP.md) for full details.
 
 ## Documentation
 
-| Document | Description |
-|----------|-------------|
-| [PRD](plan-reference/PRD-OpenSource.md) | Product Requirements Document |
-| [Roadmap](plan-reference/ROADMAP.md) | Development timeline and milestones |
-| [UI/UX Design](plan-reference/UI-UX-DESIGN.md) | Frontend design system and components |
-| [Agents Reference](plan-reference/AGENTS.md) | Guide for AI agents working on this project |
-| [Getting Started](docs/getting-started.md) | Detailed setup guide |
-| [Architecture](docs/architecture.md) | System architecture overview |
-| [API Reference](docs/api-reference.md) | API documentation |
-| [Deployment](docs/deployment.md) | Deployment guides |
+| Document                                       | Description                                 |
+| ---------------------------------------------- | ------------------------------------------- |
+| [PRD](plan-reference/PRD-OpenSource.md)        | Product Requirements Document               |
+| [Roadmap](plan-reference/ROADMAP.md)           | Development timeline and milestones         |
+| [UI/UX Design](plan-reference/UI-UX-DESIGN.md) | Frontend design system and components       |
+| [Agents Reference](plan-reference/AGENTS.md)   | Guide for AI agents working on this project |
+| [Getting Started](docs/getting-started.md)     | Detailed setup guide                        |
+| [Architecture](docs/architecture.md)           | System architecture overview                |
+| [API Reference](docs/api-reference.md)         | API documentation                           |
+| [Deployment](docs/deployment.md)               | Deployment guides                           |
 
 ---
 

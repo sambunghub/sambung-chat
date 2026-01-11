@@ -6,9 +6,9 @@ Selamat datang di dokumentasi SambungChat. Dokumentasi ini disusun untuk membant
 
 ## Quick Links
 
-| Dokumen | Deskripsi |
-|---------|-----------|
-| [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) | Panduan troubleshooting masalah umum |
+| Dokumen                                      | Deskripsi                                       |
+| -------------------------------------------- | ----------------------------------------------- |
+| [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)   | Panduan troubleshooting masalah umum            |
 | [UI-PACKAGE-GUIDE.md](./UI-PACKAGE-GUIDE.md) | Panduan pengembangan `@sambung-chat/ui` package |
 
 ---
@@ -18,6 +18,7 @@ Selamat datang di dokumentasi SambungChat. Dokumentasi ini disusun untuk membant
 ### 🚨 Troubleshooting
 
 **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - Daftar masalah umum yang ditemukan dan cara penyelesaiannya:
+
 - Build errors
 - Svelte 5 runes issues
 - Tailwind CSS v4 compatibility
@@ -28,6 +29,7 @@ Selamat datang di dokumentasi SambungChat. Dokumentasi ini disusun untuk membant
 ### 🎨 UI Development
 
 **[UI-PACKAGE-GUIDE.md](./UI-PACKAGE-GUIDE.md)** - Panduan lengkap pengembangan UI package:
+
 - Package structure dan golden rules
 - Creating new components
 - Working with styles dan CSS variables
@@ -133,6 +135,7 @@ bun run db:studio
 ## Tech Stack
 
 ### Frontend
+
 - **Framework**: SvelteKit 5 dengan Svelte 5 Runes
 - **Styling**: TailwindCSS v4
 - **UI Components**: shadcn-svelte, Bits UI
@@ -141,6 +144,7 @@ bun run db:studio
 - **API Client**: ORPC
 
 ### Backend
+
 - **Framework**: Hono
 - **ORM**: Drizzle
 - **Database**: PostgreSQL
@@ -148,6 +152,7 @@ bun run db:studio
 - **Validation**: Zod
 
 ### Build System
+
 - **Monorepo**: Turborepo
 - **Bundler**: Vite
 - **Runtime**: Bun

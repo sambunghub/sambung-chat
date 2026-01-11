@@ -132,25 +132,23 @@ packages/ui/src/lib/components/button/Button.svelte
     ...restProps
   }: Props = $props();
 
-  const baseClass = 'inline-flex items-center justify-center rounded-md font-medium transition-colors';
+  const baseClass =
+    'inline-flex items-center justify-center rounded-md font-medium transition-colors';
   const variantClass = {
     default: 'bg-primary text-primary-foreground hover:bg-primary/90',
     destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
     outline: 'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
-    ghost: 'hover:bg-accent hover:text-accent-foreground'
+    ghost: 'hover:bg-accent hover:text-accent-foreground',
   }[variant];
   const sizeClass = {
     default: 'h-10 px-4 py-2',
     sm: 'h-9 rounded-md px-3',
     lg: 'h-11 rounded-md px-8',
-    icon: 'h-10 w-10'
+    icon: 'h-10 w-10',
   }[size];
 </script>
 
-<button
-  class={cn(baseClass, variantClass, sizeClass, className)}
-  {...restProps}
->
+<button class={cn(baseClass, variantClass, sizeClass, className)} {...restProps}>
   {#if children}
     {@render children()}
   {/if}
@@ -315,7 +313,7 @@ Untuk styles yang spesifik ke component:
 
   const variantClasses = {
     primary: 'bg-primary text-primary-foreground',
-    secondary: 'bg-secondary text-secondary-foreground'
+    secondary: 'bg-secondary text-secondary-foreground',
   };
 </script>
 
@@ -353,15 +351,17 @@ Edit `packages/ui/tailwind.config.js`:
 
 ```javascript
 export default {
-  darkMode: ["class"],
-  content: ["./src/**/*.{html,js,svelte,ts}"],
+  darkMode: ['class'],
+  content: ['./src/**/*.{html,js,svelte,ts}'],
   theme: {
-    extend: { /* ... */ }
+    extend: {
+      /* ... */
+    },
   },
   plugins: [
-    require("tw-animate-css"),
+    require('tw-animate-css'),
     // Add more plugins here
-  ]
+  ],
 };
 ```
 
@@ -529,13 +529,13 @@ Sebelum mengubah UI package:
 
 ## Quick Reference
 
-| Issue | Solution |
-|-------|----------|
+| Issue                                | Solution                              |
+| ------------------------------------ | ------------------------------------- |
 | `Cannot apply unknown utility class` | Gunakan CSS variables, bukan `@apply` |
-| `Could not resolve import` | Cek package name di `package.json` |
-| `Cannot assign to constant` | Gunakan `let` dengan `$state()` |
-| Export tidak muncul di dist | File harus di `src/lib/` |
-| Conflicting exports | Gunakan alias atau rename export |
+| `Could not resolve import`           | Cek package name di `package.json`    |
+| `Cannot assign to constant`          | Gunakan `let` dengan `$state()`       |
+| Export tidak muncul di dist          | File harus di `src/lib/`              |
+| Conflicting exports                  | Gunakan alias atau rename export      |
 
 ---
 

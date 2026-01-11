@@ -41,16 +41,16 @@ This document outlines a **backend-first development approach** for SambungChat 
 
 The [UI-UX-DESIGN.md](./UI-UX-DESIGN.md) document provides:
 
-| Section | Status | Quality |
-|---------|--------|---------|
-| Design System (OKLCH colors, typography) | ✅ Complete | Excellent |
-| Page Structure & Routes | ✅ Complete | Good |
-| Component Hierarchy | ✅ Complete | Good |
-| Layout Specifications | ⚠️ Needs Update | See below |
-| User Flows | ✅ Complete | Good |
-| Component Specifications | ✅ Complete | Good |
-| Responsive Breakpoints | ✅ Complete | Good |
-| Implementation Priority | ⚠️ Needs Alignment | See ROADMAP |
+| Section                                  | Status             | Quality     |
+| ---------------------------------------- | ------------------ | ----------- |
+| Design System (OKLCH colors, typography) | ✅ Complete        | Excellent   |
+| Page Structure & Routes                  | ✅ Complete        | Good        |
+| Component Hierarchy                      | ✅ Complete        | Good        |
+| Layout Specifications                    | ⚠️ Needs Update    | See below   |
+| User Flows                               | ✅ Complete        | Good        |
+| Component Specifications                 | ✅ Complete        | Good        |
+| Responsive Breakpoints                   | ✅ Complete        | Good        |
+| Implementation Priority                  | ⚠️ Needs Alignment | See ROADMAP |
 
 ### What's Working Well
 
@@ -106,11 +106,13 @@ Based on user feedback and modern design patterns (Material Design 3), implement
 ```
 
 **Navigation Rail (64px)** - Always visible icons:
+
 - 💬 Chats
 - ✨ Prompts
 - ⚙️ Settings
 
 **Secondary Sidebar (280px)** - Context-aware:
+
 - Chats page: Shows chat list
 - Prompts page: Shows prompt categories
 - Settings page: Shows settings navigation
@@ -146,14 +148,14 @@ apps/web/src/components/
 
 ### 3. Implementation Priority Updates
 
-| Priority | Component | Backend Dependency |
-|----------|-----------|-------------------|
-| P0 | NavigationRail | None (static) |
-| P0 | SecondarySidebar (chats) | `chat.getAll` API |
-| P0 | ChatInterface | `chat.getById`, `message.stream` APIs |
-| P1 | PromptLibrary | `prompt.getAll`, `prompt.create` APIs |
-| P1 | APIKeyManager | `apiKey.getAll`, `apiKey.create` APIs |
-| P2 | Settings pages | `user.updateSettings` API |
+| Priority | Component                | Backend Dependency                    |
+| -------- | ------------------------ | ------------------------------------- |
+| P0       | NavigationRail           | None (static)                         |
+| P0       | SecondarySidebar (chats) | `chat.getAll` API                     |
+| P0       | ChatInterface            | `chat.getById`, `message.stream` APIs |
+| P1       | PromptLibrary            | `prompt.getAll`, `prompt.create` APIs |
+| P1       | APIKeyManager            | `apiKey.getAll`, `apiKey.create` APIs |
+| P2       | Settings pages           | `user.updateSettings` API             |
 
 ---
 
@@ -164,6 +166,7 @@ apps/web/src/components/
 **Purpose**: Always-visible, narrow navigation strip with icon-only buttons.
 
 **Design Specifications**:
+
 ```typescript
 // apps/web/src/components/layout/NavigationRail.svelte
 interface Props {
@@ -179,6 +182,7 @@ const NAVIGATION_ITEMS = [
 ```
 
 **Styling**:
+
 ```css
 .navigation-rail {
   width: 64px;
@@ -217,6 +221,7 @@ const NAVIGATION_ITEMS = [
 **Purpose**: Context-aware panel that changes content based on current page.
 
 **Design Specifications**:
+
 ```typescript
 // apps/web/src/components/layout/SecondarySidebar.svelte
 interface Props {
@@ -227,6 +232,7 @@ interface Props {
 ```
 
 **Responsive Behavior**:
+
 - **Desktop (> 1024px)**: Always visible (280px)
 - **Tablet (768px - 1024px)**: Collapsed to icons (64px), expands on hover
 - **Mobile (< 768px)**: Hidden, slide-in drawer from left
@@ -263,6 +269,7 @@ apps/web/src/routes/
 **Status**: ✅ Partially implemented (Better Auth setup exists)
 
 **Required Endpoints**:
+
 ```typescript
 // packages/api/src/routers/auth.ts
 export const authRouter = {
@@ -273,21 +280,25 @@ export const authRouter = {
 
   // POST /rpc/auth.signIn
   signIn: publicProcedure
-    .input(z.object({
-      email: z.string().email(),
-      password: z.string().min(8),
-    }))
+    .input(
+      z.object({
+        email: z.string().email(),
+        password: z.string().min(8),
+      })
+    )
     .handler(async ({ input }) => {
       // Better Auth signIn
     }),
 
   // POST /rpc/auth.signUp
   signUp: publicProcedure
-    .input(z.object({
-      email: z.string().email(),
-      password: z.string().min(8),
-      name: z.string().min(1),
-    }))
+    .input(
+      z.object({
+        email: z.string().email(),
+        password: z.string().min(8),
+        name: z.string().min(1),
+      })
+    )
     .handler(async ({ input }) => {
       // Better Auth signUp
     }),
@@ -300,27 +311,28 @@ export const authRouter = {
 ```
 
 **Unit Tests**:
+
 ```typescript
 // packages/api/src/routers/__tests__/auth.test.ts
 describe('authRouter', () => {
   describe('signIn', () => {
     it('should reject invalid email format', async () => {
       const result = await authRouter.signIn({
-        input: { email: 'invalid', password: 'password123' }
+        input: { email: 'invalid', password: 'password123' },
       });
       expect(result).toThrow(ZodError);
     });
 
     it('should reject short password', async () => {
       const result = await authRouter.signIn({
-        input: { email: 'user@example.com', password: 'short' }
+        input: { email: 'user@example.com', password: 'short' },
       });
       expect(result).toThrow(ZodError);
     });
 
     it('should sign in with valid credentials', async () => {
       const result = await authRouter.signIn.handler({
-        input: { email: 'user@example.com', password: 'password123' }
+        input: { email: 'user@example.com', password: 'password123' },
       });
       expect(result).toHaveProperty('session');
     });
@@ -333,6 +345,7 @@ describe('authRouter', () => {
 **Status**: ⏳ Not implemented
 
 **Required Endpoints**:
+
 ```typescript
 // packages/api/src/routers/chat.ts
 export const chatRouter = {
@@ -354,21 +367,18 @@ export const chatRouter = {
       const results = await db
         .select()
         .from(chats)
-        .where(
-          and(
-            eq(chats.id, input.id),
-            eq(chats.userId, userId)
-          )
-        );
+        .where(and(eq(chats.id, input.id), eq(chats.userId, userId)));
       return results[0];
     }),
 
   // POST /rpc/chat.create
   create: protectedProcedure
-    .input(z.object({
-      title: z.string().min(1).default('New Chat'),
-      modelId: z.string(),
-    }))
+    .input(
+      z.object({
+        title: z.string().min(1).default('New Chat'),
+        modelId: z.string(),
+      })
+    )
     .handler(async ({ input, context }) => {
       const userId = context.session.user.id;
       const [chat] = await db
@@ -384,23 +394,20 @@ export const chatRouter = {
 
   // PATCH /rpc/chat.update
   update: protectedProcedure
-    .input(z.object({
-      id: z.number(),
-      title: z.string().min(1).optional(),
-      modelId: z.string().optional(),
-    }))
+    .input(
+      z.object({
+        id: z.number(),
+        title: z.string().min(1).optional(),
+        modelId: z.string().optional(),
+      })
+    )
     .handler(async ({ input, context }) => {
       const userId = context.session.user.id;
       const { id, ...data } = input;
       const results = await db
         .update(chats)
         .set(data)
-        .where(
-          and(
-            eq(chats.id, id),
-            eq(chats.userId, userId)
-          )
-        )
+        .where(and(eq(chats.id, id), eq(chats.userId, userId)))
         .returning();
       return results[0];
     }),
@@ -410,52 +417,47 @@ export const chatRouter = {
     .input(z.object({ id: z.number() }))
     .handler(async ({ input, context }) => {
       const userId = context.session.user.id;
-      await db
-        .delete(chats)
-        .where(
-          and(
-            eq(chats.id, input.id),
-            eq(chats.userId, userId)
-          )
-        );
+      await db.delete(chats).where(and(eq(chats.id, input.id), eq(chats.userId, userId)));
       return { success: true };
     }),
 };
 ```
 
 **Database Schema**:
+
 ```typescript
 // packages/db/src/schema/chat.ts
-import { pgTable, serial, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
-export const chats = pgTable("chats", {
-  id: serial("id").primaryKey(),
-  userId: uuid("user_id")
+export const chats = pgTable('chats', {
+  id: serial('id').primaryKey(),
+  userId: uuid('user_id')
     .references(() => users.id)
     .notNull(),
-  title: text("title").notNull(),
-  modelId: text("model_id").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  title: text('title').notNull(),
+  modelId: text('model_id').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 ```
 
 **Unit Tests**:
+
 ```typescript
 // packages/api/src/routers/__tests__/chat.test.ts
 describe('chatRouter', () => {
   describe('getAll', () => {
-    it('should return only user\'s own chats', async () => {
+    it("should return only user's own chats", async () => {
       const mockContext = {
-        session: { user: { id: 'user-123' } }
+        session: { user: { id: 'user-123' } },
       };
 
       const result = await chatRouter.getAll.handler({
-        context: mockContext
+        context: mockContext,
       });
 
       expect(result).toBeInstanceOf(Array);
-      result.forEach(chat => {
+      result.forEach((chat) => {
         expect(chat.userId).toBe('user-123');
       });
     });
@@ -469,7 +471,7 @@ describe('chatRouter', () => {
     it('should create chat with default title', async () => {
       const result = await chatRouter.create.handler({
         input: { modelId: 'gpt-4' },
-        context: mockContext
+        context: mockContext,
       });
       expect(result.title).toBe('New Chat');
     });
@@ -482,16 +484,19 @@ describe('chatRouter', () => {
 **Status**: ⏳ Not implemented
 
 **Required Endpoints**:
+
 ```typescript
 // packages/api/src/routers/message.ts
 export const messageRouter = {
   // POST /rpc/message.stream - Server-sent events streaming
   stream: protectedProcedure
-    .input(z.object({
-      chatId: z.number(),
-      content: z.string().min(1),
-      modelId: z.string(),
-    }))
+    .input(
+      z.object({
+        chatId: z.number(),
+        content: z.string().min(1),
+        modelId: z.string(),
+      })
+    )
     .handler(async ({ input, context }) => {
       // Implementation with streaming support
       // Returns SSE stream
@@ -517,11 +522,13 @@ export const messageRouter = {
 import { stream } from 'hono/streaming';
 
 stream: protectedProcedure
-  .input(z.object({
-    chatId: z.number(),
-    content: z.string().min(1),
-    modelId: z.string(),
-  }))
+  .input(
+    z.object({
+      chatId: z.number(),
+      content: z.string().min(1),
+      modelId: z.string(),
+    })
+  )
   .handler(async ({ input, context }) => {
     const stream = new ReadableStream({
       async start(controller) {
@@ -566,7 +573,7 @@ stream: protectedProcedure
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
+        Connection: 'keep-alive',
       },
     });
   });
@@ -577,25 +584,25 @@ stream: protectedProcedure
 **Status**: ⏳ Not implemented
 
 **Required Endpoints**:
+
 ```typescript
 // packages/api/src/routers/prompt.ts
 export const promptRouter = {
   getAll: protectedProcedure.handler(async ({ context }) => {
     const userId = context.session.user.id;
-    return await db
-      .select()
-      .from(prompts)
-      .where(eq(prompts.userId, userId));
+    return await db.select().from(prompts).where(eq(prompts.userId, userId));
   }),
 
   create: protectedProcedure
-    .input(z.object({
-      name: z.string().min(1),
-      content: z.string().min(1),
-      variables: z.array(z.string()).optional(),
-      category: z.string().optional(),
-      isPublic: z.boolean().default(false),
-    }))
+    .input(
+      z.object({
+        name: z.string().min(1),
+        content: z.string().min(1),
+        variables: z.array(z.string()).optional(),
+        category: z.string().optional(),
+        isPublic: z.boolean().default(false),
+      })
+    )
     .handler(async ({ input, context }) => {
       const userId = context.session.user.id;
       const [prompt] = await db
@@ -606,25 +613,22 @@ export const promptRouter = {
     }),
 
   update: protectedProcedure
-    .input(z.object({
-      id: z.number(),
-      name: z.string().min(1).optional(),
-      content: z.string().min(1).optional(),
-      variables: z.array(z.string()).optional(),
-      category: z.string().optional(),
-    }))
+    .input(
+      z.object({
+        id: z.number(),
+        name: z.string().min(1).optional(),
+        content: z.string().min(1).optional(),
+        variables: z.array(z.string()).optional(),
+        category: z.string().optional(),
+      })
+    )
     .handler(async ({ input, context }) => {
       const userId = context.session.user.id;
       const { id, ...data } = input;
       const results = await db
         .update(prompts)
         .set(data)
-        .where(
-          and(
-            eq(prompts.id, id),
-            eq(prompts.userId, userId)
-          )
-        )
+        .where(and(eq(prompts.id, id), eq(prompts.userId, userId)))
         .returning();
       return results[0];
     }),
@@ -633,14 +637,7 @@ export const promptRouter = {
     .input(z.object({ id: z.number() }))
     .handler(async ({ input, context }) => {
       const userId = context.session.user.id;
-      await db
-        .delete(prompts)
-        .where(
-          and(
-            eq(prompts.id, input.id),
-            eq(prompts.userId, userId)
-          )
-        );
+      await db.delete(prompts).where(and(eq(prompts.id, input.id), eq(prompts.userId, userId)));
       return { success: true };
     }),
 };
@@ -651,6 +648,7 @@ export const promptRouter = {
 **Status**: ⏳ Not implemented
 
 **Required Endpoints**:
+
 ```typescript
 // packages/api/src/routers/apiKey.ts
 export const apiKeyRouter = {
@@ -669,10 +667,12 @@ export const apiKeyRouter = {
   }),
 
   create: protectedProcedure
-    .input(z.object({
-      provider: z.enum(['openai', 'anthropic', 'google', 'groq', 'ollama']),
-      apiKey: z.string().min(20),
-    }))
+    .input(
+      z.object({
+        provider: z.enum(['openai', 'anthropic', 'google', 'groq', 'ollama']),
+        apiKey: z.string().min(20),
+      })
+    )
     .handler(async ({ input, context }) => {
       const userId = context.session.user.id;
 
@@ -701,14 +701,7 @@ export const apiKeyRouter = {
     .input(z.object({ id: z.number() }))
     .handler(async ({ input, context }) => {
       const userId = context.session.user.id;
-      await db
-        .delete(apiKeys)
-        .where(
-          and(
-            eq(apiKeys.id, input.id),
-            eq(apiKeys.userId, userId)
-          )
-        );
+      await db.delete(apiKeys).where(and(eq(apiKeys.id, input.id), eq(apiKeys.userId, userId)));
       return { success: true };
     }),
 };
@@ -737,6 +730,7 @@ export const apiKeyRouter = {
 ### Unit Testing with Vitest
 
 **Setup** (already configured in project):
+
 ```bash
 # Run unit tests
 bun test
@@ -749,6 +743,7 @@ bun test:watch
 ```
 
 **Example Test Structure**:
+
 ```typescript
 // packages/api/src/routers/__tests__/chat.test.ts
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -797,7 +792,7 @@ describe('chatRouter', () => {
       expect(result).toEqual([]);
     });
 
-    it('should return user\'s chats ordered by updatedAt', async () => {
+    it("should return user's chats ordered by updatedAt", async () => {
       const mockChats = [
         { id: 2, title: 'Chat 2', updatedAt: new Date('2026-01-11') },
         { id: 1, title: 'Chat 1', updatedAt: new Date('2026-01-10') },
@@ -904,13 +899,11 @@ describe('Chat API Integration', () => {
     expect(retrieved.id).toBe(created.id);
   });
 
-  it('should prevent accessing other user\'s chats', async () => {
+  it("should prevent accessing other user's chats", async () => {
     const otherUser = await createTestUser();
     const otherChat = await createChatForUser(otherUser);
 
-    await expect(
-      testClient.chat.getById({ id: otherChat.id })
-    ).rejects.toThrow('NOT_FOUND');
+    await expect(testClient.chat.getById({ id: otherChat.id })).rejects.toThrow('NOT_FOUND');
   });
 });
 ```
@@ -966,51 +959,51 @@ test.describe('Chat Flow', () => {
 
 ### Week 1-2: Foundation (Backend Only)
 
-| Task | Backend | Unit Tests | Frontend |
-|------|---------|------------|----------|
-| Auth module completion | ✅ | ✅ | ❌ |
-| Database migrations | ✅ | N/A | ❌ |
-| CI/CD pipeline | ✅ | ✅ | ❌ |
+| Task                   | Backend | Unit Tests | Frontend |
+| ---------------------- | ------- | ---------- | -------- |
+| Auth module completion | ✅      | ✅         | ❌       |
+| Database migrations    | ✅      | N/A        | ❌       |
+| CI/CD pipeline         | ✅      | ✅         | ❌       |
 
 ### Week 3-4: Chat Backend
 
-| Task | Backend | Unit Tests | Frontend |
-|------|---------|------------|----------|
-| Chat CRUD API | ✅ | ✅ | ❌ |
-| Message API | ✅ | ✅ | ❌ |
-| Streaming endpoint | ✅ | ✅ | ❌ |
+| Task               | Backend | Unit Tests | Frontend |
+| ------------------ | ------- | ---------- | -------- |
+| Chat CRUD API      | ✅      | ✅         | ❌       |
+| Message API        | ✅      | ✅         | ❌       |
+| Streaming endpoint | ✅      | ✅         | ❌       |
 
 ### Week 5-6: Frontend Foundation
 
-| Task | Backend | Unit Tests | Frontend |
-|------|---------|------------|----------|
-| NavigationRail | N/A | N/A | ✅ |
-| SecondarySidebar | ✅ API exists | N/A | ✅ |
-| Auth pages | ✅ API exists | N/A | ✅ |
+| Task             | Backend       | Unit Tests | Frontend |
+| ---------------- | ------------- | ---------- | -------- |
+| NavigationRail   | N/A           | N/A        | ✅       |
+| SecondarySidebar | ✅ API exists | N/A        | ✅       |
+| Auth pages       | ✅ API exists | N/A        | ✅       |
 
 ### Week 7-8: Chat UI
 
-| Task | Backend | Unit Tests | Frontend |
-|------|---------|------------|----------|
-| ChatInterface | ✅ API exists | N/A | ✅ |
-| Message component | ✅ API exists | N/A | ✅ |
-| Streaming UI | ✅ API exists | N/A | ✅ |
+| Task              | Backend       | Unit Tests | Frontend |
+| ----------------- | ------------- | ---------- | -------- |
+| ChatInterface     | ✅ API exists | N/A        | ✅       |
+| Message component | ✅ API exists | N/A        | ✅       |
+| Streaming UI      | ✅ API exists | N/A        | ✅       |
 
 ### Week 9-10: Additional Features
 
-| Task | Backend | Unit Tests | Frontend |
-|------|---------|------------|----------|
-| Prompt CRUD | ✅ | ✅ | ✅ |
-| API Key CRUD | ✅ | ✅ | ✅ |
+| Task         | Backend | Unit Tests | Frontend |
+| ------------ | ------- | ---------- | -------- |
+| Prompt CRUD  | ✅      | ✅         | ✅       |
+| API Key CRUD | ✅      | ✅         | ✅       |
 
 ### Week 11: Testing & Polish
 
-| Task | Type |
-|------|------|
-| Unit test coverage | Vitest |
-| Integration tests | ORPC test client |
-| E2E tests | Playwright |
-| Performance testing | Lighthouse |
+| Task                | Type             |
+| ------------------- | ---------------- |
+| Unit test coverage  | Vitest           |
+| Integration tests   | ORPC test client |
+| E2E tests           | Playwright       |
+| Performance testing | Lighthouse       |
 
 ---
 
@@ -1018,35 +1011,35 @@ test.describe('Chat Flow', () => {
 
 ### Component ↔ API Mapping
 
-| UI Component | Required API Endpoints | Status |
-|--------------|----------------------|--------|
-| NavigationRail | None (static) | ✅ |
-| SecondarySidebar (chats) | `chat.getAll`, `chat.create`, `chat.delete` | ⏳ |
-| ChatInterface | `chat.getById`, `message.getByChatId`, `message.stream` | ⏳ |
-| Message | (data from `message.getByChatId`) | ⏳ |
-| ModelSelector | Config (static) or `model.list` API | ✅ (static) |
-| PromptLibrary | `prompt.getAll`, `prompt.create`, `prompt.update`, `prompt.delete` | ⏳ |
-| APIKeyManager | `apiKey.getAll`, `apiKey.create`, `apiKey.delete` | ⏳ |
-| SettingsNav | None (static) | ✅ |
+| UI Component             | Required API Endpoints                                             | Status      |
+| ------------------------ | ------------------------------------------------------------------ | ----------- |
+| NavigationRail           | None (static)                                                      | ✅          |
+| SecondarySidebar (chats) | `chat.getAll`, `chat.create`, `chat.delete`                        | ⏳          |
+| ChatInterface            | `chat.getById`, `message.getByChatId`, `message.stream`            | ⏳          |
+| Message                  | (data from `message.getByChatId`)                                  | ⏳          |
+| ModelSelector            | Config (static) or `model.list` API                                | ✅ (static) |
+| PromptLibrary            | `prompt.getAll`, `prompt.create`, `prompt.update`, `prompt.delete` | ⏳          |
+| APIKeyManager            | `apiKey.getAll`, `apiKey.create`, `apiKey.delete`                  | ⏳          |
+| SettingsNav              | None (static)                                                      | ✅          |
 
 ### ORPC Router Structure (Target)
 
 ```typescript
 export const appRouter = {
   // Health & Auth
-  healthCheck: publicProcedure.handler(() => "OK"),
+  healthCheck: publicProcedure.handler(() => 'OK'),
   auth: authRouter,
 
   // Chat (Protected)
-  chat: chatRouter,        // getAll, getById, create, update, delete
-  message: messageRouter,  // getByChatId, stream
+  chat: chatRouter, // getAll, getById, create, update, delete
+  message: messageRouter, // getByChatId, stream
 
   // Content (Protected)
-  prompt: promptRouter,    // getAll, getById, create, update, delete
+  prompt: promptRouter, // getAll, getById, create, update, delete
 
   // Settings (Protected)
-  apiKey: apiKeyRouter,    // getAll, create, delete
-  user: userRouter,        // getProfile, updateSettings
+  apiKey: apiKeyRouter, // getAll, create, delete
+  user: userRouter, // getProfile, updateSettings
 
   // Example (Public - remove in production)
   todo: todoRouter,
@@ -1059,25 +1052,25 @@ export const appRouter = {
 
 ### Updated Phase 1 (MVP) - Backend First
 
-| Week | Backend Focus | Testing | Frontend Focus |
-|------|--------------|---------|----------------|
-| 1-2 | Auth module, DB setup | Unit tests for auth | Layout setup |
-| 3-4 | Chat + Message APIs | Unit + integration tests | Auth pages |
-| 5-6 | Streaming implementation | Integration tests | NavigationRail + Sidebar |
-| 7-8 | Prompt + API key APIs | Unit tests | ChatInterface |
-| 9-10 | User settings API | Unit tests | PromptLibrary, APIKeyManager |
-| 11 | Performance optimization | E2E tests | Polish, animations |
-| 12 | Documentation, deployment | Final tests | Final polish |
+| Week | Backend Focus             | Testing                  | Frontend Focus               |
+| ---- | ------------------------- | ------------------------ | ---------------------------- |
+| 1-2  | Auth module, DB setup     | Unit tests for auth      | Layout setup                 |
+| 3-4  | Chat + Message APIs       | Unit + integration tests | Auth pages                   |
+| 5-6  | Streaming implementation  | Integration tests        | NavigationRail + Sidebar     |
+| 7-8  | Prompt + API key APIs     | Unit tests               | ChatInterface                |
+| 9-10 | User settings API         | Unit tests               | PromptLibrary, APIKeyManager |
+| 11   | Performance optimization  | E2E tests                | Polish, animations           |
+| 12   | Documentation, deployment | Final tests              | Final polish                 |
 
 ### Success Metrics (Updated)
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| Backend API Coverage | >80% | Vitest coverage |
-| Unit Test Pass Rate | 100% | CI checks |
-| Integration Tests | All CRUD paths | Vitest |
-| E2E Tests | Critical user flows | Playwright |
-| Type Safety | 100% | TypeScript strict mode |
+| Metric               | Target              | Measurement            |
+| -------------------- | ------------------- | ---------------------- |
+| Backend API Coverage | >80%                | Vitest coverage        |
+| Unit Test Pass Rate  | 100%                | CI checks              |
+| Integration Tests    | All CRUD paths      | Vitest                 |
+| E2E Tests            | Critical user flows | Playwright             |
+| Type Safety          | 100%                | TypeScript strict mode |
 
 ---
 

@@ -76,12 +76,12 @@ All four jobs must pass before a PR can be merged.
 
 The following status checks must be marked as required in GitHub branch protection:
 
-| Job Name | Status Check Name |
-|----------|------------------|
+| Job Name   | Status Check Name              |
+| ---------- | ------------------------------ |
 | Type Check | `CI (type-check) / Type Check` |
-| Lint | `CI (lint) / Lint` |
-| Build | `CI (build) / Build` |
-| Test | `CI (test) / Test` |
+| Lint       | `CI (lint) / Lint`             |
+| Build      | `CI (build) / Build`           |
+| Test       | `CI (test) / Test`             |
 
 ## Verification
 

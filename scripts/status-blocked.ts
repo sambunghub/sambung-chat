@@ -29,10 +29,10 @@ interface Config {
 
 function main() {
   const config: Config = JSON.parse(readFileSync(STATUS_CONFIG, 'utf-8'));
-  const allTasks = config.phases.flatMap(p => p.tasks);
+  const allTasks = config.phases.flatMap((p) => p.tasks);
 
   // Filter blocked tasks
-  const blocked = allTasks.filter(t => t.blocked || t.status === 'blocked');
+  const blocked = allTasks.filter((t) => t.blocked || t.status === 'blocked');
 
   if (blocked.length === 0) {
     console.log('\n✅ No blocked tasks!\n');
@@ -44,7 +44,7 @@ function main() {
 
   blocked
     .sort((a, b) => a.week - b.week)
-    .forEach(task => {
+    .forEach((task) => {
       const priorityIcon = task.priority === 'P0' ? '🚨' : task.priority === 'P1' ? '⭐' : '📌';
       console.log(`\n${priorityIcon} ${task.title}`);
       console.log(`   Week: ${task.week} | Priority: ${task.priority} | ID: ${task.id}`);

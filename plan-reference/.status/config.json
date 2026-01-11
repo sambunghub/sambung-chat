@@ -23,9 +23,7 @@
           "priority": "P0",
           "status": "completed",
           "category": "legal",
-          "files": [
-            "LICENSE"
-          ],
+          "files": ["LICENSE"],
           "blocked": false,
           "description": "Add AGPL-3.0 LICENSE to root directory",
           "completedAt": "2026-01-11"
@@ -37,11 +35,7 @@
           "priority": "P0",
           "status": "pending",
           "category": "infrastructure",
-          "files": [
-            ".github/CONTRIBUTING.md",
-            ".github/CODE_OF_CONDUCT.md",
-            ".github/SECURITY.md"
-          ],
+          "files": [".github/CONTRIBUTING.md", ".github/CODE_OF_CONDUCT.md", ".github/SECURITY.md"],
           "blocked": false,
           "description": "Create community standard templates"
         },
@@ -52,10 +46,7 @@
           "priority": "P0",
           "status": "pending",
           "category": "infrastructure",
-          "files": [
-            ".github/workflows/ci.yml",
-            ".github/workflows/lint.yml"
-          ],
+          "files": [".github/workflows/ci.yml", ".github/workflows/lint.yml"],
           "blocked": false,
           "description": "Setup type checking and linting workflows"
         },
@@ -66,11 +57,7 @@
           "priority": "P1",
           "status": "pending",
           "category": "infrastructure",
-          "files": [
-            ".eslintrc.js",
-            ".prettierrc",
-            ".husky/pre-commit"
-          ],
+          "files": [".eslintrc.js", ".prettierrc", ".husky/pre-commit"],
           "blocked": false,
           "description": "Configure code quality tools"
         },
@@ -81,10 +68,7 @@
           "priority": "P0",
           "status": "completed",
           "category": "infrastructure",
-          "files": [
-            "turbo.json",
-            "package.json"
-          ],
+          "files": ["turbo.json", "package.json"],
           "completedAt": "2026-01-06"
         },
         {
@@ -108,9 +92,7 @@
           "priority": "P0",
           "status": "completed",
           "category": "backend",
-          "files": [
-            "packages/auth/src/index.ts"
-          ],
+          "files": ["packages/auth/src/index.ts"],
           "completedAt": "2026-01-08"
         },
         {
@@ -134,9 +116,7 @@
           "priority": "P1",
           "status": "completed",
           "category": "frontend",
-          "files": [
-            "packages/ui/src/lib/components/ui"
-          ],
+          "files": ["packages/ui/src/lib/components/ui"],
           "completedAt": "2026-01-10"
         },
         {
@@ -159,13 +139,9 @@
           "priority": "P1",
           "status": "pending",
           "category": "backend",
-          "files": [
-            "packages/api/src/routers/auth.ts"
-          ],
+          "files": ["packages/api/src/routers/auth.ts"],
           "blocked": false,
-          "dependencies": [
-            "better-auth-setup"
-          ],
+          "dependencies": ["better-auth-setup"],
           "description": "Implement signIn, signUp, signOut, getSession"
         },
         {
@@ -175,13 +151,9 @@
           "priority": "P1",
           "status": "pending",
           "category": "testing",
-          "files": [
-            "packages/api/src/routers/__tests__/auth.test.ts"
-          ],
+          "files": ["packages/api/src/routers/__tests__/auth.test.ts"],
           "blocked": false,
-          "dependencies": [
-            "auth-router"
-          ],
+          "dependencies": ["auth-router"],
           "description": "Unit tests with Vitest"
         },
         {
@@ -191,13 +163,9 @@
           "priority": "P1",
           "status": "pending",
           "category": "frontend",
-          "files": [
-            "apps/web/src/routes/(auth)/login/+page.svelte"
-          ],
+          "files": ["apps/web/src/routes/(auth)/login/+page.svelte"],
           "blocked": false,
-          "dependencies": [
-            "auth-router"
-          ],
+          "dependencies": ["auth-router"],
           "description": "Login form with email/password"
         },
         {
@@ -207,13 +175,9 @@
           "priority": "P1",
           "status": "pending",
           "category": "frontend",
-          "files": [
-            "apps/web/src/routes/(auth)/register/+page.svelte"
-          ],
+          "files": ["apps/web/src/routes/(auth)/register/+page.svelte"],
           "blocked": false,
-          "dependencies": [
-            "auth-router"
-          ],
+          "dependencies": ["auth-router"],
           "description": "Registration form with validation"
         },
         {
@@ -223,9 +187,7 @@
           "priority": "P1",
           "status": "pending",
           "category": "frontend",
-          "files": [
-            "packages/ui/src/components/layout/AuthLayout.svelte"
-          ],
+          "files": ["packages/ui/src/components/layout/AuthLayout.svelte"],
           "blocked": false,
           "description": "Centered card layout for auth pages"
         },
@@ -236,13 +198,9 @@
           "priority": "P1",
           "status": "pending",
           "category": "backend",
-          "files": [
-            "apps/server/src/middleware/auth.ts"
-          ],
+          "files": ["apps/server/src/middleware/auth.ts"],
           "blocked": false,
-          "dependencies": [
-            "auth-router"
-          ],
+          "dependencies": ["auth-router"],
           "description": "Protected routes middleware"
         },
         {
@@ -252,9 +210,7 @@
           "priority": "P1",
           "status": "pending",
           "category": "frontend",
-          "files": [
-            "packages/ui/src/components/layout/NavigationRail.svelte"
-          ],
+          "files": ["packages/ui/src/components/layout/NavigationRail.svelte"],
           "blocked": false,
           "description": "64px icon-only navigation rail"
         },
@@ -265,9 +221,7 @@
           "priority": "P1",
           "status": "pending",
           "category": "frontend",
-          "files": [
-            "packages/ui/src/components/layout/SecondarySidebar.svelte"
-          ],
+          "files": ["packages/ui/src/components/layout/SecondarySidebar.svelte"],
           "blocked": false,
           "description": "280px context-aware sidebar"
         },
@@ -278,14 +232,9 @@
           "priority": "P1",
           "status": "pending",
           "category": "frontend",
-          "files": [
-            "packages/ui/src/components/layout/AppLayout.svelte"
-          ],
+          "files": ["packages/ui/src/components/layout/AppLayout.svelte"],
           "blocked": false,
-          "dependencies": [
-            "navigation-rail",
-            "secondary-sidebar"
-          ],
+          "dependencies": ["navigation-rail", "secondary-sidebar"],
           "description": "Dual sidebar layout with header"
         },
         {
@@ -295,9 +244,7 @@
           "priority": "P1",
           "status": "completed",
           "category": "backend",
-          "files": [
-            "packages/db/src/schema/chat.ts"
-          ],
+          "files": ["packages/db/src/schema/chat.ts"],
           "blocked": false,
           "description": "Chats table with user relation",
           "completedAt": "2026-01-11"
@@ -309,9 +256,7 @@
           "priority": "P1",
           "status": "pending",
           "category": "backend",
-          "files": [
-            "packages/db/src/schema/message.ts"
-          ],
+          "files": ["packages/db/src/schema/message.ts"],
           "blocked": false,
           "description": "Messages table with chat relation"
         },
@@ -323,10 +268,7 @@
           "status": "pending",
           "category": "backend",
           "blocked": false,
-          "dependencies": [
-            "chat-schema",
-            "message-schema"
-          ],
+          "dependencies": ["chat-schema", "message-schema"],
           "description": "Generate and push migration"
         },
         {
@@ -336,13 +278,9 @@
           "priority": "P1",
           "status": "completed",
           "category": "backend",
-          "files": [
-            "packages/api/src/routers/chat.ts"
-          ],
+          "files": ["packages/api/src/routers/chat.ts"],
           "blocked": false,
-          "dependencies": [
-            "db-migration"
-          ],
+          "dependencies": ["db-migration"],
           "description": "getAll, getById, create, update, delete",
           "completedAt": "2026-01-11"
         },
@@ -353,13 +291,9 @@
           "priority": "P1",
           "status": "completed",
           "category": "backend",
-          "files": [
-            "packages/api/src/routers/message.ts"
-          ],
+          "files": ["packages/api/src/routers/message.ts"],
           "blocked": false,
-          "dependencies": [
-            "db-migration"
-          ],
+          "dependencies": ["db-migration"],
           "description": "getByChatId, stream (SSE)",
           "completedAt": "2026-01-11"
         },
@@ -370,13 +304,9 @@
           "priority": "P2",
           "status": "pending",
           "category": "testing",
-          "files": [
-            "packages/api/src/routers/__tests__/chat.test.ts"
-          ],
+          "files": ["packages/api/src/routers/__tests__/chat.test.ts"],
           "blocked": false,
-          "dependencies": [
-            "chat-router"
-          ]
+          "dependencies": ["chat-router"]
         },
         {
           "id": "message-tests",
@@ -385,13 +315,9 @@
           "priority": "P2",
           "status": "pending",
           "category": "testing",
-          "files": [
-            "packages/api/src/routers/__tests__/message.test.ts"
-          ],
+          "files": ["packages/api/src/routers/__tests__/message.test.ts"],
           "blocked": false,
-          "dependencies": [
-            "message-router"
-          ]
+          "dependencies": ["message-router"]
         },
         {
           "id": "llm-integration",
@@ -400,9 +326,7 @@
           "priority": "P1",
           "status": "pending",
           "category": "backend",
-          "files": [
-            "packages/llm/src/index.ts"
-          ],
+          "files": ["packages/llm/src/index.ts"],
           "blocked": false,
           "description": "OpenAI, Anthropic, Google, Groq, Ollama"
         },
@@ -413,9 +337,7 @@
           "priority": "P1",
           "status": "pending",
           "category": "security",
-          "files": [
-            "packages/crypto/src/index.ts"
-          ],
+          "files": ["packages/crypto/src/index.ts"],
           "blocked": false,
           "description": "AES-256 encryption for API keys"
         },
@@ -426,9 +348,7 @@
           "priority": "P1",
           "status": "pending",
           "category": "backend",
-          "files": [
-            "packages/db/src/schema/api-keys.ts"
-          ],
+          "files": ["packages/db/src/schema/api-keys.ts"],
           "blocked": false,
           "description": "Encrypted API key storage"
         },
@@ -439,14 +359,9 @@
           "priority": "P1",
           "status": "pending",
           "category": "backend",
-          "files": [
-            "packages/api/src/routers/api-key.ts"
-          ],
+          "files": ["packages/api/src/routers/api-key.ts"],
           "blocked": false,
-          "dependencies": [
-            "api-keys-schema",
-            "api-key-encryption"
-          ],
+          "dependencies": ["api-keys-schema", "api-key-encryption"],
           "description": "getAll, create, delete"
         },
         {
@@ -456,14 +371,9 @@
           "priority": "P1",
           "status": "pending",
           "category": "frontend",
-          "files": [
-            "apps/web/src/components/chat/ChatInterface.svelte"
-          ],
+          "files": ["apps/web/src/components/chat/ChatInterface.svelte"],
           "blocked": false,
-          "dependencies": [
-            "chat-router",
-            "message-router"
-          ],
+          "dependencies": ["chat-router", "message-router"],
           "description": "Message list, input area, streaming"
         },
         {
@@ -473,9 +383,7 @@
           "priority": "P1",
           "status": "pending",
           "category": "frontend",
-          "files": [
-            "apps/web/src/components/chat/Message.svelte"
-          ],
+          "files": ["apps/web/src/components/chat/Message.svelte"],
           "blocked": false,
           "description": "Markdown rendering, syntax highlighting"
         },
@@ -486,9 +394,7 @@
           "priority": "P1",
           "status": "pending",
           "category": "frontend",
-          "files": [
-            "apps/web/src/components/chat/ChatInput.svelte"
-          ],
+          "files": ["apps/web/src/components/chat/ChatInput.svelte"],
           "blocked": false,
           "description": "Auto-resize textarea, send button"
         },
@@ -499,9 +405,7 @@
           "priority": "P1",
           "status": "pending",
           "category": "frontend",
-          "files": [
-            "apps/web/src/components/chat/ModelSelector.svelte"
-          ],
+          "files": ["apps/web/src/components/chat/ModelSelector.svelte"],
           "blocked": false,
           "description": "Provider grouping, model selection"
         },
@@ -512,14 +416,9 @@
           "priority": "P1",
           "status": "pending",
           "category": "backend",
-          "files": [
-            "packages/api/src/routers/message/stream.ts"
-          ],
+          "files": ["packages/api/src/routers/message/stream.ts"],
           "blocked": false,
-          "dependencies": [
-            "message-router",
-            "llm-integration"
-          ],
+          "dependencies": ["message-router", "llm-integration"],
           "description": "Server-Sent Events implementation"
         },
         {
@@ -529,9 +428,7 @@
           "priority": "P1",
           "status": "pending",
           "category": "frontend",
-          "files": [
-            "apps/web/src/components/chat/ChatList.svelte"
-          ],
+          "files": ["apps/web/src/components/chat/ChatList.svelte"],
           "blocked": false,
           "description": "Chat list with search"
         },
@@ -543,10 +440,7 @@
           "status": "pending",
           "category": "frontend",
           "blocked": false,
-          "dependencies": [
-            "chat-router",
-            "chat-interface"
-          ],
+          "dependencies": ["chat-router", "chat-interface"],
           "description": "Create, delete, pin operations"
         },
         {
@@ -566,9 +460,7 @@
           "priority": "P1",
           "status": "pending",
           "category": "backend",
-          "files": [
-            "packages/db/src/schema/prompts.ts"
-          ],
+          "files": ["packages/db/src/schema/prompts.ts"],
           "blocked": false,
           "description": "Prompt templates storage"
         },
@@ -579,13 +471,9 @@
           "priority": "P1",
           "status": "pending",
           "category": "backend",
-          "files": [
-            "packages/api/src/routers/prompt.ts"
-          ],
+          "files": ["packages/api/src/routers/prompt.ts"],
           "blocked": false,
-          "dependencies": [
-            "prompts-schema"
-          ],
+          "dependencies": ["prompts-schema"],
           "description": "getAll, create, update, delete"
         },
         {
@@ -595,13 +483,9 @@
           "priority": "P2",
           "status": "pending",
           "category": "testing",
-          "files": [
-            "packages/api/src/routers/__tests__/prompt.test.ts"
-          ],
+          "files": ["packages/api/src/routers/__tests__/prompt.test.ts"],
           "blocked": false,
-          "dependencies": [
-            "prompt-router"
-          ]
+          "dependencies": ["prompt-router"]
         },
         {
           "id": "prompt-library",
@@ -610,9 +494,7 @@
           "priority": "P1",
           "status": "pending",
           "category": "frontend",
-          "files": [
-            "apps/web/src/components/prompts/PromptLibrary.svelte"
-          ],
+          "files": ["apps/web/src/components/prompts/PromptLibrary.svelte"],
           "blocked": false,
           "description": "Grid/list view, search, filter"
         },
@@ -623,9 +505,7 @@
           "priority": "P1",
           "status": "pending",
           "category": "frontend",
-          "files": [
-            "apps/web/src/components/prompts/PromptEditor.svelte"
-          ],
+          "files": ["apps/web/src/components/prompts/PromptEditor.svelte"],
           "blocked": false,
           "description": "Variable substitution"
         },
@@ -636,9 +516,7 @@
           "priority": "P2",
           "status": "pending",
           "category": "content",
-          "files": [
-            "packages/db/src/seed/prompts.ts"
-          ],
+          "files": ["packages/db/src/seed/prompts.ts"],
           "blocked": false,
           "description": "Summarize, Translate, Code Gen"
         },
@@ -649,13 +527,9 @@
           "priority": "P1",
           "status": "pending",
           "category": "frontend",
-          "files": [
-            "apps/web/src/components/settings/APIKeyManager.svelte"
-          ],
+          "files": ["apps/web/src/components/settings/APIKeyManager.svelte"],
           "blocked": false,
-          "dependencies": [
-            "api-key-router"
-          ],
+          "dependencies": ["api-key-router"],
           "description": "List, add, delete, test connection"
         },
         {
@@ -665,9 +539,7 @@
           "priority": "P1",
           "status": "pending",
           "category": "frontend",
-          "files": [
-            "apps/web/src/routes/settings/+page.svelte"
-          ],
+          "files": ["apps/web/src/routes/settings/+page.svelte"],
           "blocked": false,
           "description": "Settings navigation"
         },
@@ -678,9 +550,7 @@
           "priority": "P1",
           "status": "pending",
           "category": "frontend",
-          "files": [
-            "packages/ui/src/components/theme/ThemeToggle.svelte"
-          ],
+          "files": ["packages/ui/src/components/theme/ThemeToggle.svelte"],
           "blocked": false,
           "description": "Light/dark mode with OKLCH colors"
         },
@@ -691,9 +561,7 @@
           "priority": "P2",
           "status": "pending",
           "category": "frontend",
-          "files": [
-            "apps/web/src/routes/settings/appearance/+page.svelte"
-          ],
+          "files": ["apps/web/src/routes/settings/appearance/+page.svelte"],
           "blocked": false,
           "description": "Font size, sidebar width"
         },
@@ -704,9 +572,7 @@
           "priority": "P2",
           "status": "pending",
           "category": "feature",
-          "files": [
-            "packages/api/src/routers/chat/export.ts"
-          ],
+          "files": ["packages/api/src/routers/chat/export.ts"],
           "blocked": false,
           "description": "JSON, Markdown export"
         },
@@ -717,9 +583,7 @@
           "priority": "P2",
           "status": "pending",
           "category": "feature",
-          "files": [
-            "packages/api/src/routers/chat/search.ts"
-          ],
+          "files": ["packages/api/src/routers/chat/search.ts"],
           "blocked": false,
           "description": "Search by title/content"
         },
@@ -730,9 +594,7 @@
           "priority": "P2",
           "status": "pending",
           "category": "feature",
-          "files": [
-            "packages/db/src/schema/tags.ts"
-          ],
+          "files": ["packages/db/src/schema/tags.ts"],
           "blocked": false,
           "description": "Tag and folder system"
         },
@@ -743,9 +605,7 @@
           "priority": "P2",
           "status": "completed",
           "category": "feature",
-          "files": [
-            "packages/db/src/schema/chat.ts"
-          ],
+          "files": ["packages/db/src/schema/chat.ts"],
           "blocked": false,
           "description": "Pin functionality",
           "completedAt": "2026-01-11"
@@ -757,9 +617,7 @@
           "priority": "P1",
           "status": "pending",
           "category": "testing",
-          "files": [
-            "apps/web/tests/e2e/*.spec.ts"
-          ],
+          "files": ["apps/web/tests/e2e/*.spec.ts"],
           "blocked": false,
           "description": "Critical user flows"
         },
@@ -800,9 +658,7 @@
           "priority": "P1",
           "status": "pending",
           "category": "docs",
-          "files": [
-            "docs/deployment/"
-          ],
+          "files": ["docs/deployment/"],
           "blocked": false,
           "description": "Docker, self-hosting guides"
         },

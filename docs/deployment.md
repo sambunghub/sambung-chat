@@ -32,12 +32,12 @@ SambungChat is designed for **easy self-hosting** on any infrastructure. This gu
 
 ### Minimum Requirements
 
-| Resource | Minimum | Recommended |
-|----------|---------|-------------|
-| **CPU** | 2 cores | 4+ cores |
-| **RAM** | 2 GB | 4+ GB |
-| **Storage** | 20 GB | 50+ GB SSD |
-| **OS** | Linux (Ubuntu 22.04+) | Any Linux distro |
+| Resource    | Minimum               | Recommended      |
+| ----------- | --------------------- | ---------------- |
+| **CPU**     | 2 cores               | 4+ cores         |
+| **RAM**     | 2 GB                  | 4+ GB            |
+| **Storage** | 20 GB                 | 50+ GB SSD       |
+| **OS**      | Linux (Ubuntu 22.04+) | Any Linux distro |
 
 ### Software Requirements
 
@@ -92,7 +92,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - '${POSTGRES_PORT:-5432}:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
@@ -110,7 +110,7 @@ services:
       BETTER_AUTH_URL: ${PUBLIC_URL}
       CORS_ORIGIN: ${PUBLIC_URL}
     ports:
-      - "3000:3000"
+      - '3000:3000'
     depends_on:
       - postgres
     restart: unless-stopped
@@ -124,7 +124,7 @@ services:
     environment:
       PUBLIC_SERVER_URL: ${PUBLIC_URL}
     ports:
-      - "5173:5173"
+      - '5173:5173'
     restart: unless-stopped
 
 volumes:
@@ -134,6 +134,7 @@ volumes:
 ### Production Dockerfile
 
 **apps/server/Dockerfile:**
+
 ```dockerfile
 FROM oven/bun:1 AS base
 WORKDIR /app
@@ -187,7 +188,7 @@ metadata:
 data:
   POSTGRES_DB: sambungchat
   POSTGRES_USER: postgres
-  POSTGRES_PORT: "5432"
+  POSTGRES_PORT: '5432'
 ```
 
 ### Secret
@@ -201,7 +202,7 @@ metadata:
   namespace: sambungchat
 type: Opaque
 data:
-  POSTGRES_PASSWORD: cGFzc3dvcmQ=  # base64 encoded
+  POSTGRES_PASSWORD: cGFzc3dvcmQ= # base64 encoded
   BETTER_AUTH_SECRET: eW91ci1zZWNyZXQ=
 ```
 
@@ -226,37 +227,37 @@ spec:
         app: postgres
     spec:
       containers:
-      - name: postgres
-        image: postgres:16-alpine
-        env:
-        - name: POSTGRES_DB
-          valueFrom:
-            configMapKeyRef:
-              name: sambungchat-config
-              key: POSTGRES_DB
-        - name: POSTGRES_USER
-          valueFrom:
-            configMapKeyRef:
-              name: sambungchat-config
-              key: POSTGRES_USER
-        - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: sambungchat-secret
-              key: POSTGRES_PASSWORD
-        ports:
-        - containerPort: 5432
-        volumeMounts:
-        - name: postgres-data
-          mountPath: /var/lib/postgresql/data
+        - name: postgres
+          image: postgres:16-alpine
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: sambungchat-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: sambungchat-config
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sambungchat-secret
+                  key: POSTGRES_PASSWORD
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
   volumeClaimTemplates:
-  - metadata:
-      name: postgres-data
-    spec:
-      accessModes: ["ReadWriteOnce"]
-      resources:
-        requests:
-          storage: 20Gi
+    - metadata:
+        name: postgres-data
+      spec:
+        accessModes: ['ReadWriteOnce']
+        resources:
+          requests:
+            storage: 20Gi
 
 ---
 apiVersion: v1
@@ -268,7 +269,7 @@ spec:
   selector:
     app: postgres
   ports:
-  - port: 5432
+    - port: 5432
   clusterIP: None
 ```
 
@@ -292,39 +293,39 @@ spec:
         app: backend
     spec:
       containers:
-      - name: backend
-        image: sambungchat/backend:latest
-        env:
-        - name: DATABASE_URL
-          value: postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgres:5432/$(POSTGRES_DB)
-          valueFrom:
-            configMapKeyRef:
-              name: sambungchat-config
-              key: POSTGRES_USER
-        - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: sambungchat-secret
-              key: POSTGRES_PASSWORD
-        - name: BETTER_AUTH_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: sambungchat-secret
-              key: BETTER_AUTH_SECRET
-        ports:
-        - containerPort: 3000
-        livenessProbe:
-          httpGet:
-            path: /rpc/healthCheck
-            port: 3000
-          initialDelaySeconds: 10
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /rpc/healthCheck
-            port: 3000
-          initialDelaySeconds: 5
-          periodSeconds: 5
+        - name: backend
+          image: sambungchat/backend:latest
+          env:
+            - name: DATABASE_URL
+              value: postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgres:5432/$(POSTGRES_DB)
+              valueFrom:
+                configMapKeyRef:
+                  name: sambungchat-config
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sambungchat-secret
+                  key: POSTGRES_PASSWORD
+            - name: BETTER_AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: sambungchat-secret
+                  key: BETTER_AUTH_SECRET
+          ports:
+            - containerPort: 3000
+          livenessProbe:
+            httpGet:
+              path: /rpc/healthCheck
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /rpc/healthCheck
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
 
 ---
 apiVersion: v1
@@ -336,7 +337,7 @@ spec:
   selector:
     app: backend
   ports:
-  - port: 3000
+    - port: 3000
   type: ClusterIP
 ```
 
@@ -351,24 +352,24 @@ metadata:
   namespace: sambungchat
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-body-size: '10m'
 spec:
   ingressClassName: nginx
   tls:
-  - hosts:
-    - chat.yourdomain.com
-    secretName: sambungchat-tls
+    - hosts:
+        - chat.yourdomain.com
+      secretName: sambungchat-tls
   rules:
-  - host: chat.yourdomain.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: backend
-            port:
-              number: 3000
+    - host: chat.yourdomain.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 3000
 ```
 
 ### Deploy to Kubernetes
@@ -617,6 +618,7 @@ kubectl rollout restart deployment/backend -n sambungchat
 **Problem**: `connection refused` or `timeout`
 
 **Solutions**:
+
 ```bash
 # Check PostgreSQL is running
 sudo systemctl status postgresql
@@ -633,6 +635,7 @@ sudo ufw allow 5432/tcp
 **Problem**: Application using too much memory
 
 **Solutions**:
+
 ```bash
 # Check memory usage
 free -h
@@ -654,6 +657,7 @@ services:
 **Problem**: Application is slow
 
 **Solutions**:
+
 ```bash
 # Check database query performance
 bun run db:studio

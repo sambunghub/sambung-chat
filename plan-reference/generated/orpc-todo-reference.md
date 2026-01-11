@@ -81,18 +81,18 @@ Complete reference guide for building type-safe APIs with ORPC (OpenAPI-compatib
 
 ## Technology Stack
 
-| Layer | Technology | Version | Purpose |
-|-------|-----------|---------|---------|
-| **Database** | PostgreSQL | - | Relational database |
-| **ORM** | Drizzle ORM | ^0.45.1 | Type-safe database queries |
-| **Validation** | Zod | ^4.1.13 | Schema validation |
-| **Auth** | Better Auth | ^1.4.9 | Authentication & sessions |
-| **RPC** | ORPC | ^1.12.2 | Type-safe API layer |
-| **Server** | Hono | ^4.6.13 | Web framework |
-| **Client Query** | TanStack Query | ^5.85.3 | Data fetching & caching |
-| **Frontend** | Svelte | ^5.38.1 | Reactive UI framework |
-| **Build** | Turbo | ^2.6.3 | Monorepo orchestration |
-| **Package Manager** | Bun | 1.2.23 | Dependency management |
+| Layer               | Technology     | Version | Purpose                    |
+| ------------------- | -------------- | ------- | -------------------------- |
+| **Database**        | PostgreSQL     | -       | Relational database        |
+| **ORM**             | Drizzle ORM    | ^0.45.1 | Type-safe database queries |
+| **Validation**      | Zod            | ^4.1.13 | Schema validation          |
+| **Auth**            | Better Auth    | ^1.4.9  | Authentication & sessions  |
+| **RPC**             | ORPC           | ^1.12.2 | Type-safe API layer        |
+| **Server**          | Hono           | ^4.6.13 | Web framework              |
+| **Client Query**    | TanStack Query | ^5.85.3 | Data fetching & caching    |
+| **Frontend**        | Svelte         | ^5.38.1 | Reactive UI framework      |
+| **Build**           | Turbo          | ^2.6.3  | Monorepo orchestration     |
+| **Package Manager** | Bun            | 1.2.23  | Dependency management      |
 
 ---
 
@@ -145,16 +145,17 @@ sambung-chat/
 **File**: [packages/db/src/schema/todo.ts](../packages/db/src/schema/todo.ts)
 
 ```typescript
-import { pgTable, text, boolean, serial } from "drizzle-orm/pg-core";
+import { pgTable, text, boolean, serial } from 'drizzle-orm/pg-core';
 
-export const todo = pgTable("todo", {
-  id: serial("id").primaryKey(),
-  text: text("text").notNull(),
-  completed: boolean("completed").default(false).notNull(),
+export const todo = pgTable('todo', {
+  id: serial('id').primaryKey(),
+  text: text('text').notNull(),
+  completed: boolean('completed').default(false).notNull(),
 });
 ```
 
 **Key Concepts**:
+
 - `pgTable`: Defines a PostgreSQL table
 - `serial("id")`: Auto-incrementing integer (primary key)
 - `text("text")`: Variable-length text field
@@ -165,16 +166,16 @@ export const todo = pgTable("todo", {
 #### Available Field Types
 
 ```typescript
-import { pgTable, serial, text, boolean, integer, timestamp, uuid } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, boolean, integer, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 // Common patterns:
-id: serial("id").primaryKey()              // Auto-increment ID
-name: text("name").notNull()               // Required text
-email: text("email").unique()              // Unique text
-age: integer("age")                        // Integer
-isActive: boolean("is_active").default(true)
-createdAt: timestamp("created_at").defaultNow()
-userId: uuid("user_id").references(() => user.id)  // Foreign key
+id: serial('id').primaryKey(); // Auto-increment ID
+name: text('name').notNull(); // Required text
+email: text('email').unique(); // Unique text
+age: integer('age'); // Integer
+isActive: boolean('is_active').default(true);
+createdAt: timestamp('created_at').defaultNow();
+userId: uuid('user_id').references(() => user.id); // Foreign key
 ```
 
 #### Database Client
@@ -182,9 +183,9 @@ userId: uuid("user_id").references(() => user.id)  // Foreign key
 **File**: [packages/db/src/index.ts](../packages/db/src/index.ts)
 
 ```typescript
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
-import * as schema from "./schema";
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+import * as schema from './schema';
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -201,8 +202,8 @@ export const db = drizzle(client, { schema });
 **File**: [packages/api/src/context.ts](../packages/api/src/context.ts)
 
 ```typescript
-import type { Context as HonoContext } from "hono";
-import { auth } from "@sambung-chat/auth";
+import type { Context as HonoContext } from 'hono';
+import { auth } from '@sambung-chat/auth';
 
 export type CreateContextOptions = {
   context: HonoContext;
@@ -221,6 +222,7 @@ export type Context = Awaited<ReturnType<typeof createContext>>;
 ```
 
 **Key Points**:
+
 - Context is created for each request
 - Extracts session from Better Auth cookies
 - Session is passed to all procedures via context
@@ -230,8 +232,8 @@ export type Context = Awaited<ReturnType<typeof createContext>>;
 **File**: [packages/api/src/index.ts](../packages/api/src/index.ts)
 
 ```typescript
-import { ORPCError, os } from "@orpc/server";
-import type { Context } from "./context";
+import { ORPCError, os } from '@orpc/server';
+import type { Context } from './context';
 
 // Create ORPC instance with Context type
 export const o = os.$context<Context>();
@@ -242,7 +244,7 @@ export const publicProcedure = o;
 // Protected procedure (requires auth)
 const requireAuth = o.middleware(async ({ context, next }) => {
   if (!context.session?.user) {
-    throw new ORPCError("UNAUTHORIZED");
+    throw new ORPCError('UNAUTHORIZED');
   }
   return next({
     context: {
@@ -265,11 +267,11 @@ export const protectedProcedure = publicProcedure.use(requireAuth);
 **File**: [packages/api/src/routers/todo.ts](../packages/api/src/routers/todo.ts)
 
 ```typescript
-import { db } from "@sambung-chat/db";
-import { todo } from "@sambung-chat/db/schema/todo";
-import { eq } from "drizzle-orm";
-import z from "zod";
-import { publicProcedure } from "../index";
+import { db } from '@sambung-chat/db';
+import { todo } from '@sambung-chat/db/schema/todo';
+import { eq } from 'drizzle-orm';
+import z from 'zod';
+import { publicProcedure } from '../index';
 
 export const todoRouter = {
   // GET: Fetch all todos
@@ -290,17 +292,13 @@ export const todoRouter = {
   toggle: publicProcedure
     .input(z.object({ id: z.number(), completed: z.boolean() }))
     .handler(async ({ input }) => {
-      return await db.update(todo)
-        .set({ completed: input.completed })
-        .where(eq(todo.id, input.id));
+      return await db.update(todo).set({ completed: input.completed }).where(eq(todo.id, input.id));
     }),
 
   // DELETE: Remove todo
-  delete: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      return await db.delete(todo).where(eq(todo.id, input.id));
-    }),
+  delete: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    return await db.delete(todo).where(eq(todo.id, input.id));
+  }),
 };
 ```
 
@@ -316,20 +314,20 @@ export const todoRouter = {
 **File**: [packages/api/src/routers/index.ts](../packages/api/src/routers/index.ts)
 
 ```typescript
-import type { RouterClient } from "@orpc/server";
-import { protectedProcedure, publicProcedure } from "../index";
-import { todoRouter } from "./todo";
+import type { RouterClient } from '@orpc/server';
+import { protectedProcedure, publicProcedure } from '../index';
+import { todoRouter } from './todo';
 
 export const appRouter = {
   // Health check endpoint
   healthCheck: publicProcedure.handler(() => {
-    return "OK";
+    return 'OK';
   }),
 
   // Protected endpoint example
   privateData: protectedProcedure.handler(({ context }) => {
     return {
-      message: "This is private",
+      message: 'This is private',
       user: context.session?.user,
     };
   }),
@@ -344,6 +342,7 @@ export type AppRouterClient = RouterClient<typeof appRouter>;
 ```
 
 **Resulting Endpoints**:
+
 - `POST /rpc/healthCheck`
 - `POST /rpc/privateData` (requires auth)
 - `POST /rpc/todo.getAll`
@@ -360,21 +359,24 @@ export type AppRouterClient = RouterClient<typeof appRouter>;
 **File**: [apps/server/src/index.ts](../apps/server/src/index.ts)
 
 ```typescript
-import { RPCHandler, onError } from "@orpc/server";
-import { createContext } from "@sambung-chat/api/context";
-import { appRouter } from "@sambung-chat/api/routers/index";
-import { Hono } from "hono";
-import { cors } from "hono/cors";
-import { logger } from "hono/logger";
+import { RPCHandler, onError } from '@orpc/server';
+import { createContext } from '@sambung-chat/api/context';
+import { appRouter } from '@sambung-chat/api/routers/index';
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+import { logger } from 'hono/logger';
 
 const app = new Hono();
 
 // Middleware
 app.use(logger());
-app.use("/*", cors({
-  origin: env.CORS_ORIGIN,
-  credentials: true,  // Allow cookies
-}));
+app.use(
+  '/*',
+  cors({
+    origin: env.CORS_ORIGIN,
+    credentials: true, // Allow cookies
+  })
+);
 
 // Create ORPC handler
 export const rpcHandler = new RPCHandler(appRouter, {
@@ -386,13 +388,13 @@ export const rpcHandler = new RPCHandler(appRouter, {
 });
 
 // Route all requests through ORPC
-app.use("/*", async (c, next) => {
+app.use('/*', async (c, next) => {
   // 1. Create context for this request
   const context = await createContext({ context: c });
 
   // 2. Try to handle with ORPC
   const rpcResult = await rpcHandler.handle(c.req.raw, {
-    prefix: "/rpc",
+    prefix: '/rpc',
     context: context,
   });
 
@@ -404,12 +406,13 @@ app.use("/*", async (c, next) => {
   await next();
 });
 
-app.get("/", (c) => c.text("OK"));
+app.get('/', (c) => c.text('OK'));
 
 export default app;
 ```
 
 **Request Flow**:
+
 1. Hono receives request
 2. Middleware runs (logger, cors)
 3. Context created from request (session extracted)
@@ -426,12 +429,12 @@ export default app;
 **File**: [apps/web/src/lib/orpc.ts](../apps/web/src/lib/orpc.ts)
 
 ```typescript
-import type { AppRouterClient } from "@sambung-chat/api/routers/index";
-import { PUBLIC_SERVER_URL } from "$env/static/public";
-import { createORPCClient } from "@orpc/client";
-import { RPCLink } from "@orpc/client/fetch";
-import { createTanstackQueryUtils } from "@orpc/tanstack-query";
-import { QueryCache, QueryClient } from "@tanstack/svelte-query";
+import type { AppRouterClient } from '@sambung-chat/api/routers/index';
+import { PUBLIC_SERVER_URL } from '$env/static/public';
+import { createORPCClient } from '@orpc/client';
+import { RPCLink } from '@orpc/client/fetch';
+import { createTanstackQueryUtils } from '@orpc/tanstack-query';
+import { QueryCache, QueryClient } from '@tanstack/svelte-query';
 
 // TanStack Query setup
 export const queryClient = new QueryClient({
@@ -448,7 +451,7 @@ export const link = new RPCLink({
   fetch(url, options) {
     return fetch(url, {
       ...options,
-      credentials: "include",  // Send cookies for auth
+      credentials: 'include', // Send cookies for auth
     });
   },
 });
@@ -461,6 +464,7 @@ export const orpc = createTanstackQueryUtils(client);
 ```
 
 **Key Points**:
+
 - `credentials: "include"` ensures cookies are sent (required for auth)
 - Type safety flows from `AppRouterClient` export
 - `orpc` utility provides TanStack Query integration
@@ -553,9 +557,7 @@ export const orpc = createTanstackQueryUtils(client);
             />
             {todo.text}
           </label>
-          <button onclick={() => handleDeleteTodo(todo.id)}>
-            Delete
-          </button>
+          <button onclick={() => handleDeleteTodo(todo.id)}> Delete </button>
         </li>
       {/each}
     </ul>
@@ -563,12 +565,7 @@ export const orpc = createTanstackQueryUtils(client);
 
   <!-- Add Form -->
   <form onsubmit={handleAddTodo} class="flex gap-2 mb-4">
-    <input
-      type="text"
-      bind:value={newTodoText}
-      placeholder="New task..."
-      disabled={isAdding}
-    />
+    <input type="text" bind:value={newTodoText} placeholder="New task..." disabled={isAdding} />
     <button type="submit" disabled={!canAdd}>
       {#if isAdding}Adding...{:else}Add{/if}
     </button>
@@ -598,25 +595,23 @@ export const orpc = createTanstackQueryUtils(client);
 
 ```typescript
 // packages/api/src/routers/public.ts
-import { db } from "@sambung-chat/db";
-import { publicProcedure } from "../index";
-import z from "zod";
+import { db } from '@sambung-chat/db';
+import { publicProcedure } from '../index';
+import z from 'zod';
 
 export const publicRouter = {
   // Simple GET
   getStatus: publicProcedure.handler(async () => {
-    return { status: "operational", version: "1.0.0" };
+    return { status: 'operational', version: '1.0.0' };
   }),
 
   // GET with input validation
-  getItem: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      const item = await db.query.item.findFirst({
-        where: eq(item.id, input.id),
-      });
-      return item;
-    }),
+  getItem: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    const item = await db.query.item.findFirst({
+      where: eq(item.id, input.id),
+    });
+    return item;
+  }),
 };
 ```
 
@@ -624,9 +619,9 @@ export const publicRouter = {
 
 ```typescript
 // packages/api/src/routers/user.ts
-import { db } from "@sambung-chat/db";
-import { protectedProcedure } from "../index";
-import z from "zod";
+import { db } from '@sambung-chat/db';
+import { protectedProcedure } from '../index';
+import z from 'zod';
 
 export const userRouter = {
   // Access current user from context
@@ -636,14 +631,14 @@ export const userRouter = {
 
   // Update user settings
   updateSettings: protectedProcedure
-    .input(z.object({
-      theme: z.enum(['light', 'dark']),
-    }))
+    .input(
+      z.object({
+        theme: z.enum(['light', 'dark']),
+      })
+    )
     .handler(async ({ input, context }) => {
       const userId = context.session?.user.id;
-      await db.update(user)
-        .set({ settings: input })
-        .where(eq(user.id, userId));
+      await db.update(user).set({ settings: input }).where(eq(user.id, userId));
       return { success: true };
     }),
 };
@@ -652,9 +647,9 @@ export const userRouter = {
 ### Example 3: Advanced Query Patterns
 
 ```typescript
-import { db } from "@sambung-chat/db";
-import { todo, user } from "@sambung-chat/db/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { db } from '@sambung-chat/db';
+import { todo, user } from '@sambung-chat/db/schema';
+import { eq, and, desc, sql } from 'drizzle-orm';
 
 // With joins
 const getTodosWithUser = async () => {
@@ -673,22 +668,12 @@ const getCompletedTodos = async (userId: number) => {
   return await db
     .select()
     .from(todo)
-    .where(
-      and(
-        eq(todo.userId, userId),
-        eq(todo.completed, true)
-      )
-    );
+    .where(and(eq(todo.userId, userId), eq(todo.completed, true)));
 };
 
 // With pagination
 const getPaginatedTodos = async (userId: number, limit: number, offset: number) => {
-  return await db
-    .select()
-    .from(todo)
-    .where(eq(todo.userId, userId))
-    .limit(limit)
-    .offset(offset);
+  return await db.select().from(todo).where(eq(todo.userId, userId)).limit(limit).offset(offset);
 };
 
 // Aggregation
@@ -724,7 +709,7 @@ const toggleMutation = createMutation({
 
     // Optimistically update
     queryClient.setQueryData(orpc.todo.getAll.queryKey(), (old) => {
-      return old?.map(t => t.id === id ? { ...t, completed } : t);
+      return old?.map((t) => (t.id === id ? { ...t, completed } : t));
     });
 
     return { previousTodos };
@@ -757,21 +742,19 @@ const toggleMutation = createMutation({
 ### Pattern 3: Form Validation
 
 ```typescript
-import { z } from "zod";
+import { z } from 'zod';
 
 // Define schema
 const todoSchema = z.object({
-  text: z.string().min(1, "Required").max(100, "Too long"),
-  priority: z.enum(["low", "medium", "high"]).default("medium"),
+  text: z.string().min(1, 'Required').max(100, 'Too long'),
+  priority: z.enum(['low', 'medium', 'high']).default('medium'),
 });
 
 // Use in router
-create: publicProcedure
-  .input(todoSchema)
-  .handler(async ({ input }) => {
-    // input is fully typed and validated
-    await db.insert(todo).values(input);
-  });
+create: publicProcedure.input(todoSchema).handler(async ({ input }) => {
+  // input is fully typed and validated
+  await db.insert(todo).values(input);
+});
 ```
 
 ### Pattern 4: Error Boundaries
@@ -798,20 +781,20 @@ create: publicProcedure
 **Create**: `packages/db/src/schema/resource.ts`
 
 ```typescript
-import { pgTable, text, serial, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp } from 'drizzle-orm/pg-core';
 
-export const resource = pgTable("resource", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
-  createdAt: timestamp("created_at").defaultNow(),
+export const resource = pgTable('resource', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  description: text('description'),
+  createdAt: timestamp('created_at').defaultNow(),
 });
 ```
 
 **Update**: `packages/db/src/schema/index.ts`
 
 ```typescript
-export * from "./resource";
+export * from './resource';
 ```
 
 #### Step 2: Create Router
@@ -819,51 +802,49 @@ export * from "./resource";
 **Create**: `packages/api/src/routers/resource.ts`
 
 ```typescript
-import { db } from "@sambung-chat/db";
-import { resource } from "@sambung-chat/db/schema/resource";
-import { eq } from "drizzle-orm";
-import { publicProcedure, protectedProcedure } from "../index";
-import z from "zod";
+import { db } from '@sambung-chat/db';
+import { resource } from '@sambung-chat/db/schema/resource';
+import { eq } from 'drizzle-orm';
+import { publicProcedure, protectedProcedure } from '../index';
+import z from 'zod';
 
 export const resourceRouter = {
   getAll: publicProcedure.handler(async () => {
     return await db.select().from(resource);
   }),
 
-  getById: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      const results = await db.select().from(resource).where(eq(resource.id, input.id));
-      return results[0];
-    }),
+  getById: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    const results = await db.select().from(resource).where(eq(resource.id, input.id));
+    return results[0];
+  }),
 
   create: protectedProcedure
-    .input(z.object({
-      name: z.string().min(1),
-      description: z.string().optional(),
-    }))
+    .input(
+      z.object({
+        name: z.string().min(1),
+        description: z.string().optional(),
+      })
+    )
     .handler(async ({ input }) => {
       return await db.insert(resource).values(input);
     }),
 
   update: protectedProcedure
-    .input(z.object({
-      id: z.number(),
-      name: z.string().min(1).optional(),
-      description: z.string().optional(),
-    }))
+    .input(
+      z.object({
+        id: z.number(),
+        name: z.string().min(1).optional(),
+        description: z.string().optional(),
+      })
+    )
     .handler(async ({ input }) => {
       const { id, ...data } = input;
-      return await db.update(resource)
-        .set(data)
-        .where(eq(resource.id, id));
+      return await db.update(resource).set(data).where(eq(resource.id, id));
     }),
 
-  delete: protectedProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      return await db.delete(resource).where(eq(resource.id, input.id));
-    }),
+  delete: protectedProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    return await db.delete(resource).where(eq(resource.id, input.id));
+  }),
 };
 ```
 
@@ -872,7 +853,7 @@ export const resourceRouter = {
 **Update**: `packages/api/src/routers/index.ts`
 
 ```typescript
-import { resourceRouter } from "./resource";
+import { resourceRouter } from './resource';
 
 export const appRouter = {
   // ... existing routes
@@ -931,7 +912,7 @@ bun run db:push
 export type AppRouterClient = RouterClient<typeof appRouter>;
 
 // apps/web/src/lib/orpc.ts
-import type { AppRouterClient } from "@sambung-chat/api/routers/index";
+import type { AppRouterClient } from '@sambung-chat/api/routers/index';
 export const client: AppRouterClient = createORPCClient(link);
 ```
 
@@ -946,7 +927,7 @@ export const link = new RPCLink({
   fetch(url, options) {
     return fetch(url, {
       ...options,
-      credentials: "include",  // ← Must be "include"
+      credentials: 'include', // ← Must be "include"
     });
   },
 });
@@ -957,11 +938,14 @@ export const link = new RPCLink({
 **Solution**: Check server CORS config:
 
 ```typescript
-app.use("/*", cors({
-  origin: env.CORS_ORIGIN,  // ← Must match frontend URL
-  credentials: true,         // ← Must be true for auth
-  allowHeaders: ["Content-Type", "Authorization"],
-}));
+app.use(
+  '/*',
+  cors({
+    origin: env.CORS_ORIGIN, // ← Must match frontend URL
+    credentials: true, // ← Must be true for auth
+    allowHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 ```
 
 ### Issue: Query always returns stale data
@@ -972,7 +956,7 @@ app.use("/*", cors({
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 0,  // ← 0 = always refetch on mount
+      staleTime: 0, // ← 0 = always refetch on mount
       refetchOnWindowFocus: true,
     },
   },
@@ -1008,5 +992,6 @@ This reference covers the complete ORPC + TODO implementation pattern:
 Use the Quick Start Template to create new resources following the same patterns.
 
 **Next Steps**:
+
 - Branding & design system update (teal/orange colors)
 - MVP feature implementation (chat system)

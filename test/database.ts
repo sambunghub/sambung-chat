@@ -47,19 +47,18 @@ export async function teardownTestDB() {
 /**
  * Create a test user
  */
-export async function createTestUser(userData: {
-  email: string;
-  name: string;
-  password?: string;
-}) {
+export async function createTestUser(userData: { email: string; name: string; password?: string }) {
   // In real tests, use bcrypt to hash password
   const passwordHash = userData.password || 'hashed_password';
 
-  const [newUser] = await db.insert(user).values({
-    email: userData.email,
-    name: userData.name,
-    passwordHash,
-  }).returning();
+  const [newUser] = await db
+    .insert(user)
+    .values({
+      email: userData.email,
+      name: userData.name,
+      passwordHash,
+    })
+    .returning();
 
   return newUser;
 }
@@ -68,12 +67,15 @@ export async function createTestUser(userData: {
  * Create a test chat
  */
 export async function createTestChat(userId: string, overrides = {}) {
-  const [chat] = await db.insert(chats).values({
-    userId,
-    title: 'Test Chat',
-    modelId: 'gpt-4',
-    ...overrides,
-  }).returning();
+  const [chat] = await db
+    .insert(chats)
+    .values({
+      userId,
+      title: 'Test Chat',
+      modelId: 'gpt-4',
+      ...overrides,
+    })
+    .returning();
 
   return chat;
 }

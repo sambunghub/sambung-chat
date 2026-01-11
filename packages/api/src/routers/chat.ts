@@ -1,9 +1,9 @@
-import { db } from "@sambung-chat/db";
-import { chats } from "@sambung-chat/db/schema/chat";
-import { messages } from "@sambung-chat/db/schema/chat";
-import { eq, and, desc, asc } from "drizzle-orm";
-import z from "zod";
-import { protectedProcedure } from "../index";
+import { db } from '@sambung-chat/db';
+import { chats } from '@sambung-chat/db/schema/chat';
+import { messages } from '@sambung-chat/db/schema/chat';
+import { eq, and, desc, asc } from 'drizzle-orm';
+import z from 'zod';
+import { protectedProcedure } from '../index';
 
 export const chatRouter = {
   // Get all chats for current user
@@ -51,7 +51,7 @@ export const chatRouter = {
   create: protectedProcedure
     .input(
       z.object({
-        title: z.string().min(1).default("New Chat"),
+        title: z.string().min(1).default('New Chat'),
         modelId: z.string().min(1),
       })
     )
@@ -98,9 +98,7 @@ export const chatRouter = {
     .handler(async ({ input, context }) => {
       const userId = context.session.user.id;
 
-      await db
-        .delete(chats)
-        .where(and(eq(chats.id, input.id), eq(chats.userId, userId)));
+      await db.delete(chats).where(and(eq(chats.id, input.id), eq(chats.userId, userId)));
 
       return { success: true };
     }),

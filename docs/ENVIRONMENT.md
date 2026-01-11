@@ -44,12 +44,12 @@ sambung-chat/
 
 #### Required Variables
 
-| Variable | Description | Example | Default |
-|----------|-------------|---------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:5432/db` | - |
-| `BETTER_AUTH_SECRET` | Secret for session encryption | `random-min-32-chars` | - |
-| `BETTER_AUTH_URL` | Base URL for auth | `http://localhost:3000` | `http://localhost:3000` |
-| `CORS_ORIGIN` | Allowed CORS origins | `http://localhost:5173` | `*` |
+| Variable             | Description                   | Example                               | Default                 |
+| -------------------- | ----------------------------- | ------------------------------------- | ----------------------- |
+| `DATABASE_URL`       | PostgreSQL connection string  | `postgresql://user:pass@host:5432/db` | -                       |
+| `BETTER_AUTH_SECRET` | Secret for session encryption | `random-min-32-chars`                 | -                       |
+| `BETTER_AUTH_URL`    | Base URL for auth             | `http://localhost:3000`               | `http://localhost:3000` |
+| `CORS_ORIGIN`        | Allowed CORS origins          | `http://localhost:5173`               | `*`                     |
 
 ```bash
 # apps/server/.env
@@ -70,11 +70,11 @@ PORT=3000
 
 #### Optional Variables
 
-| Variable | Description | Example | Default |
-|----------|-------------|---------|---------|
-| `ENCRYPTION_KEY` | Key for API key encryption | `random-32-char-hex` | - |
-| `NODE_ENV` | Environment mode | `production` | `development` |
-| `LOG_LEVEL` | Logging verbosity | `debug`, `info`, `warn`, `error` | `info` |
+| Variable         | Description                | Example                          | Default       |
+| ---------------- | -------------------------- | -------------------------------- | ------------- |
+| `ENCRYPTION_KEY` | Key for API key encryption | `random-32-char-hex`             | -             |
+| `NODE_ENV`       | Environment mode           | `production`                     | `development` |
+| `LOG_LEVEL`      | Logging verbosity          | `debug`, `info`, `warn`, `error` | `info`        |
 
 ```bash
 # apps/server/.env (continued)
@@ -93,8 +93,8 @@ LOG_LEVEL=debug
 
 **Note:** Client variables must be prefixed with `PUBLIC_` to be exposed to browser.
 
-| Variable | Description | Example |
-|----------|-------------|---------|
+| Variable            | Description     | Example                 |
+| ------------------- | --------------- | ----------------------- |
 | `PUBLIC_SERVER_URL` | Backend API URL | `http://localhost:3000` |
 
 ```bash
@@ -112,7 +112,7 @@ PUBLIC_SERVER_URL=http://localhost:3000
 **File:** `packages/env/src/server.ts`
 
 ```typescript
-import { z } from "zod";
+import { z } from 'zod';
 
 export const serverEnvSchema = z.object({
   // Database
@@ -120,15 +120,15 @@ export const serverEnvSchema = z.object({
 
   // Better Auth
   BETTER_AUTH_SECRET: z.string().min(32),
-  BETTER_AUTH_URL: z.string().url().default("http://localhost:3000"),
+  BETTER_AUTH_URL: z.string().url().default('http://localhost:3000'),
 
   // CORS
-  CORS_ORIGIN: z.string().default("*"),
+  CORS_ORIGIN: z.string().default('*'),
 
   // Optional
   ENCRYPTION_KEY: z.string().length(32).optional(),
-  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
-  LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
 
   // Server
   PORT: z.coerce.number().default(3000),
@@ -142,7 +142,7 @@ export type ServerEnv = z.infer<typeof serverEnvSchema>;
 **File:** `packages/env/src/client.ts`
 
 ```typescript
-import { z } from "zod";
+import { z } from 'zod';
 
 export const clientEnvSchema = z.object({
   PUBLIC_SERVER_URL: z.string().url(),
@@ -156,8 +156,8 @@ export type ClientEnv = z.infer<typeof clientEnvSchema>;
 **File:** `packages/env/src/index.ts`
 
 ```typescript
-import { serverEnvSchema } from "./server";
-import { clientEnvSchema } from "./client";
+import { serverEnvSchema } from './server';
+import { clientEnvSchema } from './client';
 
 // Validate server environment
 export const serverEnv = serverEnvSchema.parse(process.env);
@@ -409,7 +409,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sambungchat}
       POSTGRES_DB: ${POSTGRES_DB:-sambungchat}
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -423,7 +423,7 @@ services:
       BETTER_AUTH_URL: ${BETTER_AUTH_URL}
       CORS_ORIGIN: ${CORS_ORIGIN}
     ports:
-      - "3000:3000"
+      - '3000:3000'
     depends_on:
       - postgres
 
@@ -451,6 +451,7 @@ CORS_ORIGIN=http://localhost:5173
 **Problem:** Environment variable not loaded
 
 **Solution:**
+
 ```bash
 # Check .env file exists
 ls apps/server/.env
@@ -467,6 +468,7 @@ bun run dev:server
 **Problem:** Zod validation failed
 
 **Solution:**
+
 ```bash
 # Check schema validation
 cat packages/env/src/server.ts
@@ -481,6 +483,7 @@ DATABASE_URL must be valid URL
 **Problem:** Frontend can't connect to backend
 
 **Solution:**
+
 ```bash
 # Check CORS_ORIGIN in server .env
 CORS_ORIGIN=http://localhost:5173  # Must match frontend URL
@@ -494,6 +497,7 @@ PUBLIC_SERVER_URL=http://localhost:3000  # Must match backend URL
 **Problem:** `BETTER_AUTH_SECRET` changed
 
 **Solution:**
+
 ```bash
 # Clear all sessions (or use consistent secret)
 # Users will need to sign in again
@@ -529,7 +533,7 @@ bun run env:validate
 
 ```typescript
 // Server
-import { serverEnv } from "@sambung-chat/env/server";
+import { serverEnv } from '@sambung-chat/env/server';
 
 console.log(serverEnv.DATABASE_URL);
 console.log(serverEnv.PORT);

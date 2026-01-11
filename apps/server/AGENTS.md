@@ -54,9 +54,7 @@ Server menggunakan ORPC untuk type-safe RPC communication dengan frontend.
 ```typescript
 import { ORPC } from 'orpc';
 
-export const orpc = new ORPC()
-  .router(chatsRouter)
-  .router(messagesRouter);
+export const orpc = new ORPC().router(chatsRouter).router(messagesRouter);
 ```
 
 ---

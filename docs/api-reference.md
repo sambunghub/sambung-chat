@@ -24,7 +24,9 @@ Most endpoints require authentication via session cookies. Set by Better Auth du
 
 ```json
 {
-  "input": { /* Zod-validated input */ }
+  "input": {
+    /* Zod-validated input */
+  }
 }
 ```
 
@@ -32,8 +34,12 @@ Most endpoints require authentication via session cookies. Set by Better Auth du
 
 ```json
 {
-  "result": { /* Response data */ },
-  "error": { /* ORPCError if failed */ }
+  "result": {
+    /* Response data */
+  },
+  "error": {
+    /* ORPCError if failed */
+  }
 }
 ```
 
@@ -50,11 +56,13 @@ Check API health status.
 **Authentication:** None
 
 **Request:**
+
 ```json
 {}
 ```
 
 **Response:**
+
 ```json
 {
   "result": "OK"
@@ -74,6 +82,7 @@ Authenticate user with email and password.
 **Authentication:** None
 
 **Request:**
+
 ```json
 {
   "input": {
@@ -84,6 +93,7 @@ Authenticate user with email and password.
 ```
 
 **Response:**
+
 ```json
 {
   "result": {
@@ -101,6 +111,7 @@ Authenticate user with email and password.
 ```
 
 **Errors:**
+
 - `INVALID_CREDENTIALS`: Email or password incorrect
 - `USER_NOT_FOUND`: User does not exist
 
@@ -113,11 +124,13 @@ End current session.
 **Authentication:** Required
 
 **Request:**
+
 ```json
 {}
 ```
 
 **Response:**
+
 ```json
 {
   "result": { "success": true }
@@ -133,11 +146,13 @@ Get current session data.
 **Authentication:** Required (via cookie)
 
 **Request:**
+
 ```json
 {}
 ```
 
 **Response:**
+
 ```json
 {
   "result": {
@@ -163,11 +178,13 @@ Get current user profile.
 **Authentication:** Required
 
 **Request:**
+
 ```json
 {}
 ```
 
 **Response:**
+
 ```json
 {
   "result": {
@@ -188,6 +205,7 @@ Update user preferences.
 **Authentication:** Required
 
 **Request:**
+
 ```json
 {
   "input": {
@@ -198,6 +216,7 @@ Update user preferences.
 ```
 
 **Response:**
+
 ```json
 {
   "result": {
@@ -225,6 +244,7 @@ Get all chats for current user.
 **Authentication:** Required
 
 **Request:**
+
 ```json
 {
   "input": {
@@ -235,6 +255,7 @@ Get all chats for current user.
 ```
 
 **Response:**
+
 ```json
 {
   "result": [
@@ -259,6 +280,7 @@ Get single chat with messages.
 **Authentication:** Required
 
 **Request:**
+
 ```json
 {
   "input": {
@@ -268,6 +290,7 @@ Get single chat with messages.
 ```
 
 **Response:**
+
 ```json
 {
   "result": {
@@ -295,6 +318,7 @@ Get single chat with messages.
 ```
 
 **Errors:**
+
 - `NOT_FOUND`: Chat does not exist
 - `FORBIDDEN`: User does not own this chat
 
@@ -307,6 +331,7 @@ Create new chat.
 **Authentication:** Required
 
 **Request:**
+
 ```json
 {
   "input": {
@@ -317,6 +342,7 @@ Create new chat.
 ```
 
 **Response:**
+
 ```json
 {
   "result": {
@@ -337,6 +363,7 @@ Update chat title or model.
 **Authentication:** Required
 
 **Request:**
+
 ```json
 {
   "input": {
@@ -347,6 +374,7 @@ Update chat title or model.
 ```
 
 **Response:**
+
 ```json
 {
   "result": {
@@ -367,6 +395,7 @@ Delete chat and all messages.
 **Authentication:** Required
 
 **Request:**
+
 ```json
 {
   "input": {
@@ -376,6 +405,7 @@ Delete chat and all messages.
 ```
 
 **Response:**
+
 ```json
 {
   "result": { "success": true }
@@ -395,6 +425,7 @@ Stream AI response (Server-Sent Events).
 **Authentication:** Required
 
 **Request:**
+
 ```json
 {
   "input": {
@@ -405,6 +436,7 @@ Stream AI response (Server-Sent Events).
 ```
 
 **Response (SSE):**
+
 ```
 data: {"type":"token","content":"Hello"}
 
@@ -414,6 +446,7 @@ data: {"type":"done","tokens":10,"cost":0.0001}
 ```
 
 **Errors:**
+
 - `CHAT_NOT_FOUND`: Chat does not exist
 - `API_KEY_MISSING`: No API key configured for this model
 - `PROVIDER_ERROR`: AI provider returned an error
@@ -427,6 +460,7 @@ Create message (non-streaming).
 **Authentication:** Required
 
 **Request:**
+
 ```json
 {
   "input": {
@@ -438,6 +472,7 @@ Create message (non-streaming).
 ```
 
 **Response:**
+
 ```json
 {
   "result": {
@@ -463,6 +498,7 @@ Get all prompt templates for current user.
 **Authentication:** Required
 
 **Request:**
+
 ```json
 {
   "input": {
@@ -472,6 +508,7 @@ Get all prompt templates for current user.
 ```
 
 **Response:**
+
 ```json
 {
   "result": [
@@ -496,6 +533,7 @@ Create new prompt template.
 **Authentication:** Required
 
 **Request:**
+
 ```json
 {
   "input": {
@@ -509,6 +547,7 @@ Create new prompt template.
 ```
 
 **Response:**
+
 ```json
 {
   "result": {
@@ -532,6 +571,7 @@ Update prompt template.
 **Authentication:** Required
 
 **Request:**
+
 ```json
 {
   "input": {
@@ -542,6 +582,7 @@ Update prompt template.
 ```
 
 **Response:**
+
 ```json
 {
   "result": {
@@ -561,6 +602,7 @@ Delete prompt template.
 **Authentication:** Required
 
 **Request:**
+
 ```json
 {
   "input": {
@@ -570,6 +612,7 @@ Delete prompt template.
 ```
 
 **Response:**
+
 ```json
 {
   "result": { "success": true }
@@ -589,11 +632,13 @@ Get all stored API keys (masked).
 **Authentication:** Required
 
 **Request:**
+
 ```json
 {}
 ```
 
 **Response:**
+
 ```json
 {
   "result": [
@@ -616,6 +661,7 @@ Store new API key (encrypted).
 **Authentication:** Required
 
 **Request:**
+
 ```json
 {
   "input": {
@@ -626,6 +672,7 @@ Store new API key (encrypted).
 ```
 
 **Response:**
+
 ```json
 {
   "result": {
@@ -638,6 +685,7 @@ Store new API key (encrypted).
 ```
 
 **Errors:**
+
 - `INVALID_KEY`: API key validation failed
 - `DUPLICATE_KEY`: Key already exists for this provider
 
@@ -650,6 +698,7 @@ Delete stored API key.
 **Authentication:** Required
 
 **Request:**
+
 ```json
 {
   "input": {
@@ -659,6 +708,7 @@ Delete stored API key.
 ```
 
 **Response:**
+
 ```json
 {
   "result": { "success": true }
@@ -669,16 +719,16 @@ Delete stored API key.
 
 ## Error Codes
 
-| Code | Description |
-|------|-------------|
-| `UNAUTHORIZED` | Authentication required |
-| `FORBIDDEN` | Insufficient permissions |
-| `NOT_FOUND` | Resource not found |
-| `INVALID_INPUT` | Request validation failed |
-| `INTERNAL_ERROR` | Server error |
-| `RATE_LIMITED` | Too many requests |
-| `API_KEY_MISSING` | No API key configured |
-| `PROVIDER_ERROR` | AI provider error |
+| Code              | Description               |
+| ----------------- | ------------------------- |
+| `UNAUTHORIZED`    | Authentication required   |
+| `FORBIDDEN`       | Insufficient permissions  |
+| `NOT_FOUND`       | Resource not found        |
+| `INVALID_INPUT`   | Request validation failed |
+| `INTERNAL_ERROR`  | Server error              |
+| `RATE_LIMITED`    | Too many requests         |
+| `API_KEY_MISSING` | No API key configured     |
+| `PROVIDER_ERROR`  | AI provider error         |
 
 ---
 
@@ -686,14 +736,14 @@ Delete stored API key.
 
 ```typescript
 // Available in @sambung-chat/api
-import type { AppRouter } from "@sambung-chat/api/routers";
+import type { AppRouter } from '@sambung-chat/api/routers';
 
 // Full router type
 type Router = typeof AppRouter;
 
 // Individual procedure types
-type HealthCheck = Router["healthCheck"];
-type ChatGetAll = Router["chat"]["getAll"];
+type HealthCheck = Router['healthCheck'];
+type ChatGetAll = Router['chat']['getAll'];
 ```
 
 ---
@@ -710,8 +760,8 @@ const chats = await orpc.chat.getAll({ limit: 50 });
 
 // Mutation
 const newChat = await orpc.chat.create({
-  title: "New Chat",
-  modelId: "gpt-4"
+  title: 'New Chat',
+  modelId: 'gpt-4',
 });
 ```
 
@@ -728,10 +778,10 @@ curl -X POST http://localhost:3000/rpc/chat.getAll \
 
 ## Rate Limiting
 
-| Endpoint | Limit | Window |
-|----------|-------|--------|
-| `message.stream` | 100 requests | 1 hour |
-| All other | 1000 requests | 1 hour |
+| Endpoint         | Limit         | Window |
+| ---------------- | ------------- | ------ |
+| `message.stream` | 100 requests  | 1 hour |
+| All other        | 1000 requests | 1 hour |
 
 ---
 
@@ -739,17 +789,17 @@ curl -X POST http://localhost:3000/rpc/chat.getAll \
 
 Current implementation status of each endpoint group:
 
-| Endpoint Group | Status | Phase |
-|---------------|--------|-------|
-| `healthCheck` | ✅ Implemented | Foundation |
-| `auth.*` | ✅ Implemented (via Better Auth) | Foundation |
-| `todo.*` | ✅ Implemented (Example) | Foundation |
-| `privateData` | ✅ Implemented | Foundation |
-| `user.*` | ⏳ Planned | MVP |
-| `chat.*` | ⏳ Planned | MVP |
-| `message.*` | ⏳ Planned | MVP |
-| `prompt.*` | ⏳ Planned | MVP |
-| `apiKey.*` | ⏳ Planned | MVP |
+| Endpoint Group | Status                           | Phase      |
+| -------------- | -------------------------------- | ---------- |
+| `healthCheck`  | ✅ Implemented                   | Foundation |
+| `auth.*`       | ✅ Implemented (via Better Auth) | Foundation |
+| `todo.*`       | ✅ Implemented (Example)         | Foundation |
+| `privateData`  | ✅ Implemented                   | Foundation |
+| `user.*`       | ⏳ Planned                       | MVP        |
+| `chat.*`       | ⏳ Planned                       | MVP        |
+| `message.*`    | ⏳ Planned                       | MVP        |
+| `prompt.*`     | ⏳ Planned                       | MVP        |
+| `apiKey.*`     | ⏳ Planned                       | MVP        |
 
 See [ROADMAP](../plan-reference/ROADMAP.md) for detailed timeline.
 
@@ -757,12 +807,12 @@ See [ROADMAP](../plan-reference/ROADMAP.md) for detailed timeline.
 
 ## References
 
-| Document | Purpose |
-|----------|---------|
+| Document                                                                    | Purpose                                  |
+| --------------------------------------------------------------------------- | ---------------------------------------- |
 | [ORPC + TODO Reference](../plan-reference/generated/orpc-todo-reference.md) | Implementation patterns & best practices |
-| [Architecture](./architecture.md) | System architecture overview |
-| [Getting Started](./getting-started.md) | Installation & setup guide |
-| [Deployment](./deployment.md) | Deployment guides |
+| [Architecture](./architecture.md)                                           | System architecture overview             |
+| [Getting Started](./getting-started.md)                                     | Installation & setup guide               |
+| [Deployment](./deployment.md)                                               | Deployment guides                        |
 
 ---
 

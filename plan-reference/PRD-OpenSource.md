@@ -1,4 +1,5 @@
 # SAMBUNG CHAT: Open Source PRD
+
 ## Multi-Model LLM Client Platform (AGPL-3.0)
 
 **Version:** 1.0 Draft
@@ -38,6 +39,7 @@ Sambung Chat is an open-source, modern-design LLM client platform that connects 
 ### License: AGPL-3.0
 
 This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0), which means:
+
 - **Free forever** - No cost to use, modify, or distribute
 - **Copyleft** - All modifications must be shared under the same license
 - **Network use** - If you run this as a network service, you must provide source code to users
@@ -56,11 +58,11 @@ This project is licensed under the GNU Affero General Public License v3.0 (AGPL-
 
 ### Target Audience
 
-| Segment | Description |
-|---------|-------------|
-| **Primary** | Developers and technical users who want control over AI model selection |
-| **Secondary** | Self-hosting enthusiasts, privacy-conscious users |
-| **Tertiary** | AI enthusiasts, researchers, students exploring different models |
+| Segment       | Description                                                             |
+| ------------- | ----------------------------------------------------------------------- |
+| **Primary**   | Developers and technical users who want control over AI model selection |
+| **Secondary** | Self-hosting enthusiasts, privacy-conscious users                       |
+| **Tertiary**  | AI enthusiasts, researchers, students exploring different models        |
 
 > **Looking for team features?** See our [SaaS offering](./PRD-SaaS.md) for collaboration features.
 
@@ -73,6 +75,7 @@ This project is licensed under the GNU Affero General Public License v3.0 (AGPL-
 #### 1.1 Problem Statement
 
 Users today face friction when switching between different LLM providers:
+
 - Each has proprietary UI (ChatGPT, Claude.ai, Gemini, etc.)
 - No unified chat history across models
 - Switching requires separate browser tabs/logins
@@ -82,6 +85,7 @@ Users today face friction when switching between different LLM providers:
 #### 1.2 Solution
 
 Sambung Chat provides a single, unified, self-hosted interface to interact with any LLM provider:
+
 - **User privacy** (self-hostable, local data by default)
 - **Cost optimization** (track your API usage across providers)
 - **Model flexibility** (A/B test different models)
@@ -98,6 +102,7 @@ Sambung Chat provides a single, unified, self-hosted interface to interact with 
 **Feature**: Single-user chat with multiple LLM providers
 
 **Requirements**:
+
 - [ ] Support 5+ providers (OpenAI, Anthropic, Google, Groq, Ollama)
 - [ ] Model selector dropdown
 - [ ] Secure API key storage (encrypted at rest)
@@ -106,6 +111,7 @@ Sambung Chat provides a single, unified, self-hosted interface to interact with 
 - [ ] Real-time streaming responses
 
 **Acceptance Criteria**:
+
 - Successfully send message to each supported model
 - Switch models mid-conversation
 - API keys never logged/exposed
@@ -116,6 +122,7 @@ Sambung Chat provides a single, unified, self-hosted interface to interact with 
 **Feature**: Persistent local storage of chat conversations
 
 **Requirements**:
+
 - [ ] Create/delete chat sessions
 - [ ] Display chat list in sidebar
 - [ ] Search chats by title/content
@@ -124,11 +131,13 @@ Sambung Chat provides a single, unified, self-hosted interface to interact with 
 - [ ] Pin favorite chats
 
 **Technical**:
+
 - PostgreSQL for local chat storage
 - Indexed search for quick lookup
 - Message metadata (model, tokens, latency, cost)
 
 **Acceptance Criteria**:
+
 - Retrieve 1000+ chats without lag
 - Search results within 500ms
 - Export formats valid and readable
@@ -138,6 +147,7 @@ Sambung Chat provides a single, unified, self-hosted interface to interact with 
 **Feature**: Library of reusable prompts
 
 **Requirements**:
+
 - [ ] Built-in prompt templates (Summarize, Translate, Code Generation)
 - [ ] Save/edit/delete custom prompts
 - [ ] Search/filter prompts
@@ -145,6 +155,7 @@ Sambung Chat provides a single, unified, self-hosted interface to interact with 
 - [ ] Community prompts library
 
 **Structure**:
+
 ```
 Prompt Template:
 ├─ Name: "Summarize Academic Paper"
@@ -159,6 +170,7 @@ Prompt Template:
 **Feature**: User customization options
 
 **Requirements**:
+
 - [ ] Theme toggle (light/dark mode)
 - [ ] Language selection (English, Indonesian)
 - [ ] Auto-save settings
@@ -167,6 +179,7 @@ Prompt Template:
 - [ ] Privacy mode toggle (disable telemetry)
 
 **Acceptance Criteria**:
+
 - Settings persist across sessions
 - Theme applies immediately
 - No settings lost on refresh
@@ -229,15 +242,16 @@ Prompt Template:
 
 #### Color Palette
 
-| Color | Hex | Usage |
-|-------|-----|-------|
-| **Primary** | `#208B8D` | Buttons, links, active states |
-| **Accent** | `#E67E50` | Highlights, success states |
-| **Text** | `#1A1D23` | Primary text |
-| **Background** | `#FAFAF9` | Main background |
-| **Border** | `#D1D5DB` | Borders, dividers |
+| Color          | Hex       | Usage                         |
+| -------------- | --------- | ----------------------------- |
+| **Primary**    | `#208B8D` | Buttons, links, active states |
+| **Accent**     | `#E67E50` | Highlights, success states    |
+| **Text**       | `#1A1D23` | Primary text                  |
+| **Background** | `#FAFAF9` | Main background               |
+| **Border**     | `#D1D5DB` | Borders, dividers             |
 
 **Dark Mode:**
+
 - Primary: `#2FB3B6`
 - Accent: `#F18D64`
 - Background: `#111827`
@@ -253,6 +267,7 @@ Prompt Template:
 #### Component Library
 
 Built with [ShadCN Svelte](https://www.shadcn-svelte.com/):
+
 - Button, Input, Card, Modal components
 - Fully accessible (WCAG 2.1 AA)
 - Responsive design (mobile-first)
@@ -312,16 +327,16 @@ Built with [ShadCN Svelte](https://www.shadcn-svelte.com/):
 
 ### Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| **Frontend** | Svelte + ShadCN + TailwindCSS |
-| **Build** | Vite |
-| **Backend** | Hono (TypeScript) |
-| **Database** | PostgreSQL + Drizzle ORM |
-| **Auth** | Better Auth (local) |
-| **Job Queue** | Bull/BullMQ + Redis |
-| **Caching** | Redis |
-| **LLM Integration** | LiteLLM |
+| Layer               | Technology                    |
+| ------------------- | ----------------------------- |
+| **Frontend**        | Svelte + ShadCN + TailwindCSS |
+| **Build**           | Vite                          |
+| **Backend**         | Hono (TypeScript)             |
+| **Database**        | PostgreSQL + Drizzle ORM      |
+| **Auth**            | Better Auth (local)           |
+| **Job Queue**       | Bull/BullMQ + Redis           |
+| **Caching**         | Redis                         |
+| **LLM Integration** | LiteLLM                       |
 
 ### Architecture Diagram
 
@@ -451,12 +466,14 @@ Q4 2026 (Oct-Dec): Enterprise & Scalability
 ### Phase 1: MVP (Weeks 1-12)
 
 **Goals:**
+
 - [ ] Fully functional multi-model LLM client
 - [ ] GitHub community (1K+ stars)
 - [ ] Documentation complete
 - [ ] Production-ready self-hosting
 
 **Features:**
+
 - [ ] Multi-provider support (5+ providers)
 - [ ] Chat history & search
 - [ ] Prompt templates
@@ -467,6 +484,7 @@ Q4 2026 (Oct-Dec): Enterprise & Scalability
 - [ ] API key management
 
 **Quality:**
+
 - [ ] 90%+ test coverage
 - [ ] Performance targets met
 - [ ] Security audit
@@ -475,12 +493,14 @@ Q4 2026 (Oct-Dec): Enterprise & Scalability
 ### Phase 2: Ecosystem (Weeks 13-24)
 
 **Goals:**
+
 - [ ] Extract reusable libraries
 - [ ] SDK for integration
 - [ ] Plugin system foundation
 - [ ] Community contributions
 
 **Features:**
+
 - [ ] @sambung/ui library published
 - [ ] @sambung/sdk (Python + Node)
 - [ ] Plugin marketplace structure
@@ -490,12 +510,14 @@ Q4 2026 (Oct-Dec): Enterprise & Scalability
 ### Phase 3: Advanced Features (Weeks 25-36)
 
 **Goals:**
+
 - [ ] Advanced chat features
 - [ ] Knowledge base support
 - [ ] Analytics
 - [ ] Thought leadership
 
 **Features:**
+
 - [ ] Conversation branching
 - [ ] File uploads (basic RAG)
 - [ ] Cost tracking dashboard
@@ -505,12 +527,14 @@ Q4 2026 (Oct-Dec): Enterprise & Scalability
 ### Phase 4: Enterprise & Scalability (Weeks 37-48)
 
 **Goals:**
+
 - [ ] Enterprise-grade security
 - [ ] Enhanced deployment options
 - [ ] Community support programs
 - [ ] Performance & scalability improvements
 
 **Features:**
+
 - [ ] Audit logging
 - [ ] Advanced security hardening
 - [ ] Advanced self-hosting tools
@@ -533,6 +557,7 @@ Q4 2026 (Oct-Dec): Enterprise & Scalability
 ### Contributing
 
 See [CONTRIBUTING.md](../.github/CONTRIBUTING.md) for:
+
 - Code of conduct
 - Development setup
 - PR guidelines
@@ -540,18 +565,19 @@ See [CONTRIBUTING.md](../.github/CONTRIBUTING.md) for:
 
 ### Support Channels
 
-| Channel | Purpose |
-|---------|---------|
-| **GitHub Issues** | Bug reports, feature requests |
-| **GitHub Discussions** | General questions, ideas |
-| **Discord** | Real-time chat, community |
-| **Documentation** | Guides, tutorials, API reference |
+| Channel                | Purpose                          |
+| ---------------------- | -------------------------------- |
+| **GitHub Issues**      | Bug reports, feature requests    |
+| **GitHub Discussions** | General questions, ideas         |
+| **Discord**            | Real-time chat, community        |
+| **Documentation**      | Guides, tutorials, API reference |
 
 ---
 
 ## Commercial SaaS Offering
 
 For users who prefer:
+
 - Managed hosting (no self-hosting required)
 - Team collaboration features
 - Enterprise support (SLA)
@@ -560,6 +586,7 @@ For users who prefer:
 **Check out [Sambung Cloud SaaS](./PRD-SaaS.md)** - a commercial service built on top of this open source core.
 
 The SaaS offering:
+
 - ✅ Uses this open source core as a dependency
 - ✅ Provides proprietary features (team workspaces, RBAC)
 - ✅ Offers managed hosting and support
@@ -593,4 +620,4 @@ For the full license text, see [LICENSE](../LICENSE).
 
 **End of Open Source PRD**
 
-*"Sambung: Connect any AI model. Self-hosted. Privacy-first. Open-source forever."*
+_"Sambung: Connect any AI model. Self-hosted. Privacy-first. Open-source forever."_

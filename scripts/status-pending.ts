@@ -27,18 +27,16 @@ interface Config {
 
 function main() {
   const config: Config = JSON.parse(readFileSync(STATUS_CONFIG, 'utf-8'));
-  const allTasks = config.phases.flatMap(p => p.tasks);
+  const allTasks = config.phases.flatMap((p) => p.tasks);
 
   // Filter pending and not blocked
-  const pending = allTasks.filter(
-    t => t.status !== 'completed' && !t.blocked
-  );
+  const pending = allTasks.filter((t) => t.status !== 'completed' && !t.blocked);
 
   // Group by priority
   const byPriority = {
-    P0: pending.filter(t => t.priority === 'P0'),
-    P1: pending.filter(t => t.priority === 'P1'),
-    P2: pending.filter(t => t.priority === 'P2'),
+    P0: pending.filter((t) => t.priority === 'P0'),
+    P1: pending.filter((t) => t.priority === 'P1'),
+    P2: pending.filter((t) => t.priority === 'P2'),
   };
 
   console.log(`\n📋 Pending Tasks (${pending.length} total)\n`);
@@ -56,7 +54,7 @@ function main() {
 
     tasks
       .sort((a, b) => a.week - b.week)
-      .forEach(task => {
+      .forEach((task) => {
         console.log(`  Week ${task.week}: ${task.title}`);
         console.log(`            ID: ${task.id}\n`);
       });

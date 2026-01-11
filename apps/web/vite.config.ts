@@ -1,18 +1,18 @@
-import { sveltekit } from "@sveltejs/kit/vite";
-import tailwindcss from "@tailwindcss/vite";
-import { defineConfig } from "vite";
-import path from "path";
+import { sveltekit } from '@sveltejs/kit/vite';
+import tailwindcss from '@tailwindcss/vite';
+import { defineConfig } from 'vite';
+import path from 'path';
 
 export default defineConfig({
   plugins: [tailwindcss(), sveltekit()],
   resolve: {
     alias: {
-      $lib: path.resolve(__dirname, "./src/lib"),
-      $components: path.resolve(__dirname, "./src/components"),
+      $lib: path.resolve(__dirname, './src/lib'),
+      $components: path.resolve(__dirname, './src/components'),
     },
   },
   ssr: {
     // Allow @sambung-chat/ui to be processed by Vite (pre-built dist files)
-    noExternal: ["@sambung-chat/ui"],
+    noExternal: ['@sambung-chat/ui'],
   },
 });

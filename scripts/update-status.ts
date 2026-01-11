@@ -66,7 +66,7 @@ function getStatusBadge(task: Task): string {
 
 function checkFilesExist(files: string[]): boolean {
   if (!files || files.length === 0) return false;
-  return files.every(file => existsSync(join(PROJECT_ROOT, file)));
+  return files.every((file) => existsSync(join(PROJECT_ROOT, file)));
 }
 
 function updateTaskStatus(task: Task): Task {
@@ -93,37 +93,41 @@ function updateTaskStatus(task: Task): Task {
   return task;
 }
 
-function calculateProgress(tasks: Task[]): { completed: number; total: number; percentage: number } {
+function calculateProgress(tasks: Task[]): {
+  completed: number;
+  total: number;
+  percentage: number;
+} {
   const total = tasks.length;
-  const completed = tasks.filter(t => t.status === 'completed').length;
+  const completed = tasks.filter((t) => t.status === 'completed').length;
   const percentage = Math.round((completed / total) * 100);
   return { completed, total, percentage };
 }
 
 function generateStatusMarkdown(config: Config): string {
-  const allTasks = config.phases.flatMap(p => p.tasks);
+  const allTasks = config.phases.flatMap((p) => p.tasks);
   const progress = calculateProgress(allTasks);
-  const completed = allTasks.filter(t => t.status === 'completed');
-  const inProgress = allTasks.filter(t => t.status === 'in-progress');
-  const blocked = allTasks.filter(t => t.blocked || t.status === 'blocked');
+  const completed = allTasks.filter((t) => t.status === 'completed');
+  const inProgress = allTasks.filter((t) => t.status === 'in-progress');
+  const blocked = allTasks.filter((t) => t.blocked || t.status === 'blocked');
 
   // Progress by category
   const categories = {
-    Infrastructure: allTasks.filter(t => t.category === 'infrastructure'),
-    Backend: allTasks.filter(t => t.category === 'backend'),
-    Frontend: allTasks.filter(t => t.category === 'frontend'),
-    Testing: allTasks.filter(t => t.category === 'testing'),
-    Security: allTasks.filter(t => t.category === 'security'),
-    Docs: allTasks.filter(t => t.category === 'docs'),
-    Release: allTasks.filter(t => t.category === 'release'),
-    Bugfix: allTasks.filter(t => t.category === 'bugfix'),
-    Feature: allTasks.filter(t => t.category === 'feature'),
-    Quality: allTasks.filter(t => t.category === 'quality'),
-    Content: allTasks.filter(t => t.category === 'content'),
+    Infrastructure: allTasks.filter((t) => t.category === 'infrastructure'),
+    Backend: allTasks.filter((t) => t.category === 'backend'),
+    Frontend: allTasks.filter((t) => t.category === 'frontend'),
+    Testing: allTasks.filter((t) => t.category === 'testing'),
+    Security: allTasks.filter((t) => t.category === 'security'),
+    Docs: allTasks.filter((t) => t.category === 'docs'),
+    Release: allTasks.filter((t) => t.category === 'release'),
+    Bugfix: allTasks.filter((t) => t.category === 'bugfix'),
+    Feature: allTasks.filter((t) => t.category === 'feature'),
+    Quality: allTasks.filter((t) => t.category === 'quality'),
+    Content: allTasks.filter((t) => t.category === 'content'),
   };
 
   const recentActivity = completed
-    .filter(t => t.completedAt)
+    .filter((t) => t.completedAt)
     .sort((a, b) => (b.completedAt || '').localeCompare(a.completedAt || ''));
 
   return `# SambungChat Development Status
@@ -142,9 +146,9 @@ function generateStatusMarkdown(config: Config): string {
 | **Total Tasks** | ${progress.total} |
 | **Completed** | ${progress.completed} |
 | **In Progress** | ${inProgress.length} |
-| **Pending** | ${allTasks.filter(t => t.status === 'pending').length} |
+| **Pending** | ${allTasks.filter((t) => t.status === 'pending').length} |
 | **Blocked** | ${blocked.length} |
-| **P0 Blockers** | ${allTasks.filter(t => t.priority === 'P0' && t.status !== 'completed').length} |
+| **P0 Blockers** | ${allTasks.filter((t) => t.priority === 'P0' && t.status !== 'completed').length} |
 
 ---
 
@@ -156,9 +160,9 @@ function generateStatusMarkdown(config: Config): string {
 ---
 
 ${config.phases
-  .flatMap(phase => {
+  .flatMap((phase) => {
     const tasksByWeek = new Map<number, Task[]>();
-    phase.tasks.forEach(task => {
+    phase.tasks.forEach((task) => {
       if (!tasksByWeek.has(task.week)) tasksByWeek.set(task.week, []);
       tasksByWeek.get(task.week)!.push(task);
     });
@@ -180,7 +184,8 @@ ${config.phases
       }
 
       const weekProgress = calculateProgress(weekTasks);
-      const headerIcon = weekProgress.percentage === 100 ? '✅' : weekProgress.percentage > 0 ? '🔄' : '⏳';
+      const headerIcon =
+        weekProgress.percentage === 100 ? '✅' : weekProgress.percentage > 0 ? '🔄' : '⏳';
 
       return `### Week ${start}${end > start ? '-' + end : ''}: ${title} ${headerIcon} ${weekProgress.percentage}%
 
@@ -188,7 +193,8 @@ ${config.phases
 |------|--------|----------|--------------|-------|
 ${weekTasks
   .map(
-    task => `| ${task.title} | ${getStatusBadge(task)} ${task.status === 'completed' && task.completedAt ? '' : task.status} | ${task.priority} | ${task.dependencies?.join(', ') || '-'} | ${task.description || ''} |`
+    (task) =>
+      `| ${task.title} | ${getStatusBadge(task)} ${task.status === 'completed' && task.completedAt ? '' : task.status} | ${task.priority} | ${task.dependencies?.join(', ') || '-'} | ${task.description || ''} |`
   )
   .join('\n')}
 
@@ -203,9 +209,9 @@ ${weekTasks
 ### P0 - Critical Blockers (Must Resolve)
 
 ${allTasks
-  .filter(t => t.priority === 'P0' && t.status !== 'completed')
+  .filter((t) => t.priority === 'P0' && t.status !== 'completed')
   .map(
-    task => `| ID | Task | Blocked Since | Reason | Action Required |
+    (task) => `| ID | Task | Blocked Since | Reason | Action Required |
 |----|------|--------------|--------|----------------|
 | \`${task.id}\` | ${task.title} | Week ${task.week} | ${task.blocked ? 'Blocked' : 'Pending'} | ${task.description || ''} |`
   )
@@ -217,9 +223,9 @@ ${allTasks
 
 | Priority | Count | Description |
 |----------|-------|-------------|
-| P0 - Critical | ${allTasks.filter(t => t.priority === 'P0').length} | Legal, release, infrastructure |
-| P1 - High | ${allTasks.filter(t => t.priority === 'P1').length} | Core features, security, UX |
-| P2 - Medium | ${allTasks.filter(t => t.priority === 'P2').length} | Nice-to-have, optimization |
+| P0 - Critical | ${allTasks.filter((t) => t.priority === 'P0').length} | Legal, release, infrastructure |
+| P1 - High | ${allTasks.filter((t) => t.priority === 'P1').length} | Core features, security, UX |
+| P2 - Medium | ${allTasks.filter((t) => t.priority === 'P2').length} | Nice-to-have, optimization |
 
 ---
 
@@ -243,7 +249,7 @@ ${Object.entries(categories)
 ${recentActivity
   .slice(0, 10)
   .map(
-    task => `### ${task.completedAt}
+    (task) => `### ${task.completedAt}
 - ${ICONS.completed} ${task.title}`
   )
   .join('\n')}
@@ -253,10 +259,13 @@ ${recentActivity
 ## Next Steps (Priority Order)
 
 ${allTasks
-  .filter(t => t.status === 'pending' && !t.blocked)
+  .filter((t) => t.status === 'pending' && !t.blocked)
   .sort((a, b) => {
     const priorityOrder = { P0: 0, P1: 1, P2: 2 };
-    return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
+    return (
+      priorityOrder[a.priority as keyof typeof priorityOrder] -
+      priorityOrder[b.priority as keyof typeof priorityOrder]
+    );
   })
   .slice(0, 10)
   .map((task, i) => `${i + 1}. **[${task.priority}]** ${task.title}`)
@@ -287,12 +296,12 @@ async function main() {
   const config: Config = JSON.parse(configContent);
 
   // Update task statuses based on file existence
-  config.phases.forEach(phase => {
+  config.phases.forEach((phase) => {
     phase.tasks = phase.tasks.map(updateTaskStatus);
   });
 
   // Recalculate overall progress
-  const allTasks = config.phases.flatMap(p => p.tasks);
+  const allTasks = config.phases.flatMap((p) => p.tasks);
   const progress = calculateProgress(allTasks);
   config.overallProgress = progress.percentage / 100;
 
@@ -304,9 +313,11 @@ async function main() {
   writeFileSync(STATUS_OUTPUT, markdown);
 
   console.log('✅ Status updated!');
-  console.log(`   Progress: ${progress.percentage}% (${progress.completed}/${progress.total} tasks)`);
-  console.log(`   Completed: ${allTasks.filter(t => t.status === 'completed').length}`);
-  console.log(`   Blocked: ${allTasks.filter(t => t.blocked || t.status === 'blocked').length}`);
+  console.log(
+    `   Progress: ${progress.percentage}% (${progress.completed}/${progress.total} tasks)`
+  );
+  console.log(`   Completed: ${allTasks.filter((t) => t.status === 'completed').length}`);
+  console.log(`   Blocked: ${allTasks.filter((t) => t.blocked || t.status === 'blocked').length}`);
   console.log(`\n📄 ${STATUS_OUTPUT}`);
 }
 

@@ -124,17 +124,15 @@ Atau import di Svelte file:
 
 Warna menggunakan format **OKLCH** (standard shadcn-svelte):
 
-| Warna | Hex | OKLCH |
-|-------|-----|-------|
-| Primary (Teal) | #208B8D | `oklch(0.58 0.10 181.5)` |
-| Accent (Orange) | #E67E50 | `oklch(0.65 0.15 21)` |
+| Warna           | Hex     | OKLCH                    |
+| --------------- | ------- | ------------------------ |
+| Primary (Teal)  | #208B8D | `oklch(0.58 0.10 181.5)` |
+| Accent (Orange) | #E67E50 | `oklch(0.65 0.15 21)`    |
 
 ### Menggunakan Design Tokens di Tailwind
 
 ```html
-<button class="bg-primary text-primary-foreground hover:bg-primary/90">
-  Button
-</button>
+<button class="bg-primary text-primary-foreground hover:bg-primary/90">Button</button>
 ```
 
 ## 🛠️ Build & Check
@@ -161,6 +159,7 @@ Komponen shadcn-svelte yang sudah ditambahkan:
 [https://shadcn-svelte.com/docs/components](https://shadcn-svelte.com/docs/components)
 
 Populer:
+
 - `Dialog` - Modal dialog
 - `DropdownMenu` - Dropdown menu
 - `Select` - Select input
@@ -191,12 +190,14 @@ Pastikan `tsconfig.json` memiliki path aliases:
 ### Styles tidak berfungsi
 
 Pastikan:
+
 1. `styles.css` sudah di-import di aplikasi
 2. `tailwind.config.js` sudah dikonfigurasi dengan content path yang benar
 
 ### Build error
 
 Jalankan:
+
 ```bash
 bun install
 bun run check

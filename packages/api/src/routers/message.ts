@@ -1,9 +1,9 @@
-import { db } from "@sambung-chat/db";
-import { chats } from "@sambung-chat/db/schema/chat";
-import { messages } from "@sambung-chat/db/schema/chat";
-import { eq, and, asc } from "drizzle-orm";
-import z from "zod";
-import { protectedProcedure } from "../index";
+import { db } from '@sambung-chat/db';
+import { chats } from '@sambung-chat/db/schema/chat';
+import { messages } from '@sambung-chat/db/schema/chat';
+import { eq, and, asc } from 'drizzle-orm';
+import z from 'zod';
+import { protectedProcedure } from '../index';
 
 export const messageRouter = {
   // Get messages by chat ID
@@ -48,7 +48,7 @@ export const messageRouter = {
         .where(and(eq(chats.id, input.chatId), eq(chats.userId, userId)));
 
       if (chatResults.length === 0) {
-        throw new Error("Chat not found");
+        throw new Error('Chat not found');
       }
 
       // Create message
@@ -56,7 +56,7 @@ export const messageRouter = {
         .insert(messages)
         .values({
           chatId: input.chatId,
-          role: "user",
+          role: 'user',
           content: input.content,
         })
         .returning();

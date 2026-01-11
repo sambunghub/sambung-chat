@@ -17,6 +17,7 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 **Target Release:** v0.1.0 - March 2026
 
 ### Week 1-2: Repository Setup & Infrastructure
+
 - [x] Initialize monorepo structure (Turborepo + Bun)
 - [x] Setup SvelteKit 5 + Hono + Drizzle ORM
 - [x] Configure Better Auth
@@ -27,6 +28,7 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 - [ ] Configure ESLint, Prettier, Husky pre-commit hooks
 
 ### Week 3-4: Authentication & User Management
+
 - [ ] Complete Better Auth integration
 - [ ] User registration/login UI
 - [ ] Session management
@@ -34,6 +36,7 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 - [ ] User profile page
 
 ### Week 5-6: Multi-Model Chat Interface
+
 - [ ] Integrate LiteLLM or direct API calls
 - [ ] Support 5+ providers:
   - [ ] OpenAI Compatible
@@ -48,6 +51,7 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 - [ ] API key management UI (encrypted storage)
 
 ### Week 7-8: Chat History Management
+
 - [ ] Create/delete chat sessions
 - [ ] Chat list sidebar
 - [ ] Search chats by title/content
@@ -57,6 +61,7 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 - [ ] Pagination & infinite scroll
 
 ### Week 9: Prompt Templates
+
 - [ ] Built-in templates (Summarize, Translate, Code Gen)
 - [ ] Save/edit/delete custom prompts
 - [ ] Search/filter prompts
@@ -64,6 +69,7 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 - [ ] Community prompts library UI
 
 ### Week 10: Settings & Preferences
+
 - [ ] Theme toggle (light/dark mode)
 - [ ] Language selection (English, Indonesian)
 - [ ] Sidebar width adjustment
@@ -71,6 +77,7 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 - [ ] Privacy mode toggle
 
 ### Week 11: Testing & Polish
+
 - [ ] Unit tests (Vitest)
 - [ ] E2E tests (Playwright)
 - [ ] Performance optimization
@@ -79,6 +86,7 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 - [ ] Bug fixes
 
 ### Week 12: v0.1.0 Release
+
 - [ ] Documentation complete
 - [ ] Deployment guides
 - [ ] GitHub release
@@ -91,12 +99,14 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 **Target Release:** v0.2.0 - June 2026
 
 ### Week 13-16: UI Library Extraction
+
 - [ ] Extract `@sambung/ui` as standalone package
 - [ ] Publish to npm
 - [ ] Document component API
 - [ ] Storybook setup
 
 ### Week 17-20: Plugin System v1
+
 - [ ] Plugin architecture design
 - [ ] Webhook system
 - [ ] Custom function calling support
@@ -104,6 +114,7 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 - [ ] Plugin documentation
 
 ### Week 21-24: SDK Development
+
 - [ ] `@sambung/sdk` for Node.js
 - [ ] `@sambung/sdk` for Python
 - [ ] API documentation
@@ -117,12 +128,14 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 **Target Release:** v0.3.0 - September 2026
 
 ### Week 25-28: Conversation Branching
+
 - [ ] Create alternate conversation paths
 - [ ] Visual tree representation
 - [ ] Branch comparison view
 - [ ] Merge branches
 
 ### Week 29-32: RAG Implementation
+
 - [ ] File upload (PDF, TXT, Markdown)
 - [ ] Document parsing
 - [ ] Vector embedding storage
@@ -131,6 +144,7 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 - [ ] RAG-powered chat responses
 
 ### Week 33-36: Analytics Dashboard
+
 - [ ] Personal token usage tracking
 - [ ] Cost breakdown per model/provider
 - [ ] Model performance comparison
@@ -144,6 +158,7 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 **Target Release:** v0.4.0 - December 2026
 
 ### Week 37-40: Enhanced Self-Hosting
+
 - [ ] One-click Docker deployment
 - [ ] Kubernetes Helm charts
 - [ ] Automated backups
@@ -152,6 +167,7 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 - [ ] Upgrade/migration tools
 
 ### Week 41-44: Security Hardening
+
 - [ ] Audit logging
 - [ ] Rate limiting
 - [ ] Input validation enhancement
@@ -159,6 +175,7 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 - [ ] Security headers
 
 ### Week 45-48: Performance & Scalability
+
 - [ ] Database optimization
 - [ ] Caching strategy (Redis)
 - [ ] CDN setup for static assets
@@ -172,6 +189,7 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 **Target Release:** v1.0.0 - 2027
 
 ### Mobile App (React Native)
+
 - [ ] iOS app
 - [ ] Android app
 - [ ] Offline capability
@@ -179,6 +197,7 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 - [ ] Sync with self-hosted instance
 
 ### Desktop App (Electron/Tauri)
+
 - [ ] macOS app
 - [ ] Windows app
 - [ ] Linux app
@@ -187,6 +206,7 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 - [ ] Auto-updates
 
 ### v1.0.0 Stable Release
+
 - [ ] Feature complete
 - [ ] 100% test coverage
 - [ ] Production-ready
@@ -199,23 +219,27 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 ## Success Metrics
 
 ### v0.1.0 (MVP)
+
 - [ ] 5+ LLM providers supported
 - [ ] 1000+ GitHub stars
 - [ ] 50+ contributors
 - [ ] 10K+ Docker pulls
 
 ### v0.2.0 (Ecosystem)
+
 - [ ] Published `@sambung/ui` package
 - [ ] Published `@sambung/sdk` packages
 - [ ] 10+ community plugins
 - [ ] 5000+ GitHub stars
 
 ### v0.3.0 (Advanced)
+
 - [ ] 100K+ Docker pulls
 - [ ] 100+ contributors
 - [ ] Enterprise-ready
 
 ### v1.0.0 (Stable)
+
 - [ ] 1M+ downloads
 - [ ] Active community
 - [ ] Sustainable governance model
@@ -225,16 +249,16 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 
 ## Technology Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Svelte 5 + ShadCN + TailwindCSS |
-| Backend | Hono (TypeScript) |
-| Database | PostgreSQL + Drizzle ORM |
-| Auth | Better Auth |
-| Job Queue | Bull/BullMQ + Redis |
-| Build | Vite + Turborepo |
-| Runtime | Bun |
-| Testing | Vitest + Playwright |
+| Layer     | Technology                      |
+| --------- | ------------------------------- |
+| Frontend  | Svelte 5 + ShadCN + TailwindCSS |
+| Backend   | Hono (TypeScript)               |
+| Database  | PostgreSQL + Drizzle ORM        |
+| Auth      | Better Auth                     |
+| Job Queue | Bull/BullMQ + Redis             |
+| Build     | Vite + Turborepo                |
+| Runtime   | Bun                             |
+| Testing   | Vitest + Playwright             |
 
 ---
 

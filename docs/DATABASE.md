@@ -25,11 +25,11 @@ SambungChat uses **PostgreSQL** as the primary database with **Drizzle ORM** for
 
 ### Technology Stack
 
-| Component | Technology | Version |
-|-----------|-----------|---------|
-| **Database** | PostgreSQL | 16+ |
-| **ORM** | Drizzle ORM | ^0.45.1 |
-| **Migrations** | Drizzle Kit | ^0.28.1 |
+| Component      | Technology                | Version |
+| -------------- | ------------------------- | ------- |
+| **Database**   | PostgreSQL                | 16+     |
+| **ORM**        | Drizzle ORM               | ^0.45.1 |
+| **Migrations** | Drizzle Kit               | ^0.28.1 |
 | **Connection** | postgres.js (via Drizzle) |
 
 ### Database Connection
@@ -37,9 +37,9 @@ SambungChat uses **PostgreSQL** as the primary database with **Drizzle ORM** for
 **File:** `packages/db/src/index.ts`
 
 ```typescript
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
-import * as schema from "./schema";
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+import * as schema from './schema';
 
 const connectionString = process.env.DATABASE_URL!;
 
@@ -80,14 +80,14 @@ export const db = drizzle(client, { schema });
 
 ### Core Tables
 
-| Table | Purpose | Managed By |
-|-------|---------|------------|
-| `users` | User accounts | Better Auth |
-| `sessions` | User sessions | Better Auth |
-| `chats` | Chat conversations | Custom |
-| `messages` | Chat messages | Custom |
-| `prompts` | User prompt templates | Custom |
-| `api_keys` | Encrypted API keys | Custom |
+| Table      | Purpose               | Managed By  |
+| ---------- | --------------------- | ----------- |
+| `users`    | User accounts         | Better Auth |
+| `sessions` | User sessions         | Better Auth |
+| `chats`    | Chat conversations    | Custom      |
+| `messages` | Chat messages         | Custom      |
+| `prompts`  | User prompt templates | Custom      |
+| `api_keys` | Encrypted API keys    | Custom      |
 
 ---
 
@@ -165,8 +165,8 @@ These tables are managed automatically by Better Auth.
 **File:** `packages/db/src/schema/auth.ts`
 
 ```typescript
-import { authTables } from "@better-auth/drizzle";
-import { pgTable } from "drizzle-orm/pg-core";
+import { authTables } from '@better-auth/drizzle';
+import { pgTable } from 'drizzle-orm/pg-core';
 
 export const user = authTables.user;
 export const session = authTables.session;
@@ -179,18 +179,18 @@ export const verification = authTables.verification;
 **File:** `packages/db/src/schema/chat.ts`
 
 ```typescript
-import { pgTable, serial, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { user } from "./auth";
+import { pgTable, serial, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { user } from './auth';
 
-export const chats = pgTable("chats", {
-  id: serial("id").primaryKey(),
-  userId: uuid("user_id")
-    .references(() => user.id, { onDelete: "cascade" })
+export const chats = pgTable('chats', {
+  id: serial('id').primaryKey(),
+  userId: uuid('user_id')
+    .references(() => user.id, { onDelete: 'cascade' })
     .notNull(),
-  title: text("title").notNull(),
-  modelId: text("model_id").notNull(), // e.g., "gpt-4", "claude-3-opus"
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  title: text('title').notNull(),
+  modelId: text('model_id').notNull(), // e.g., "gpt-4", "claude-3-opus"
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
 export type Chat = typeof chats.$inferSelect;
@@ -198,11 +198,12 @@ export type NewChat = typeof chats.$inferInsert;
 ```
 
 **Indexes:**
+
 ```typescript
 // Create index for faster user chat queries
-export const chatUserIdIdx = index("chat_user_id_idx").on(chats.userId);
+export const chatUserIdIdx = index('chat_user_id_idx').on(chats.userId);
 // Create index for sorting by updated date
-export const chatUpdatedAtIdx = index("chat_updated_at_idx").on(chats.updatedAt);
+export const chatUpdatedAtIdx = index('chat_updated_at_idx').on(chats.updatedAt);
 ```
 
 ### Message Table
@@ -210,22 +211,22 @@ export const chatUpdatedAtIdx = index("chat_updated_at_idx").on(chats.updatedAt)
 **File:** `packages/db/src/schema/message.ts`
 
 ```typescript
-import { pgTable, serial, text, timestamp, jsonb } from "drizzle-orm/pg-core";
-import { chats } from "./chat";
+import { pgTable, serial, text, timestamp, jsonb } from 'drizzle-orm/pg-core';
+import { chats } from './chat';
 
-export const messages = pgTable("messages", {
-  id: serial("id").primaryKey(),
-  chatId: serial("chat_id")
-    .references(() => chats.id, { onDelete: "cascade" })
+export const messages = pgTable('messages', {
+  id: serial('id').primaryKey(),
+  chatId: serial('chat_id')
+    .references(() => chats.id, { onDelete: 'cascade' })
     .notNull(),
-  role: text("role").notNull(), // "user" | "assistant" | "system"
-  content: text("content").notNull(),
-  metadata: jsonb("metadata").$type<{
+  role: text('role').notNull(), // "user" | "assistant" | "system"
+  content: text('content').notNull(),
+  metadata: jsonb('metadata').$type<{
     model?: string;
     tokens?: number;
     finishReason?: string;
   }>(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
 export type Message = typeof messages.$inferSelect;
@@ -233,9 +234,10 @@ export type NewMessage = typeof messages.$inferInsert;
 ```
 
 **Indexes:**
+
 ```typescript
-export const messageChatIdIdx = index("message_chat_id_idx").on(messages.chatId);
-export const messageCreatedAtIdx = index("message_created_at_idx").on(messages.createdAt);
+export const messageChatIdIdx = index('message_chat_id_idx').on(messages.chatId);
+export const messageCreatedAtIdx = index('message_created_at_idx').on(messages.createdAt);
 ```
 
 ### Prompt Table
@@ -243,21 +245,21 @@ export const messageCreatedAtIdx = index("message_created_at_idx").on(messages.c
 **File:** `packages/db/src/schema/prompt.ts`
 
 ```typescript
-import { pgTable, serial, text, timestamp, boolean, uuid, jsonb } from "drizzle-orm/pg-core";
-import { user } from "./auth";
+import { pgTable, serial, text, timestamp, boolean, uuid, jsonb } from 'drizzle-orm/pg-core';
+import { user } from './auth';
 
-export const prompts = pgTable("prompts", {
-  id: serial("id").primaryKey(),
-  userId: uuid("user_id")
-    .references(() => user.id, { onDelete: "cascade" })
+export const prompts = pgTable('prompts', {
+  id: serial('id').primaryKey(),
+  userId: uuid('user_id')
+    .references(() => user.id, { onDelete: 'cascade' })
     .notNull(),
-  name: text("name").notNull(),
-  content: text("content").notNull(),
-  variables: jsonb("variables").$type<string[]>().default([]).notNull(),
-  category: text("category").default("general"),
-  isPublic: boolean("is_public").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  name: text('name').notNull(),
+  content: text('content').notNull(),
+  variables: jsonb('variables').$type<string[]>().default([]).notNull(),
+  category: text('category').default('general'),
+  isPublic: boolean('is_public').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
 export type Prompt = typeof prompts.$inferSelect;
@@ -265,10 +267,11 @@ export type NewPrompt = typeof prompts.$inferInsert;
 ```
 
 **Indexes:**
+
 ```typescript
-export const promptUserIdIdx = index("prompt_user_id_idx").on(prompts.userId);
-export const promptCategoryIdx = index("prompt_category_idx").on(prompts.category);
-export const promptIsPublicIdx = index("prompt_is_public_idx").on(prompts.isPublic);
+export const promptUserIdIdx = index('prompt_user_id_idx').on(prompts.userId);
+export const promptCategoryIdx = index('prompt_category_idx').on(prompts.category);
+export const promptIsPublicIdx = index('prompt_is_public_idx').on(prompts.isPublic);
 ```
 
 ### API Key Table
@@ -276,19 +279,19 @@ export const promptIsPublicIdx = index("prompt_is_public_idx").on(prompts.isPubl
 **File:** `packages/db/src/schema/api-key.ts`
 
 ```typescript
-import { pgTable, serial, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { user } from "./auth";
+import { pgTable, serial, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { user } from './auth';
 
-export const apiKeys = pgTable("api_keys", {
-  id: serial("id").primaryKey(),
-  userId: uuid("user_id")
-    .references(() => user.id, { onDelete: "cascade" })
+export const apiKeys = pgTable('api_keys', {
+  id: serial('id').primaryKey(),
+  userId: uuid('user_id')
+    .references(() => user.id, { onDelete: 'cascade' })
     .notNull(),
-  provider: text("provider").notNull(), // "openai" | "anthropic" | "google" | "groq" | "ollama"
-  encryptedKey: text("encrypted_key").notNull(), // AES-256 encrypted
-  keyLast4: text("key_last4").notNull(), // Last 4 chars for identification
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  provider: text('provider').notNull(), // "openai" | "anthropic" | "google" | "groq" | "ollama"
+  encryptedKey: text('encrypted_key').notNull(), // AES-256 encrypted
+  keyLast4: text('key_last4').notNull(), // Last 4 chars for identification
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
 export type ApiKey = typeof apiKeys.$inferSelect;
@@ -296,9 +299,10 @@ export type NewApiKey = typeof apiKeys.$inferInsert;
 ```
 
 **Indexes:**
+
 ```typescript
-export const apiKeyUserIdIdx = index("api_key_user_id_idx").on(apiKeys.userId);
-export const apiKeyProviderIdx = index("api_key_provider_idx").on(apiKeys.provider);
+export const apiKeyUserIdIdx = index('api_key_user_id_idx').on(apiKeys.userId);
+export const apiKeyProviderIdx = index('api_key_provider_idx').on(apiKeys.provider);
 ```
 
 ### Schema Exports
@@ -306,11 +310,11 @@ export const apiKeyProviderIdx = index("api_key_provider_idx").on(apiKeys.provid
 **File:** `packages/db/src/schema/index.ts`
 
 ```typescript
-export * from "./auth";
-export * from "./chat";
-export * from "./message";
-export * from "./prompt";
-export * from "./api-key";
+export * from './auth';
+export * from './chat';
+export * from './message';
+export * from './prompt';
+export * from './api-key';
 ```
 
 ---
@@ -428,11 +432,11 @@ services:
       POSTGRES_PASSWORD: sambungchat
       POSTGRES_DB: sambungchat
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U sambungchat"]
+      test: ['CMD-SHELL', 'pg_isready -U sambungchat']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -484,19 +488,22 @@ Studio opens at `http://localhost:4983`
 
 **File:** `packages/db/src/seed.ts`
 
-```typescript
-import { db } from "./index";
-import { chats, messages, prompts } from "./schema";
+````typescript
+import { db } from './index';
+import { chats, messages, prompts } from './schema';
 
 async function seed() {
-  console.log("🌱 Seeding database...");
+  console.log('🌱 Seeding database...');
 
   // Create sample chats
-  const [chat1] = await db.insert(chats).values({
-    userId: 'default-user-id',
-    title: 'Sample Chat',
-    modelId: 'gpt-4',
-  }).returning();
+  const [chat1] = await db
+    .insert(chats)
+    .values({
+      userId: 'default-user-id',
+      title: 'Sample Chat',
+      modelId: 'gpt-4',
+    })
+    .returning();
 
   // Create sample messages
   await db.insert(messages).values([
@@ -521,11 +528,11 @@ async function seed() {
     category: 'coding',
   });
 
-  console.log("✅ Seed complete!");
+  console.log('✅ Seed complete!');
 }
 
 seed().catch(console.error);
-```
+````
 
 ### Running Seed
 
@@ -591,9 +598,9 @@ DATABASE_URL=postgresql://sambungchat:sambungchat@localhost:5432/sambungchat
 ### Using Drizzle ORM
 
 ```typescript
-import { db } from "@sambung-chat/db";
-import { chats, messages } from "@sambung-chat/db/schema";
-import { eq, and, desc, asc } from "drizzle-orm";
+import { db } from '@sambung-chat/db';
+import { chats, messages } from '@sambung-chat/db/schema';
+import { eq, and, desc, asc } from 'drizzle-orm';
 
 // Get user's chats with message count
 const userChats = await db
@@ -635,6 +642,7 @@ const searchResults = await db
 **Problem:** `connection refused`
 
 **Solution:**
+
 ```bash
 # Check if PostgreSQL is running
 docker ps | grep sambungchat-db
@@ -651,6 +659,7 @@ bun run db:logs
 **Problem:** Migration fails with "table already exists"
 
 **Solution:**
+
 ```bash
 # Drop and recreate (development only)
 bun run db:drop
@@ -667,6 +676,7 @@ bun run db:studio
 **Problem:** `permission denied for table chats`
 
 **Solution:**
+
 ```bash
 # Grant permissions
 docker exec -it sambungchat-db psql -U sambungchat -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO sambungchat;"

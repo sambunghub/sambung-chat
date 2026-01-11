@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.0.1] - 2026-01-11
 
 ### Added
+
 - **UI Package with shadcn-svelte Integration**
   - Integrate shadcn-svelte component library into monorepo
   - Add bits-ui, @lucide/svelte, tailwind-variants, tw-animate-css dependencies
@@ -77,6 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - ORPC implementation reference guide
 
 ### Changed
+
 - **Monorepo Configuration**
   - Update apps/web/vite.config.ts to consume pre-built UI package from dist
   - Configure ssr.noExternal for proper module resolution in workspace
@@ -92,12 +94,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Centralize component management in UI package
 
 ### Fixed
+
 - **Module Resolution in Monorepo**
   - Resolve $lib/utils import error during SSR by using svelte-package pre-build approach
   - Fix circular dependency in Header component by using relative imports
   - Configure proper exports in packages/ui/package.json to point to dist files
 
 ### Technical Notes
+
 - shadcn-svelte components in src/lib/components/ui/ are managed by CLI - DO NOT EDIT manually
 - Use `npx shadcn-svelte add <component>` to add new components
 - Run `bun run build` in packages/ui after adding components

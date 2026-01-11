@@ -1,6 +1,6 @@
-import type { Context as HonoContext } from "hono";
+import type { Context as HonoContext } from 'hono';
 
-import { auth } from "@sambung-chat/auth";
+import { auth } from '@sambung-chat/auth';
 
 export type CreateContextOptions = {
   context: HonoContext;

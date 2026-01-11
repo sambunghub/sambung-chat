@@ -77,38 +77,38 @@ SambungChat follows a **monorepo architecture** using Turborepo for orchestratio
 
 ### Frontend Stack
 
-| Component | Technology | Purpose |
-|-----------|-----------|---------|
-| **Framework** | SvelteKit 5 | Meta-framework for Svelte |
-| **UI Library** | Svelte 5 | Reactive UI framework |
-| **Styling** | TailwindCSS | Utility-first CSS |
-| **Components** | shadcn-svelte | Reusable UI components |
-| **State** | Svelte 5 Runes | Reactive state management |
-| **Data Fetching** | TanStack Query | Server state management |
-| **Type Safety** | ORPC Client | End-to-end type safety |
-| **Icons** | Lucide Svelte | Icon library |
+| Component         | Technology     | Purpose                   |
+| ----------------- | -------------- | ------------------------- |
+| **Framework**     | SvelteKit 5    | Meta-framework for Svelte |
+| **UI Library**    | Svelte 5       | Reactive UI framework     |
+| **Styling**       | TailwindCSS    | Utility-first CSS         |
+| **Components**    | shadcn-svelte  | Reusable UI components    |
+| **State**         | Svelte 5 Runes | Reactive state management |
+| **Data Fetching** | TanStack Query | Server state management   |
+| **Type Safety**   | ORPC Client    | End-to-end type safety    |
+| **Icons**         | Lucide Svelte  | Icon library              |
 
 ### Backend Stack
 
-| Component | Technology | Purpose |
-|-----------|-----------|---------|
-| **Framework** | Hono | Lightweight web framework |
-| **API Layer** | ORPC | Type-safe RPC framework |
-| **Validation** | Zod | Schema validation |
-| **Auth** | Better Auth | Authentication & sessions |
-| **ORM** | Drizzle ORM | Type-safe database queries |
-| **Database** | PostgreSQL | Relational database |
+| Component      | Technology  | Purpose                    |
+| -------------- | ----------- | -------------------------- |
+| **Framework**  | Hono        | Lightweight web framework  |
+| **API Layer**  | ORPC        | Type-safe RPC framework    |
+| **Validation** | Zod         | Schema validation          |
+| **Auth**       | Better Auth | Authentication & sessions  |
+| **ORM**        | Drizzle ORM | Type-safe database queries |
+| **Database**   | PostgreSQL  | Relational database        |
 
 ### DevOps Stack
 
-| Component | Technology | Purpose |
-|-----------|-----------|---------|
-| **Runtime** | Bun | Fast JavaScript runtime |
-| **Monorepo** | Turborepo | Build orchestration |
-| **Package Manager** | Bun | Dependency management |
-| **Type Checking** | TypeScript | Type safety |
-| **Linting** | ESLint | Code linting |
-| **Formatting** | Prettier | Code formatting |
+| Component           | Technology | Purpose                 |
+| ------------------- | ---------- | ----------------------- |
+| **Runtime**         | Bun        | Fast JavaScript runtime |
+| **Monorepo**        | Turborepo  | Build orchestration     |
+| **Package Manager** | Bun        | Dependency management   |
+| **Type Checking**   | TypeScript | Type safety             |
+| **Linting**         | ESLint     | Code linting            |
+| **Formatting**      | Prettier   | Code formatting         |
 
 ---
 
@@ -293,13 +293,13 @@ appRouter
 
 ### Endpoint Mapping
 
-| ORPC Route | HTTP Endpoint | Auth |
-|------------|---------------|------|
-| `healthCheck` | `POST /rpc/healthCheck` | Public |
-| `auth.signIn` | `POST /rpc/auth.signIn` | Public |
+| ORPC Route        | HTTP Endpoint               | Auth      |
+| ----------------- | --------------------------- | --------- |
+| `healthCheck`     | `POST /rpc/healthCheck`     | Public    |
+| `auth.signIn`     | `POST /rpc/auth.signIn`     | Public    |
 | `user.getProfile` | `POST /rpc/user.getProfile` | Protected |
-| `chat.getAll` | `POST /rpc/chat.getAll` | Protected |
-| `message.stream` | `POST /rpc/message.stream` | Protected |
+| `chat.getAll`     | `POST /rpc/chat.getAll`     | Protected |
+| `message.stream`  | `POST /rpc/message.stream`  | Protected |
 
 ---
 
@@ -309,7 +309,7 @@ appRouter
 
 ```typescript
 // packages/auth/src/index.ts
-import { betterAuth } from "better-auth";
+import { betterAuth } from 'better-auth';
 
 export const auth = betterAuth({
   database: drizzleAdapter(db),
@@ -330,7 +330,7 @@ export const auth = betterAuth({
 // packages/api/src/index.ts
 const requireAuth = o.middleware(async ({ context, next }) => {
   if (!context.session?.user) {
-    throw new ORPCError("UNAUTHORIZED");
+    throw new ORPCError('UNAUTHORIZED');
   }
   return next({
     context: {

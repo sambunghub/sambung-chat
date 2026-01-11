@@ -22,12 +22,12 @@ Before you begin, ensure you have the following installed:
 
 ### Required Software
 
-| Software | Minimum Version | Recommended | Installation |
-|----------|----------------|-------------|---------------|
-| **Bun** | 1.2.23 | Latest | [bun.sh](https://bun.sh/) |
-| **PostgreSQL** | 15 | 16+ | [postgresql.org](https://www.postgresql.org/download/) |
-| **Docker** | 24.0 | Latest | [docker.com](https://www.docker.com/get-started) |
-| **Git** | 2.30 | Latest | [git-scm.com](https://git-scm.com/downloads) |
+| Software       | Minimum Version | Recommended | Installation                                           |
+| -------------- | --------------- | ----------- | ------------------------------------------------------ |
+| **Bun**        | 1.2.23          | Latest      | [bun.sh](https://bun.sh/)                              |
+| **PostgreSQL** | 15              | 16+         | [postgresql.org](https://www.postgresql.org/download/) |
+| **Docker**     | 24.0            | Latest      | [docker.com](https://www.docker.com/get-started)       |
+| **Git**        | 2.30            | Latest      | [git-scm.com](https://git-scm.com/downloads)           |
 
 ### Verify Installation
 
@@ -56,6 +56,7 @@ bun install
 ```
 
 This will install all dependencies for the monorepo, including:
+
 - Frontend (SvelteKit)
 - Backend (Hono)
 - Shared packages (API, Auth, DB, UI)
@@ -74,6 +75,7 @@ cp packages/db/.env.example packages/db/.env
 #### Environment Variables Reference
 
 **apps/server/.env:**
+
 ```bash
 # Server Configuration
 PORT=3000
@@ -91,12 +93,14 @@ CORS_ORIGIN=http://localhost:5173
 ```
 
 **apps/web/.env:**
+
 ```bash
 # Public Variables
 PUBLIC_SERVER_URL=http://localhost:3000
 ```
 
 **packages/db/.env:**
+
 ```bash
 # Database Configuration
 POSTGRES_DB=sambung-chat
@@ -147,6 +151,7 @@ bun run db:push
 ```
 
 This will create all required tables including:
+
 - User tables (via Better Auth)
 - Session tables
 - Any application-specific tables
@@ -164,6 +169,7 @@ bun run dev
 ```
 
 This starts:
+
 - **Frontend**: http://localhost:5173
 - **Backend**: http://localhost:3000
 - **Database**: localhost:5432
@@ -221,6 +227,7 @@ After signing up, you'll need to add your AI provider credentials:
 **Problem:** `connection refused` or `database does not exist`
 
 **Solution:**
+
 ```bash
 # Check if database is running
 bun run db:start
@@ -237,6 +244,7 @@ bun run db:studio
 **Problem:** `Port 3000 is already in use`
 
 **Solution:**
+
 ```bash
 # Find process using port 3000
 lsof -i :3000
@@ -252,6 +260,7 @@ kill -9 <PID>
 **Problem:** Type errors after installing dependencies
 
 **Solution:**
+
 ```bash
 # Rebuild packages
 bun run build
@@ -265,6 +274,7 @@ bun run dev
 **Problem:** Cannot sign in or session not persisting
 
 **Solution:**
+
 ```bash
 # Check BETTER_AUTH_SECRET is set
 cat apps/server/.env | grep BETTER_AUTH_SECRET
@@ -281,6 +291,7 @@ cat apps/server/.env | grep CORS_ORIGIN
 **Problem:** `Cannot find module '@sambung-chat/api'`
 
 **Solution:**
+
 ```bash
 # Rebuild all packages
 bun run build

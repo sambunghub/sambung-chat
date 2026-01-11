@@ -11,6 +11,7 @@ Monorepo (Turborepo) building an open-source multi-model LLM client platform.
 **Runtime:** Bun
 
 **CRITICAL: Before ANY build task, always run TypeScript check first:**
+
 ```bash
 # ALWAYS run this before building
 bun run check:types
@@ -68,19 +69,23 @@ bun run db:studio    # Open Drizzle Studio
 ## JIT Index - Read Sub-Folder Documentation
 
 ### For UI Package Changes
+
 - **Location:** `packages/ui/` → [see packages/ui/AGENTS.md](packages/ui/AGENTS.md)
 - **Critical Read:** [docs/UI-PACKAGE-GUIDE.md](docs/UI-PACKAGE-GUIDE.md)
 - **Pre-build Check:** `cd packages/ui && bun run check`
 
 ### For Web App Changes
+
 - **Location:** `apps/web/` → [see apps/web/AGENTS.md](apps/web/AGENTS.md)
 - **Pre-build Check:** `cd apps/web && bun run check`
 
 ### For API/Backend Changes
+
 - **Location:** `apps/server/` → [see apps/server/AGENTS.md](apps/server/AGENTS.md)
 - **Package API:** `packages/api/` → [see packages/api/AGENTS.md](packages/api/AGENTS.md)
 
 ### For Database Changes
+
 - **Location:** `packages/db/` → [see packages/db/AGENTS.md](packages/db/AGENTS.md)
 
 ---
@@ -130,6 +135,7 @@ If you encounter build errors, **ALWAYS** check these first:
 3. **Sub-folder AGENTS.md** - Location-specific issues and patterns
 
 **Most Common Errors:**
+
 - `@apply` with custom colors → Use CSS variables instead (see TROUBLESHOOTING.md)
 - Import `lucide-svelte` → Use `@lucide/svelte` instead
 - `const` with `$state` → Use `let` instead

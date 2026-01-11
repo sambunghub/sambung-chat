@@ -24,6 +24,7 @@ bun run build
 **RULE: Jika type check gagal, JANGAN lanjut ke build!**
 
 Error TypeScript yang paling umum:
+
 - `const` dengan `$state` → Ganti ke `let`
 - Import `lucide-svelte` → Ganti ke `@lucide/svelte`
 - Type tidak dikenali → Tambahkan type annotation
@@ -36,11 +37,13 @@ Error TypeScript yang paling umum:
 **Alasan:** Folder ini adalah **generated code** dari shadcn-svelte CLI.
 
 **Konsekuensi jika di-edit:**
+
 - Perubahan akan **OVERWRITTEN** saat user menjalankan `npx shadcn-svelte add [component]`
 - Akan menyebabkan merge conflict saat update komponen dari shadcn-svelte
 - Melanggar best practice shadcn-svelte workflow
 
 **Solusi yang Benar:**
+
 - Jika butuh variant/custom style → gunakan `className` prop saat memakai komponen
 - Jika butuh behavior berbeda → wrap komponen dalam komponen custom di lokasi lain
 
@@ -67,11 +70,13 @@ packages/ui/
 ### Jika User Minta Menambah Komponen shadcn-svelte
 
 **DONT:**
+
 - ❌ Copy-paste dari shadcn-svelte repo manual
 - ❌ Edit file di `src/lib/components/ui/`
 - ❌ Buat file baru di `src/lib/components/ui/`
 
 **DO:**
+
 ```bash
 cd packages/ui
 npx shadcn-svelte@latest add [nama-komponen]
@@ -90,10 +95,7 @@ Jika butuh komponen dengan variant custom:
   export let children;
 </script>
 
-<Button
-  variant="default"
-  class="bg-gradient-to-r from-purple-500 to-pink-500"
->
+<Button variant="default" class="bg-gradient-to-r from-purple-500 to-pink-500">
   {@render children()}
 </Button>
 ```
@@ -112,6 +114,7 @@ Jika butuh komponen dengan variant custom:
 ### Pattern Komponen shadcn-svelte
 
 Komponen menggunakan:
+
 - **Svelte 5 runes** (`$state`, `$derived`, `$props`)
 - **Snippet API** untuk children rendering
 - **tailwind-variants** untuk variant management
@@ -119,19 +122,19 @@ Komponen menggunakan:
 
 ```svelte
 <script lang="ts">
-  import type { Snippet } from "svelte";
-  import { cn } from "$lib/utils";
+  import type { Snippet } from 'svelte';
+  import { cn } from '$lib/utils';
 
   type $$Props = {
     class?: string;
     children: Snippet;
   };
 
-  export let className: $$Props["class"] = undefined;
-  export let children: $$Props["children"];
+  export let className: $$Props['class'] = undefined;
+  export let children: $$Props['children'];
 </script>
 
-<div class={cn("base-classes", className)}>
+<div class={cn('base-classes', className)}>
   {@render children()}
 </div>
 ```
@@ -145,8 +148,8 @@ shadcn-svelte menggunakan **OKLCH** bukan HSL:
 ```css
 /* src/styles/tokens.css */
 :root {
-  --primary: oklch(0.58 0.10 181.5);     /* Teal #208B8D */
-  --accent: oklch(0.65 0.15 21);          /* Orange #E67E50 */
+  --primary: oklch(0.58 0.1 181.5); /* Teal #208B8D */
+  --accent: oklch(0.65 0.15 21); /* Orange #E67E50 */
 }
 ```
 
@@ -160,9 +163,9 @@ export default {
       colors: {
         primary: 'hsl(var(--color-primary))',
         // CSS variables menggunakan HSL wrapper
-      }
-    }
-  }
+      },
+    },
+  },
 };
 ```
 
@@ -175,6 +178,7 @@ Catatan: Meskipun tokens menggunakan OKLCH, Tailwind tetap menggunakan `hsl()` w
 **Cause:** TypeScript tidak mengenali path alias
 
 **Fix:** Pastikan `tsconfig.json` memiliki:
+
 ```json
 {
   "compilerOptions": {
@@ -189,6 +193,7 @@ Catatan: Meskipun tokens menggunakan OKLCH, Tailwind tetap menggunakan `hsl()` w
 ### Issue: Komponen tidak muncul setelah add
 
 **Checklist:**
+
 1. ✅ Komponen sudah ada di `src/lib/components/ui/`
 2. ✅ Export di `src/lib/components/ui/[component]/index.ts`
 3. ✅ Re-export di `src/lib/index.ts` (jika perlu)
@@ -197,6 +202,7 @@ Catatan: Meskipun tokens menggunakan OKLCH, Tailwind tetap menggunakan `hsl()` w
 ### Issue: Styles tidak apply
 
 **Checklist:**
+
 1. ✅ `@sambung-chat/ui/styles.css` sudah di-import
 2. ✅ `tailwind.config.js` content path mencakup `./src/**/*.{html,js,svelte,ts}`
 3. ✅ `components.json` css path benar

@@ -1,5 +1,5 @@
-import adapter from "@sveltejs/adapter-auto";
-import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
+import adapter from '@sveltejs/adapter-auto';
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -14,10 +14,10 @@ const config = {
     adapter: adapter(),
 
     alias: {
-      "$lib": "../../packages/ui/src/lib",
-      "$lib/*": "../../packages/ui/src/lib/*",
-      "$components": "../../packages/ui/src/components",
-      "$components/*": "../../packages/ui/src/components/*",
+      $lib: '../../packages/ui/src/lib',
+      '$lib/*': '../../packages/ui/src/lib/*',
+      $components: '../../packages/ui/src/components',
+      '$components/*': '../../packages/ui/src/components/*',
     },
   },
 };

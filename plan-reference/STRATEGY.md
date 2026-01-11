@@ -44,6 +44,7 @@
 **Status:** `plan-reference/` akan di-publish
 
 **Rationale:**
+
 - Transparency untuk community open-source
 - AI agents membutuhkan akses ke planning documents
 - Contributors bisa memahami vision dan direction
@@ -51,11 +52,11 @@
 
 **Categorization:**
 
-| Folder | Access | Purpose | Audience |
-|--------|--------|---------|----------|
-| `plan-reference/` | **Public** | Internal planning, patterns, strategy | Developers, AI Agents, Contributors |
-| `plan-reference/.notes` | **Private** | SaaS PRD (secret) | Internal only |
-| `docs/` | **Public** | User-facing documentation | End users, Deployers |
+| Folder                  | Access      | Purpose                               | Audience                            |
+| ----------------------- | ----------- | ------------------------------------- | ----------------------------------- |
+| `plan-reference/`       | **Public**  | Internal planning, patterns, strategy | Developers, AI Agents, Contributors |
+| `plan-reference/.notes` | **Private** | SaaS PRD (secret)                     | Internal only                       |
+| `docs/`                 | **Public**  | User-facing documentation             | End users, Deployers                |
 
 ---
 
@@ -77,7 +78,7 @@ import { schema } from '@sambung-chat/db';
 import { writeFile } from 'fs/promises';
 
 async function generateSchemaDocs() {
-  const tables = Object.keys(schema).map(key => {
+  const tables = Object.keys(schema).map((key) => {
     const table = schema[key];
     return {
       name: key,
@@ -93,6 +94,7 @@ generateSchemaDocs();
 ```
 
 **Add to package.json:**
+
 ```json
 {
   "scripts": {
@@ -114,7 +116,7 @@ import { generateOpenAPI } from '@orpc/openapi';
 
 // Track implementation status
 const implementationStatus = {
-  'healthCheck': '✅',
+  healthCheck: '✅',
   'auth.signIn': '✅',
   'chat.getAll': '⏳',
   // ...
@@ -139,6 +141,7 @@ async function generateAPIDocs() {
 **Solution:** STATUS.md dengan frontmatter yang bisa di-parse
 
 **Format STATUS.md:**
+
 ```markdown
 # SambungChat Development Status
 
@@ -149,6 +152,7 @@ async function generateAPIDocs() {
 ## Phase 1: MVP Foundation (Weeks 1-12)
 
 ### Week 1-2: Repository Setup ✅
+
 - [x] Monorepo structure
 - [x] SvelteKit 5 + Hono setup
 - [x] Better Auth integration
@@ -158,6 +162,7 @@ async function generateAPIDocs() {
 - [ ] CI/CD setup ⚠️ BLOCKING
 
 ### Week 3-4: Authentication 🔄
+
 - [ ] Complete auth router
 - [ ] Login UI
 - [ ] Register UI
@@ -165,6 +170,7 @@ async function generateAPIDocs() {
 ```
 
 **Automation Script:**
+
 ```typescript
 // scripts/update-status.ts
 import { readdirSync, readFileSync, writeFileSync } from 'fs';
@@ -180,7 +186,7 @@ interface Task {
 
 function checkTaskStatus(task: Task): Task['status'] {
   if (task.files) {
-    const allExist = task.files.every(f => existsSync(f));
+    const allExist = task.files.every((f) => existsSync(f));
     return allExist ? 'completed' : task.status;
   }
   return task.status;
@@ -192,7 +198,7 @@ function updateStatus() {
   const tasks = readTasks();
 
   // Check status
-  tasks.forEach(task => {
+  tasks.forEach((task) => {
     task.status = checkTaskStatus(task);
   });
 
@@ -206,6 +212,7 @@ function updateStatus() {
 **Pattern:** Code examples di docs harus di-copy dari tested code
 
 **Convention:**
+
 ```svelte
 <!-- docs/examples/ChatInterface.svelte -->
 <!--
@@ -244,6 +251,7 @@ plan-reference/
 #### Task Definition Format
 
 **File:** `.status/config.json`
+
 ```json
 {
   "project": "SambungChat",
@@ -283,6 +291,7 @@ plan-reference/
 #### Weekly Status Format
 
 **File:** `.status/week-01.json`
+
 ```json
 {
   "week": 1,
@@ -310,10 +319,7 @@ plan-reference/
       "blockReason": "Waiting for legal review"
     }
   ],
-  "notes": [
-    "Infrastructure setup ahead of schedule",
-    "Blocked on LICENSE file - need legal review"
-  ]
+  "notes": ["Infrastructure setup ahead of schedule", "Blocked on LICENSE file - need legal review"]
 }
 ```
 
@@ -374,6 +380,7 @@ bun run check:sync        # Check docs vs implementation
 ### Sync Check Script
 
 **File:** `scripts/check-sync.ts`
+
 ```typescript
 import { readFileSync, existsSync } from 'fs';
 import { glob } from 'glob';
@@ -396,7 +403,7 @@ async function checkSync() {
 
   if (schemaDiff.length > 0) {
     console.warn('⚠️  Schema out of sync:');
-    schemaDiff.forEach(d => console.warn(`  - ${d}`));
+    schemaDiff.forEach((d) => console.warn(`  - ${d}`));
   }
 
   // 2. Check API endpoints
@@ -406,12 +413,12 @@ async function checkSync() {
 
   if (apiDiff.missing.length > 0) {
     console.warn('⚠️  Missing API documentation:');
-    apiDiff.missing.forEach(e => console.warn(`  - ${e}`));
+    apiDiff.missing.forEach((e) => console.warn(`  - ${e}`));
   }
 
   // 3. Check component mentions
   const components = await glob('packages/ui/src/components/**/*.svelte');
-  components.forEach(comp => {
+  components.forEach((comp) => {
     if (!isDocumented(comp)) {
       console.info(`ℹ️  Component not documented: ${comp}`);
     }
@@ -432,27 +439,27 @@ checkSync();
 
 ### P0 - Critical Blockers
 
-| Task | Impact | Effort | Dependencies |
-|------|--------|--------|--------------|
-| Add LICENSE file | Legal compliance | Low | None |
-| Setup CI/CD | Quality gates | Medium | None |
-| Fix HEADER export conflict | Build breaks | Low | None ✅ |
+| Task                       | Impact           | Effort | Dependencies |
+| -------------------------- | ---------------- | ------ | ------------ |
+| Add LICENSE file           | Legal compliance | Low    | None         |
+| Setup CI/CD                | Quality gates    | Medium | None         |
+| Fix HEADER export conflict | Build breaks     | Low    | None ✅      |
 
 ### P1 - High Priority
 
-| Task | Impact | Effort | Dependencies |
-|------|--------|--------|--------------|
-| Complete auth router | Core feature | Medium | None |
-| Build auth UI | User facing | Medium | Auth router |
-| Update ROADMAP progress | Visibility | Low | None |
+| Task                    | Impact       | Effort | Dependencies |
+| ----------------------- | ------------ | ------ | ------------ |
+| Complete auth router    | Core feature | Medium | None         |
+| Build auth UI           | User facing  | Medium | Auth router  |
+| Update ROADMAP progress | Visibility   | Low    | None         |
 
 ### P2 - Medium Priority
 
-| Task | Impact | Effort | Dependencies |
-|------|--------|--------|--------------|
-| Chat router | Core feature | High | Auth |
-| Message streaming | Core feature | High | Chat router |
-| API key management | Security | Medium | Auth |
+| Task               | Impact       | Effort | Dependencies |
+| ------------------ | ------------ | ------ | ------------ |
+| Chat router        | Core feature | High   | Auth         |
+| Message streaming  | Core feature | High   | Chat router  |
+| API key management | Security     | Medium | Auth         |
 
 ---
 

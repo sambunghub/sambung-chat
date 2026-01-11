@@ -20,6 +20,7 @@ Dokumentasi ini berisi masalah-masalah umum yang ditemukan selama pengembangan d
 ### Error: "Cannot apply unknown utility class"
 
 **Symptom:**
+
 ```
 Cannot apply unknown utility class `text-muted-foreground`. Are you using CSS modules or similar and missing `@reference`?
 ```
@@ -53,6 +54,7 @@ Gunakan CSS variables secara langsung:
 ### Error: "Could not resolve import 'lucide-svelte'"
 
 **Symptom:**
+
 ```
 Rollup failed to resolve import "lucide-svelte" from ".../packages/ui/dist/components/layout/..."
 ```
@@ -78,6 +80,7 @@ import { Icon } from '@lucide/svelte';
 ### Error: "Cannot assign to constant"
 
 **Symptom:**
+
 ```
 Cannot assign to constant
 at isTablet = window.innerWidth >= 768
@@ -163,6 +166,7 @@ Gunakan `$derived` untuk computed values:
 Tailwind CSS v4 tidak mendukung `@apply` dengan custom color utilities di dalam `<style>` blocks. Gunakan CSS variables:
 
 **Available CSS Variables:**
+
 ```css
 /* From packages/ui/src/styles/index.css */
 --color-background
@@ -187,6 +191,7 @@ Tailwind CSS v4 tidak mendukung `@apply` dengan custom color utilities di dalam 
 ```
 
 **Usage Example:**
+
 ```css
 .my-class {
   background-color: hsl(var(--color-primary));
@@ -198,9 +203,9 @@ Tailwind CSS v4 tidak mendukung `@apply` dengan custom color utilities di dalam 
 ### Border Radius Variables
 
 ```css
-border-radius: var(--radius);           /* lg */
-border-radius: calc(var(--radius) - 2px);  /* md */
-border-radius: calc(var(--radius) - 4px);  /* sm */
+border-radius: var(--radius); /* lg */
+border-radius: calc(var(--radius) - 2px); /* md */
+border-radius: calc(var(--radius) - 4px); /* sm */
 ```
 
 ### Animation Classes
@@ -212,9 +217,10 @@ bun add -D tw-animate-css
 ```
 
 Tambahkan ke `tailwind.config.js`:
+
 ```javascript
 export default {
-  plugins: [require("tw-animate-css")]
+  plugins: [require('tw-animate-css')],
 };
 ```
 
@@ -229,6 +235,7 @@ export default {
 `svelte-package` **hanya membuild** folder `src/lib/` secara default. File di luar `src/lib/` tidak akan dimasukkan ke dalam `dist/`.
 
 **Structure:**
+
 ```
 packages/ui/
 ├── src/
@@ -285,6 +292,7 @@ cat packages/ui/package.json | grep -A 20 '"dependencies"'
 ```
 
 **Common dependencies:**
+
 ```json
 {
   "dependencies": {
@@ -303,6 +311,7 @@ cat packages/ui/package.json | grep -A 20 '"dependencies"'
 ### Named Export Conflicts
 
 **Symptom:**
+
 ```
 SyntaxError: The requested module contains conflicting star exports for name 'Header'
 ```

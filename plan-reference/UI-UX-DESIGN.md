@@ -23,33 +23,33 @@
 
 ```css
 /* Light Mode */
---primary: oklch(0.58 0.10 181.5);      /* #208B8D - Teal */
+--primary: oklch(0.58 0.1 181.5); /* #208B8D - Teal */
 --primary-foreground: oklch(0.98 0 0);
 
---accent: oklch(0.65 0.15 21);          /* #E67E50 - Orange */
+--accent: oklch(0.65 0.15 21); /* #E67E50 - Orange */
 --accent-foreground: oklch(0.98 0 0);
 
---background: oklch(0.98 0.005 90);     /* #FAFAF9 */
---foreground: oklch(0.20 0.02 90);      /* #1A1D23 */
+--background: oklch(0.98 0.005 90); /* #FAFAF9 */
+--foreground: oklch(0.2 0.02 90); /* #1A1D23 */
 
 --card: oklch(1 0 0);
---card-foreground: oklch(0.20 0.02 90);
+--card-foreground: oklch(0.2 0.02 90);
 
---border: oklch(0.88 0.01 90);          /* #D1D5DB */
+--border: oklch(0.88 0.01 90); /* #D1D5DB */
 --input: oklch(0.88 0.01 90);
---ring: oklch(0.58 0.10 181.5);
+--ring: oklch(0.58 0.1 181.5);
 
 --muted: oklch(0.94 0.01 90);
---muted-foreground: oklch(0.50 0.02 90);
+--muted-foreground: oklch(0.5 0.02 90);
 
 /* Dark Mode */
---primary: oklch(0.65 0.12 181.5);      /* #2FB3B6 */
+--primary: oklch(0.65 0.12 181.5); /* #2FB3B6 */
 --primary-foreground: oklch(0.15 0.02 90);
 
---accent: oklch(0.70 0.18 21);          /* #F18D64 */
+--accent: oklch(0.7 0.18 21); /* #F18D64 */
 --accent-foreground: oklch(0.15 0.02 90);
 
---background: oklch(0.15 0.02 90);      /* #111827 */
+--background: oklch(0.15 0.02 90); /* #111827 */
 --foreground: oklch(0.98 0 0);
 
 --card: oklch(0.18 0.02 90);
@@ -59,8 +59,8 @@
 --input: oklch(0.25 0.02 90);
 --ring: oklch(0.65 0.12 181.5);
 
---muted: oklch(0.20 0.02 90);
---muted-foreground: oklch(0.60 0.02 90);
+--muted: oklch(0.2 0.02 90);
+--muted-foreground: oklch(0.6 0.02 90);
 ```
 
 ### Typography
@@ -71,14 +71,14 @@
 --font-mono: 'Fira Code', 'Courier New', monospace;
 
 /* Font Sizes (Tailwind scale) */
---text-xs: 0.75rem;    /* 12px */
---text-sm: 0.875rem;   /* 14px */
---text-base: 1rem;     /* 16px */
---text-lg: 1.125rem;   /* 18px */
---text-xl: 1.25rem;    /* 20px */
---text-2xl: 1.5rem;    /* 24px */
---text-3xl: 1.875rem;  /* 30px */
---text-4xl: 2.25rem;   /* 36px */
+--text-xs: 0.75rem; /* 12px */
+--text-sm: 0.875rem; /* 14px */
+--text-base: 1rem; /* 16px */
+--text-lg: 1.125rem; /* 18px */
+--text-xl: 1.25rem; /* 20px */
+--text-2xl: 1.5rem; /* 24px */
+--text-3xl: 1.875rem; /* 30px */
+--text-4xl: 2.25rem; /* 36px */
 
 /* Font Weights */
 --font-normal: 400;
@@ -94,11 +94,11 @@ Tailwind's default spacing scale: 4px, 8px, 12px, 16px, 20px, 24px, 32px, 40px, 
 ### Border Radius
 
 ```css
---radius: 0.5rem;         /* 8px - default */
---radius-sm: 0.375rem;    /* 6px - small */
---radius-md: 0.5rem;      /* 8px - medium */
---radius-lg: 0.75rem;     /* 12px - large */
---radius-full: 9999px;    /* pill */
+--radius: 0.5rem; /* 8px - default */
+--radius-sm: 0.375rem; /* 6px - small */
+--radius-md: 0.5rem; /* 8px - medium */
+--radius-lg: 0.75rem; /* 12px - large */
+--radius-full: 9999px; /* pill */
 ```
 
 ---
@@ -134,10 +134,10 @@ apps/web/src/routes/
 
 ### Route Groups
 
-| Route Group | Layout | Purpose |
-|-------------|--------|---------|
-| `(app)` | Sidebar + Main | Protected routes, requires auth |
-| `(auth)` | Centered card | Public auth routes |
+| Route Group | Layout         | Purpose                         |
+| ----------- | -------------- | ------------------------------- |
+| `(app)`     | Sidebar + Main | Protected routes, requires auth |
+| `(auth)`    | Centered card  | Public auth routes              |
 
 ---
 
@@ -207,6 +207,7 @@ SambungChat Components
 ### 1. App Layout (Dual Sidebar: Navigation Rail + Context Sidebar)
 
 **Desktop (> 1024px):**
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  Header (Logo, Search, User Menu)                                           │
@@ -238,6 +239,7 @@ SambungChat Components
 ```
 
 **Tablet (768px - 1024px):**
+
 ```
 ┌─────────────────────────────────────────────────────────┐
 │  Header (Logo, Search, User Menu)                       │
@@ -256,6 +258,7 @@ SambungChat Components
 ```
 
 **Mobile (< 768px):**
+
 ```
 ┌─────────────────────────────┐
 │  Header (Menu, Title)       │
@@ -274,12 +277,14 @@ SambungChat Components
 ### Layout Components Breakdown
 
 **Navigation Rail (64px)** - Always visible:
+
 - Icon-only navigation items
 - Active state indicator
 - Tooltips on hover
 - Consistent across all pages
 
 **Secondary Sidebar (280px)** - Context-aware content:
+
 - Chats page: Shows chat list
 - Prompts page: Shows prompt categories
 - Settings page: Shows settings navigation
@@ -328,6 +333,7 @@ SambungChat Components
 ### 3. Auth Layout (Login/Register)
 
 **Centered Card Layout:**
+
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                                                          │
@@ -456,6 +462,7 @@ SambungChat Components
 **File:** `apps/web/src/components/Sidebar.svelte`
 
 **Props:**
+
 ```typescript
 interface Props {
   chats: Chat[];
@@ -467,6 +474,7 @@ interface Props {
 ```
 
 **Features:**
+
 - New Chat button (primary action)
 - Chat list with search
 - Chat item: title, last message preview, timestamp
@@ -475,6 +483,7 @@ interface Props {
 - Navigation to Prompts, Settings
 
 **Responsive:**
+
 - Desktop: Always visible (280px width)
 - Mobile: Hidden behind hamburger menu
 
@@ -485,6 +494,7 @@ interface Props {
 **File:** `apps/web/src/components/chat/ChatInterface.svelte`
 
 **Props:**
+
 ```typescript
 interface Props {
   chatId?: string;
@@ -493,6 +503,7 @@ interface Props {
 ```
 
 **Features:**
+
 - Message list (scrollable)
 - Streaming response display
 - Message actions: Copy, Delete, Regenerate
@@ -509,6 +520,7 @@ interface Props {
 **File:** `apps/web/src/components/chat/Message.svelte`
 
 **Props:**
+
 ```typescript
 interface Props {
   role: 'user' | 'assistant';
@@ -522,6 +534,7 @@ interface Props {
 ```
 
 **Features:**
+
 - Markdown rendering (using `marked` or similar)
 - Syntax highlighting for code blocks
 - Copy button for code blocks
@@ -536,6 +549,7 @@ interface Props {
 **File:** `apps/web/src/components/chat/ModelSelector.svelte`
 
 **Props:**
+
 ```typescript
 interface Props {
   models: Model[];
@@ -545,6 +559,7 @@ interface Props {
 ```
 
 **Features:**
+
 - Dropdown with provider icons
 - Group by provider
 - Show model name & description
@@ -558,6 +573,7 @@ interface Props {
 **File:** `apps/web/src/components/prompts/PromptLibrary.svelte`
 
 **Props:**
+
 ```typescript
 interface Props {
   prompts: Prompt[];
@@ -569,6 +585,7 @@ interface Props {
 ```
 
 **Features:**
+
 - Grid/list view toggle
 - Search prompts
 - Filter by category
@@ -584,6 +601,7 @@ interface Props {
 **File:** `apps/web/src/components/settings/APIKeyManager.svelte`
 
 **Props:**
+
 ```typescript
 interface Props {
   apiKeys: APIKey[];
@@ -593,6 +611,7 @@ interface Props {
 ```
 
 **Features:**
+
 - List of configured keys
 - Provider icon/name
 - Masked key display (show/hide toggle)
@@ -608,6 +627,7 @@ interface Props {
 **File:** `apps/web/src/components/settings/SettingsNav.svelte`
 
 **Props:**
+
 ```typescript
 interface Props {
   currentPath: string;
@@ -615,6 +635,7 @@ interface Props {
 ```
 
 **Navigation Items:**
+
 - General (language, auto-save)
 - Appearance (theme, font size, sidebar width)
 - API Keys
@@ -711,6 +732,7 @@ All interactive elements must have `aria-label` or accessible text.
 Using [Lucide Svelte](https://lucide.dev/) (already in project)
 
 Common icons:
+
 - `MessageSquare` - Chat
 - `Plus` - New chat
 - `Settings` - Settings
@@ -764,6 +786,7 @@ Common icons:
 ## Implementation Priority
 
 ### Phase 1 (Week 1-4): Foundation
+
 1. ✅ Setup shadcn-svelte in packages/ui
 2. ✅ Create base components (Button, Input, Card)
 3. ⬜ AppLayout with Sidebar
@@ -771,6 +794,7 @@ Common icons:
 5. ⬜ Theme provider (dark mode)
 
 ### Phase 2 (Week 5-8): Chat Interface
+
 1. ⬜ ChatInterface component
 2. ⬜ Message component with Markdown
 3. ⬜ ChatInput with streaming
@@ -778,6 +802,7 @@ Common icons:
 5. ⬜ ChatList in sidebar
 
 ### Phase 3 (Week 9-12): Additional Features
+
 1. ⬜ PromptLibrary component
 2. ⬜ APIKeyManager component
 3. ⬜ Settings pages
