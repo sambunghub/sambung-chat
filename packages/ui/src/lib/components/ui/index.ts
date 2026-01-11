@@ -8,3 +8,4 @@ export * from "./dropdown-menu/index";
 export * from "./select/index";
 export * from "./separator/index";
 export * from "./skeleton/index";
+export * from "./tooltip/index";
