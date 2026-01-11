@@ -79,7 +79,9 @@ export const messageRouter = {
         .from(messages)
         .where(eq(messages.id, input.id));
 
-      if (messageResults.length === 0) {
+      const message = messageResults[0];
+
+      if (!message) {
         return { success: false };
       }
 
@@ -87,7 +89,7 @@ export const messageRouter = {
       const chatResults = await db
         .select()
         .from(chats)
-        .where(and(eq(chats.id, messageResults[0].chatId), eq(chats.userId, userId)));
+        .where(and(eq(chats.id, message.chatId), eq(chats.userId, userId)));
 
       if (chatResults.length === 0) {
         return { success: false };

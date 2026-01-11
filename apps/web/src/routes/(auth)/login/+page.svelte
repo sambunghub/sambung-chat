@@ -6,15 +6,25 @@
   let showSignIn = $state(true);
 
   async function handleSignIn(credentials: { email: string; password: string }) {
-    await authClient.signIn.email(credentials, {
-      onSuccess: () => goto('/dashboard'),
-    });
+    const result = await authClient.signIn.email(credentials);
+
+    if (result.error) {
+      console.error('Sign in error:', result.error);
+      return;
+    }
+
+    goto('/dashboard');
   }
 
   async function handleSignUp(credentials: { name: string; email: string; password: string }) {
-    await authClient.signUp.email(credentials, {
-      onSuccess: () => goto('/dashboard'),
-    });
+    const result = await authClient.signUp.email(credentials);
+
+    if (result.error) {
+      console.error('Sign up error:', result.error);
+      return;
+    }
+
+    goto('/dashboard');
   }
 </script>
 

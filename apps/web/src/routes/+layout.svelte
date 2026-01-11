@@ -6,11 +6,25 @@
   import { queryClient } from '$lib/orpc';
   import { LayoutHeader } from '@sambung-chat/ui';
   import { authClient } from '$lib/auth-client';
-  import { goto } from '$app/navigation';
+  import { goto, page } from '$app/navigation';
 
   const { children } = $props();
 
   const sessionQuery = authClient.useSession();
+
+  // Protected routes that require authentication
+  const protectedRoutes = ['/dashboard', '/todos', '/ai'];
+
+  // Redirect to login if accessing protected route without session
+  $effect(() => {
+    if ($sessionQuery.isPending) return;
+
+    const isProtectedRoute = protectedRoutes.some((route) => $page.url.pathname.startsWith(route));
+
+    if (isProtectedRoute && !$sessionQuery.data?.user) {
+      goto('/login');
+    }
+  });
 </script>
 
 <QueryClientProvider client={queryClient}>
@@ -21,11 +35,8 @@
       onNavigate={(path) => goto(path)}
       onSignIn={() => goto('/login')}
       onSignOut={async () => {
-        await authClient.signOut({
-          fetchOptions: {
-            onSuccess: () => goto('/'),
-          },
-        });
+        await authClient.signOut();
+        goto('/login');
       }}
     />
     <main class="overflow-y-auto">
