@@ -40,7 +40,10 @@
     "db:start": "turbo -F @sambung-chat/db db:start",
     "db:watch": "turbo -F @sambung-chat/db db:watch",
     "db:stop": "turbo -F @sambung-chat/db db:stop",
-    "db:down": "turbo -F @sambung-chat/db db:down"
+    "db:down": "turbo -F @sambung-chat/db db:down",
+    "status:update": "bun run scripts/update-status.ts",
+    "status:pending": "bun run scripts/status-pending.ts",
+    "status:blocked": "bun run scripts/status-blocked.ts"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2.0.4",

@@ -1,0 +1,832 @@
+{
+  "project": "SambungChat",
+  "version": "0.1.0",
+  "license": "AGPL-3.0",
+  "lastUpdated": "2026-01-11",
+  "currentPhase": "phase-1",
+  "currentWeek": 3,
+  "overallProgress": 0.19,
+  "phases": [
+    {
+      "id": "phase-1",
+      "name": "MVP Foundation",
+      "targetRelease": "v0.1.0",
+      "weeks": 12,
+      "status": "in-progress",
+      "startDate": "2026-01-06",
+      "targetDate": "2026-03-31",
+      "tasks": [
+        {
+          "id": "license",
+          "title": "Add LICENSE file (AGPL-3.0)",
+          "week": 1,
+          "priority": "P0",
+          "status": "completed",
+          "category": "legal",
+          "files": [
+            "LICENSE"
+          ],
+          "blocked": false,
+          "description": "Add AGPL-3.0 LICENSE to root directory",
+          "completedAt": "2026-01-11"
+        },
+        {
+          "id": "github-templates",
+          "title": "Create .github/ templates",
+          "week": 1,
+          "priority": "P0",
+          "status": "pending",
+          "category": "infrastructure",
+          "files": [
+            ".github/CONTRIBUTING.md",
+            ".github/CODE_OF_CONDUCT.md",
+            ".github/SECURITY.md"
+          ],
+          "blocked": false,
+          "description": "Create community standard templates"
+        },
+        {
+          "id": "ci-cd",
+          "title": "Setup CI/CD GitHub Actions",
+          "week": 1,
+          "priority": "P0",
+          "status": "pending",
+          "category": "infrastructure",
+          "files": [
+            ".github/workflows/ci.yml",
+            ".github/workflows/lint.yml"
+          ],
+          "blocked": false,
+          "description": "Setup type checking and linting workflows"
+        },
+        {
+          "id": "linting-config",
+          "title": "Configure ESLint, Prettier, and Husky",
+          "week": 1,
+          "priority": "P1",
+          "status": "pending",
+          "category": "infrastructure",
+          "files": [
+            ".eslintrc.js",
+            ".prettierrc",
+            ".husky/pre-commit"
+          ],
+          "blocked": false,
+          "description": "Configure code quality tools"
+        },
+        {
+          "id": "monorepo-setup",
+          "title": "Initialize monorepo structure",
+          "week": 1,
+          "priority": "P0",
+          "status": "completed",
+          "category": "infrastructure",
+          "files": [
+            "turbo.json",
+            "package.json"
+          ],
+          "completedAt": "2026-01-06"
+        },
+        {
+          "id": "tech-stack",
+          "title": "Setup SvelteKit 5 + Hono + Drizzle",
+          "week": 1,
+          "priority": "P0",
+          "status": "completed",
+          "category": "infrastructure",
+          "files": [
+            "apps/web/package.json",
+            "apps/server/package.json",
+            "packages/db/package.json"
+          ],
+          "completedAt": "2026-01-07"
+        },
+        {
+          "id": "better-auth-setup",
+          "title": "Configure Better Auth",
+          "week": 2,
+          "priority": "P0",
+          "status": "completed",
+          "category": "backend",
+          "files": [
+            "packages/auth/src/index.ts"
+          ],
+          "completedAt": "2026-01-08"
+        },
+        {
+          "id": "database-setup",
+          "title": "Database schema and connection",
+          "week": 2,
+          "priority": "P0",
+          "status": "completed",
+          "category": "backend",
+          "files": [
+            "packages/db/src/schema/user.ts",
+            "packages/db/src/schema/session.ts",
+            "packages/db/drizzle.config.ts"
+          ],
+          "completedAt": "2026-01-09"
+        },
+        {
+          "id": "ui-library",
+          "title": "Setup shadcn-svelte components",
+          "week": 2,
+          "priority": "P1",
+          "status": "completed",
+          "category": "frontend",
+          "files": [
+            "packages/ui/src/lib/components/ui"
+          ],
+          "completedAt": "2026-01-10"
+        },
+        {
+          "id": "export-conflict-fix",
+          "title": "Fix conflicting Header exports",
+          "week": 3,
+          "priority": "P0",
+          "status": "completed",
+          "category": "bugfix",
+          "files": [
+            "packages/ui/src/lib/components/layout/index.ts",
+            "apps/web/src/routes/+layout.svelte"
+          ],
+          "completedAt": "2026-01-11"
+        },
+        {
+          "id": "auth-router",
+          "title": "Create auth router with procedures",
+          "week": 3,
+          "priority": "P1",
+          "status": "pending",
+          "category": "backend",
+          "files": [
+            "packages/api/src/routers/auth.ts"
+          ],
+          "blocked": false,
+          "dependencies": [
+            "better-auth-setup"
+          ],
+          "description": "Implement signIn, signUp, signOut, getSession"
+        },
+        {
+          "id": "auth-unit-tests",
+          "title": "Write unit tests for auth router",
+          "week": 3,
+          "priority": "P1",
+          "status": "pending",
+          "category": "testing",
+          "files": [
+            "packages/api/src/routers/__tests__/auth.test.ts"
+          ],
+          "blocked": false,
+          "dependencies": [
+            "auth-router"
+          ],
+          "description": "Unit tests with Vitest"
+        },
+        {
+          "id": "login-ui",
+          "title": "Build login UI page",
+          "week": 3,
+          "priority": "P1",
+          "status": "pending",
+          "category": "frontend",
+          "files": [
+            "apps/web/src/routes/(auth)/login/+page.svelte"
+          ],
+          "blocked": false,
+          "dependencies": [
+            "auth-router"
+          ],
+          "description": "Login form with email/password"
+        },
+        {
+          "id": "register-ui",
+          "title": "Build register UI page",
+          "week": 3,
+          "priority": "P1",
+          "status": "pending",
+          "category": "frontend",
+          "files": [
+            "apps/web/src/routes/(auth)/register/+page.svelte"
+          ],
+          "blocked": false,
+          "dependencies": [
+            "auth-router"
+          ],
+          "description": "Registration form with validation"
+        },
+        {
+          "id": "auth-layout",
+          "title": "Create AuthLayout component",
+          "week": 3,
+          "priority": "P1",
+          "status": "pending",
+          "category": "frontend",
+          "files": [
+            "packages/ui/src/components/layout/AuthLayout.svelte"
+          ],
+          "blocked": false,
+          "description": "Centered card layout for auth pages"
+        },
+        {
+          "id": "session-management",
+          "title": "Implement session management",
+          "week": 4,
+          "priority": "P1",
+          "status": "pending",
+          "category": "backend",
+          "files": [
+            "apps/server/src/middleware/auth.ts"
+          ],
+          "blocked": false,
+          "dependencies": [
+            "auth-router"
+          ],
+          "description": "Protected routes middleware"
+        },
+        {
+          "id": "navigation-rail",
+          "title": "Create NavigationRail component",
+          "week": 4,
+          "priority": "P1",
+          "status": "pending",
+          "category": "frontend",
+          "files": [
+            "packages/ui/src/components/layout/NavigationRail.svelte"
+          ],
+          "blocked": false,
+          "description": "64px icon-only navigation rail"
+        },
+        {
+          "id": "secondary-sidebar",
+          "title": "Create SecondarySidebar component",
+          "week": 4,
+          "priority": "P1",
+          "status": "pending",
+          "category": "frontend",
+          "files": [
+            "packages/ui/src/components/layout/SecondarySidebar.svelte"
+          ],
+          "blocked": false,
+          "description": "280px context-aware sidebar"
+        },
+        {
+          "id": "app-layout",
+          "title": "Create AppLayout component",
+          "week": 4,
+          "priority": "P1",
+          "status": "pending",
+          "category": "frontend",
+          "files": [
+            "packages/ui/src/components/layout/AppLayout.svelte"
+          ],
+          "blocked": false,
+          "dependencies": [
+            "navigation-rail",
+            "secondary-sidebar"
+          ],
+          "description": "Dual sidebar layout with header"
+        },
+        {
+          "id": "chat-schema",
+          "title": "Define chat database schema",
+          "week": 5,
+          "priority": "P1",
+          "status": "completed",
+          "category": "backend",
+          "files": [
+            "packages/db/src/schema/chat.ts"
+          ],
+          "blocked": false,
+          "description": "Chats table with user relation",
+          "completedAt": "2026-01-11"
+        },
+        {
+          "id": "message-schema",
+          "title": "Define message database schema",
+          "week": 5,
+          "priority": "P1",
+          "status": "pending",
+          "category": "backend",
+          "files": [
+            "packages/db/src/schema/message.ts"
+          ],
+          "blocked": false,
+          "description": "Messages table with chat relation"
+        },
+        {
+          "id": "db-migration",
+          "title": "Run database migration",
+          "week": 5,
+          "priority": "P1",
+          "status": "pending",
+          "category": "backend",
+          "blocked": false,
+          "dependencies": [
+            "chat-schema",
+            "message-schema"
+          ],
+          "description": "Generate and push migration"
+        },
+        {
+          "id": "chat-router",
+          "title": "Create chat router with CRUD",
+          "week": 5,
+          "priority": "P1",
+          "status": "completed",
+          "category": "backend",
+          "files": [
+            "packages/api/src/routers/chat.ts"
+          ],
+          "blocked": false,
+          "dependencies": [
+            "db-migration"
+          ],
+          "description": "getAll, getById, create, update, delete",
+          "completedAt": "2026-01-11"
+        },
+        {
+          "id": "message-router",
+          "title": "Create message router with streaming",
+          "week": 6,
+          "priority": "P1",
+          "status": "completed",
+          "category": "backend",
+          "files": [
+            "packages/api/src/routers/message.ts"
+          ],
+          "blocked": false,
+          "dependencies": [
+            "db-migration"
+          ],
+          "description": "getByChatId, stream (SSE)",
+          "completedAt": "2026-01-11"
+        },
+        {
+          "id": "chat-tests",
+          "title": "Write unit tests for chat router",
+          "week": 6,
+          "priority": "P2",
+          "status": "pending",
+          "category": "testing",
+          "files": [
+            "packages/api/src/routers/__tests__/chat.test.ts"
+          ],
+          "blocked": false,
+          "dependencies": [
+            "chat-router"
+          ]
+        },
+        {
+          "id": "message-tests",
+          "title": "Write unit tests for message router",
+          "week": 6,
+          "priority": "P2",
+          "status": "pending",
+          "category": "testing",
+          "files": [
+            "packages/api/src/routers/__tests__/message.test.ts"
+          ],
+          "blocked": false,
+          "dependencies": [
+            "message-router"
+          ]
+        },
+        {
+          "id": "llm-integration",
+          "title": "Implement multi-provider LLM integration",
+          "week": 6,
+          "priority": "P1",
+          "status": "pending",
+          "category": "backend",
+          "files": [
+            "packages/llm/src/index.ts"
+          ],
+          "blocked": false,
+          "description": "OpenAI, Anthropic, Google, Groq, Ollama"
+        },
+        {
+          "id": "api-key-encryption",
+          "title": "Add API key encryption utilities",
+          "week": 7,
+          "priority": "P1",
+          "status": "pending",
+          "category": "security",
+          "files": [
+            "packages/crypto/src/index.ts"
+          ],
+          "blocked": false,
+          "description": "AES-256 encryption for API keys"
+        },
+        {
+          "id": "api-keys-schema",
+          "title": "Define api_keys database schema",
+          "week": 7,
+          "priority": "P1",
+          "status": "pending",
+          "category": "backend",
+          "files": [
+            "packages/db/src/schema/api-keys.ts"
+          ],
+          "blocked": false,
+          "description": "Encrypted API key storage"
+        },
+        {
+          "id": "api-key-router",
+          "title": "Create apiKey router",
+          "week": 7,
+          "priority": "P1",
+          "status": "pending",
+          "category": "backend",
+          "files": [
+            "packages/api/src/routers/api-key.ts"
+          ],
+          "blocked": false,
+          "dependencies": [
+            "api-keys-schema",
+            "api-key-encryption"
+          ],
+          "description": "getAll, create, delete"
+        },
+        {
+          "id": "chat-interface",
+          "title": "Build ChatInterface component",
+          "week": 7,
+          "priority": "P1",
+          "status": "pending",
+          "category": "frontend",
+          "files": [
+            "apps/web/src/components/chat/ChatInterface.svelte"
+          ],
+          "blocked": false,
+          "dependencies": [
+            "chat-router",
+            "message-router"
+          ],
+          "description": "Message list, input area, streaming"
+        },
+        {
+          "id": "message-component",
+          "title": "Build Message component",
+          "week": 8,
+          "priority": "P1",
+          "status": "pending",
+          "category": "frontend",
+          "files": [
+            "apps/web/src/components/chat/Message.svelte"
+          ],
+          "blocked": false,
+          "description": "Markdown rendering, syntax highlighting"
+        },
+        {
+          "id": "chat-input",
+          "title": "Build ChatInput component",
+          "week": 8,
+          "priority": "P1",
+          "status": "pending",
+          "category": "frontend",
+          "files": [
+            "apps/web/src/components/chat/ChatInput.svelte"
+          ],
+          "blocked": false,
+          "description": "Auto-resize textarea, send button"
+        },
+        {
+          "id": "model-selector",
+          "title": "Build ModelSelector component",
+          "week": 8,
+          "priority": "P1",
+          "status": "pending",
+          "category": "frontend",
+          "files": [
+            "apps/web/src/components/chat/ModelSelector.svelte"
+          ],
+          "blocked": false,
+          "description": "Provider grouping, model selection"
+        },
+        {
+          "id": "sse-streaming",
+          "title": "Implement SSE streaming for AI",
+          "week": 8,
+          "priority": "P1",
+          "status": "pending",
+          "category": "backend",
+          "files": [
+            "packages/api/src/routers/message/stream.ts"
+          ],
+          "blocked": false,
+          "dependencies": [
+            "message-router",
+            "llm-integration"
+          ],
+          "description": "Server-Sent Events implementation"
+        },
+        {
+          "id": "chat-list",
+          "title": "Build ChatList sidebar component",
+          "week": 9,
+          "priority": "P1",
+          "status": "pending",
+          "category": "frontend",
+          "files": [
+            "apps/web/src/components/chat/ChatList.svelte"
+          ],
+          "blocked": false,
+          "description": "Chat list with search"
+        },
+        {
+          "id": "chat-crud-frontend",
+          "title": "Implement chat CRUD in frontend",
+          "week": 9,
+          "priority": "P1",
+          "status": "pending",
+          "category": "frontend",
+          "blocked": false,
+          "dependencies": [
+            "chat-router",
+            "chat-interface"
+          ],
+          "description": "Create, delete, pin operations"
+        },
+        {
+          "id": "error-handling",
+          "title": "Add error handling for AI failures",
+          "week": 9,
+          "priority": "P2",
+          "status": "pending",
+          "category": "backend",
+          "blocked": false,
+          "description": "Fallback mechanism, retry logic"
+        },
+        {
+          "id": "prompts-schema",
+          "title": "Define prompts database schema",
+          "week": 9,
+          "priority": "P1",
+          "status": "pending",
+          "category": "backend",
+          "files": [
+            "packages/db/src/schema/prompts.ts"
+          ],
+          "blocked": false,
+          "description": "Prompt templates storage"
+        },
+        {
+          "id": "prompt-router",
+          "title": "Create prompt router",
+          "week": 10,
+          "priority": "P1",
+          "status": "pending",
+          "category": "backend",
+          "files": [
+            "packages/api/src/routers/prompt.ts"
+          ],
+          "blocked": false,
+          "dependencies": [
+            "prompts-schema"
+          ],
+          "description": "getAll, create, update, delete"
+        },
+        {
+          "id": "prompt-tests",
+          "title": "Write unit tests for prompt router",
+          "week": 10,
+          "priority": "P2",
+          "status": "pending",
+          "category": "testing",
+          "files": [
+            "packages/api/src/routers/__tests__/prompt.test.ts"
+          ],
+          "blocked": false,
+          "dependencies": [
+            "prompt-router"
+          ]
+        },
+        {
+          "id": "prompt-library",
+          "title": "Build PromptLibrary component",
+          "week": 10,
+          "priority": "P1",
+          "status": "pending",
+          "category": "frontend",
+          "files": [
+            "apps/web/src/components/prompts/PromptLibrary.svelte"
+          ],
+          "blocked": false,
+          "description": "Grid/list view, search, filter"
+        },
+        {
+          "id": "prompt-editor",
+          "title": "Build PromptEditor component",
+          "week": 10,
+          "priority": "P1",
+          "status": "pending",
+          "category": "frontend",
+          "files": [
+            "apps/web/src/components/prompts/PromptEditor.svelte"
+          ],
+          "blocked": false,
+          "description": "Variable substitution"
+        },
+        {
+          "id": "built-in-prompts",
+          "title": "Add built-in prompt templates",
+          "week": 10,
+          "priority": "P2",
+          "status": "pending",
+          "category": "content",
+          "files": [
+            "packages/db/src/seed/prompts.ts"
+          ],
+          "blocked": false,
+          "description": "Summarize, Translate, Code Gen"
+        },
+        {
+          "id": "api-key-manager",
+          "title": "Build APIKeyManager component",
+          "week": 11,
+          "priority": "P1",
+          "status": "pending",
+          "category": "frontend",
+          "files": [
+            "apps/web/src/components/settings/APIKeyManager.svelte"
+          ],
+          "blocked": false,
+          "dependencies": [
+            "api-key-router"
+          ],
+          "description": "List, add, delete, test connection"
+        },
+        {
+          "id": "settings-page",
+          "title": "Build SettingsPage component",
+          "week": 11,
+          "priority": "P1",
+          "status": "pending",
+          "category": "frontend",
+          "files": [
+            "apps/web/src/routes/settings/+page.svelte"
+          ],
+          "blocked": false,
+          "description": "Settings navigation"
+        },
+        {
+          "id": "theme-toggle",
+          "title": "Implement theme toggle",
+          "week": 11,
+          "priority": "P1",
+          "status": "pending",
+          "category": "frontend",
+          "files": [
+            "packages/ui/src/components/theme/ThemeToggle.svelte"
+          ],
+          "blocked": false,
+          "description": "Light/dark mode with OKLCH colors"
+        },
+        {
+          "id": "appearance-settings",
+          "title": "Build appearance settings",
+          "week": 11,
+          "priority": "P2",
+          "status": "pending",
+          "category": "frontend",
+          "files": [
+            "apps/web/src/routes/settings/appearance/+page.svelte"
+          ],
+          "blocked": false,
+          "description": "Font size, sidebar width"
+        },
+        {
+          "id": "export-chat",
+          "title": "Add export chat functionality",
+          "week": 12,
+          "priority": "P2",
+          "status": "pending",
+          "category": "feature",
+          "files": [
+            "packages/api/src/routers/chat/export.ts"
+          ],
+          "blocked": false,
+          "description": "JSON, Markdown export"
+        },
+        {
+          "id": "chat-search",
+          "title": "Implement chat search",
+          "week": 12,
+          "priority": "P2",
+          "status": "pending",
+          "category": "feature",
+          "files": [
+            "packages/api/src/routers/chat/search.ts"
+          ],
+          "blocked": false,
+          "description": "Search by title/content"
+        },
+        {
+          "id": "chat-organization",
+          "title": "Add tag/folder organization",
+          "week": 12,
+          "priority": "P2",
+          "status": "pending",
+          "category": "feature",
+          "files": [
+            "packages/db/src/schema/tags.ts"
+          ],
+          "blocked": false,
+          "description": "Tag and folder system"
+        },
+        {
+          "id": "pin-favorites",
+          "title": "Add pin favorite chats",
+          "week": 12,
+          "priority": "P2",
+          "status": "completed",
+          "category": "feature",
+          "files": [
+            "packages/db/src/schema/chat.ts"
+          ],
+          "blocked": false,
+          "description": "Pin functionality",
+          "completedAt": "2026-01-11"
+        },
+        {
+          "id": "e2e-tests",
+          "title": "Write E2E tests with Playwright",
+          "week": 12,
+          "priority": "P1",
+          "status": "pending",
+          "category": "testing",
+          "files": [
+            "apps/web/tests/e2e/*.spec.ts"
+          ],
+          "blocked": false,
+          "description": "Critical user flows"
+        },
+        {
+          "id": "accessibility-audit",
+          "title": "Run accessibility audit",
+          "week": 12,
+          "priority": "P1",
+          "status": "pending",
+          "category": "quality",
+          "blocked": false,
+          "description": "WCAG 2.1 AA compliance"
+        },
+        {
+          "id": "security-audit",
+          "title": "Perform security audit",
+          "week": 12,
+          "priority": "P1",
+          "status": "pending",
+          "category": "security",
+          "blocked": false,
+          "description": "SQL injection, XSS, CORS"
+        },
+        {
+          "id": "performance-optimization",
+          "title": "Performance optimization",
+          "week": 12,
+          "priority": "P2",
+          "status": "pending",
+          "category": "quality",
+          "blocked": false,
+          "description": "Load testing, optimization"
+        },
+        {
+          "id": "deployment-docs",
+          "title": "Create deployment documentation",
+          "week": 12,
+          "priority": "P1",
+          "status": "pending",
+          "category": "docs",
+          "files": [
+            "docs/deployment/"
+          ],
+          "blocked": false,
+          "description": "Docker, self-hosting guides"
+        },
+        {
+          "id": "final-polish",
+          "title": "Final polish and bug fixes",
+          "week": 12,
+          "priority": "P1",
+          "status": "pending",
+          "category": "quality",
+          "blocked": false,
+          "description": "Animations, polish"
+        },
+        {
+          "id": "v0.1.0-release",
+          "title": "Prepare v0.1.0 GitHub release",
+          "week": 12,
+          "priority": "P0",
+          "status": "pending",
+          "category": "release",
+          "blocked": false,
+          "description": "Changelog, release notes"
+        }
+      ]
+    }
+  ]
+}

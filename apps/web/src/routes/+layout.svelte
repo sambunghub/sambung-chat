@@ -4,7 +4,7 @@
 	import '../app.css';
 	import '@sambung-chat/ui/styles.css';
     import { queryClient } from '$lib/orpc';
-    import { Header } from '@sambung-chat/ui';
+    import { LayoutHeader } from '@sambung-chat/ui';
     import { authClient } from '$lib/auth-client';
     import { goto } from '$app/navigation';
 
@@ -15,7 +15,7 @@
 
 <QueryClientProvider client={queryClient}>
     <div class="grid h-svh grid-rows-[auto_1fr]">
-		<Header
+		<LayoutHeader
 			user={$sessionQuery.data?.user}
 			isLoadingUser={$sessionQuery.isPending}
 			onNavigate={(path) => goto(path)}

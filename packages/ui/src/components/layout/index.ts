@@ -1,1 +1,2 @@
-export { default as Header } from './Header.svelte';
+// Deprecated - Layout components moved to src/lib/components/layout
+export {};
