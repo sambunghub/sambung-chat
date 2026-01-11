@@ -21,6 +21,10 @@ This document provides comprehensive architecture documentation for the SambungC
    - [Entity Relationships](#entity-relationships)
    - [Drizzle Relations and Constraints](#drizzle-relations-and-constraints)
 6. [Authentication Flow](#authentication-flow)
+   - [Authentication Architecture](#authentication-architecture)
+   - [Login Flow (Detailed)](#login-flow-detailed)
+   - [Authentication Features](#authentication-features)
+   - [Security Considerations](#security-considerations)
 7. [API Request Flow](#api-request-flow)
 8. [Data Flow](#data-flow)
 9. [Development Workflow](#development-workflow)
@@ -1358,6 +1362,155 @@ sequenceDiagram
         Web-->>User: Show login form
     end
 ```
+
+### Login Flow (Detailed)
+
+The following sequence diagram shows the complete login flow with detailed steps from user input through session creation:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as 👤 User
+    participant SignInForm as 📝 SignInForm<br/>(Svelte Component)
+    participant AuthClient as 🔐 AuthClient<br/>(Better-Auth Svelte)
+    participant Hono as ⚡ Hono Server
+    participant BetterAuth as 🔦 Better-Auth<br/>Handler
+    participant Drizzle as 🗃️ Drizzle ORM
+    participant PostgreSQL as 💾 PostgreSQL
+
+    User->>SignInForm: 1. Enter email & password
+    User->>SignInForm: 2. Click "Sign In" button
+
+    Note over SignInForm,AuthClient: Client-side validation
+    SignInForm->>SignInForm: 3. Validate form inputs
+
+    alt Invalid Input
+        SignInForm-->>User: Show validation error
+    else Valid Input
+        SignInForm->>AuthClient: 4. authClient.signIn.email()<br/>{ email, password }
+
+        Note over AuthClient,Hono: HTTPS Request
+        AuthClient->>Hono: 5. POST /api/auth/sign-in/email<br/>Headers: { Content-Type, Origin }<br/>Body: { email, password }
+
+        Note over Hono: CORS Middleware
+        Hono->>Hono: 6. Validate CORS origin<br/>Check credentials: true
+
+        Hono->>BetterAuth: 7. Route to auth.handler(req)
+
+        Note over BetterAuth: Better-Auth Processing
+        BetterAuth->>Drizzle: 8. Query user by email<br/>db.select().from(user)<br/>.where(eq(user.email, email))
+
+        Drizzle->>PostgreSQL: 9. SELECT * FROM user<br/>WHERE email = $1
+
+        PostgreSQL-->>Drizzle: 10. User record or null
+
+        alt User Not Found
+            Drizzle-->>BetterAuth: null
+            BetterAuth-->>Hono: 401 Unauthorized<br/>{ error: "Invalid credentials" }
+            Hono-->>AuthClient: HTTP 401
+            AuthClient-->>SignInForm: onError callback
+            SignInForm-->>User: Show "Invalid email or password"
+        else User Found
+            Drizzle-->>BetterAuth: User object<br/>{ id, name, email, ... }
+
+            Note over BetterAuth: Password Verification
+            BetterAuth->>BetterAuth: 11. Extract password hash<br/>from account table
+
+            BetterAuth->>Drizzle: 12. Query account table<br/>db.select().from(account)<br/>.where(eq(account.userId, userId))
+
+            Drizzle->>PostgreSQL: 13. SELECT * FROM account<br/>WHERE userId = $1
+
+            PostgreSQL-->>Drizzle: 14. Account record<br/>{ password: hashed_password }
+
+            Drizzle-->>BetterAuth: Account with password
+
+            BetterAuth->>BetterAuth: 15. Verify password hash<br/>bcrypt.compare(password, hash)
+
+            alt Password Invalid
+                BetterAuth-->>Hono: 401 Unauthorized<br/>{ error: "Invalid credentials" }
+                Hono-->>AuthClient: HTTP 401
+                AuthClient-->>SignInForm: onError callback
+                SignInForm-->>User: Show "Invalid email or password"
+            else Password Valid
+                Note over BetterAuth,PostgreSQL: Session Creation
+                BetterAuth->>BetterAuth: 16. Generate session token<br/>cryptographically random string
+                BetterAuth->>BetterAuth: 17. Calculate expiration<br/>expiresAt = now() + 30 days
+                BetterAuth->>Drizzle: 18. Insert session record<br/>db.insert(session).values({<br/>  id, userId, token,<br/>  expiresAt, ipAddress,<br/>  userAgent<br/>})
+
+                Drizzle->>PostgreSQL: 19. INSERT INTO session<br/>(id, userId, token,<br/>expiresAt, ipAddress,<br/>userAgent, createdAt)<br/>VALUES ($1, $2, $3, $4, $5, $6, $7)
+
+                PostgreSQL-->>Drizzle: 20. Session created successfully
+
+                Drizzle-->>BetterAuth: Session object
+
+                Note over BetterAuth,Hono: Response with Cookie
+                BetterAuth-->>Hono: 21. Success response<br/>Headers: {<br/>  Set-Cookie: session_token=<token>;<br/>             Path=/; HttpOnly;<br/>             Secure; SameSite=None<br/>}<br/>Body: {<br/>  user: { id, name, email },<br/>  session: { id, expiresAt }<br/>}
+
+                Hono-->>AuthClient: 22. HTTP 200 OK<br/>With Set-Cookie header
+
+                Note over AuthClient: Browser stores cookie automatically<br/>(HttpOnly, Secure)
+
+                AuthClient-->>SignInForm: 23. onSuccess callback<br/>{ user, session }
+
+                SignInForm->>SignInForm: 24. Navigate to dashboard<br/>goto('/dashboard')
+
+                SignInForm-->>User: 25. Redirect to /dashboard
+            end
+        end
+    end
+
+    Note over User,PostgreSQL: Subsequent requests will include<br/>the session cookie automatically
+```
+
+#### Key Steps Explained
+
+1. **User Input**: User enters credentials in the SignInForm Svelte component
+2. **Client Validation**: Form inputs are validated before making the request
+3. **Auth Client**: Better-Auth Svelte client (`createAuthClient`) handles the API call
+4. **CORS Processing**: Hono server validates CORS origin and credentials
+5. **User Lookup**: Drizzle ORM queries the `user` table by email
+6. **Password Retrieval**: Account table is queried to get the hashed password
+7. **Password Verification**: Better-Auth uses bcrypt to verify the password
+8. **Session Creation**: On success, a new session record is created with:
+   - Cryptographically random token
+   - User ID foreign key
+   - Expiration timestamp (30 days)
+   - IP address and user agent for security
+9. **Cookie Setting**: Server sets HTTP-only, Secure, SameSite=None cookie
+10. **Client Storage**: Browser automatically stores the cookie (inaccessible to JavaScript)
+11. **Redirect**: User is redirected to the dashboard
+
+#### Database Operations
+
+**Tables Accessed:**
+- `user` - Lookup by email (indexed)
+- `account` - Retrieve password hash for user (indexed by userId)
+- `session` - Insert new session record on successful authentication
+
+**Indexes Used:**
+- `user.email` (UNIQUE) - Fast email lookup
+- `account.userId` (INDEX) - Fast password retrieval
+- `session.token` (UNIQUE) - Prevents duplicate session tokens
+
+#### Security Features
+
+✅ **Password Hashing**: bcrypt with salt (via Better-Auth)
+✅ **HTTP-Only Cookies**: Prevents XSS access to session tokens
+✅ **Secure Flag**: Cookies only sent over HTTPS
+✅ **SameSite=None**: Allows cross-origin requests (required for SPA)
+✅ **Session Tokens**: Cryptographically random, not reversible
+✅ **Session Expiration**: Automatic timeout (30 days default)
+✅ **IP & User Agent Tracking**: Stored for security validation
+
+#### Error Scenarios
+
+| Scenario | Response | User Experience |
+|----------|----------|-----------------|
+| Invalid email format | Client validation error | "Please enter a valid email" |
+| User not found | 401 Unauthorized | "Invalid email or password" |
+| Wrong password | 401 Unauthorized | "Invalid email or password" |
+| Database error | 500 Internal Server Error | "Login failed. Please try again." |
+| Network error | Network error | "Connection failed. Check your internet." |
 
 ### Authentication Features
 
