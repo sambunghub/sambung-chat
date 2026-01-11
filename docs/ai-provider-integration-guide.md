@@ -400,15 +400,707 @@ For comprehensive coverage, refer to:
 
 ---
 
-## Next Sections
+---
 
-> **Next:** [2. Understanding the AI SDK Architecture](#2-understanding-the-ai-sdk-architecture)
->
-> This section provides a deep dive into the AI SDK's core concepts, architecture, and how it achieves provider-agnostic integration.
+## 2. Understanding the AI SDK Architecture
+
+> **Note:** This section will be added in Phase 3, Task 3. Please proceed to [Section 3: Current Implementation Analysis](#3-current-implementation-analysis) for detailed analysis of the existing Google Gemini integration.
 
 ---
 
-**Document Status:** 🚧 In Progress - Phase 3, Task 1 (Introduction Section Complete)
+## 3. Current Implementation Analysis
+
+This section provides a comprehensive walkthrough of SambungChat's current Google Gemini integration. Understanding this implementation is crucial before adding new providers, as it establishes the pattern that should be followed for consistency.
+
+### 3.1 Google Gemini Integration Overview
+
+**Current Status:** ✅ Production-ready
+
+**Implementation Details:**
+- **Provider:** Google Gemini
+- **Model:** `gemini-2.5-flash`
+- **Location:** `apps/server/src/index.ts`
+- **Frontend:** `apps/web/src/routes/ai/+page.svelte`
+- **Environment Variable:** `GOOGLE_GENERATIVE_AI_API_KEY` or `GOOGLE_API_KEY`
+
+**Why Google Gemini?**
+- Excellent cost-performance ratio (~$0.075/M input tokens)
+- Fast inference speeds
+- Strong multimodal capabilities
+- Reliable service with good uptime
+- Generous free tier for development
+
+The Google Gemini integration serves as the reference implementation for all new AI provider integrations. It demonstrates best practices for:
+- Provider package usage
+- Model initialization with middleware
+- Streaming text generation
+- Message conversion
+- Frontend integration
+
+---
+
+### 3.2 Server-Side Implementation
+
+**File:** `apps/server/src/index.ts`
+
+The server-side implementation is minimal and follows a clear pattern that can be replicated for any AI provider.
+
+#### 3.2.1 Imports and Dependencies
+
+```typescript
+// AI SDK Provider Package
+import { google } from "@ai-sdk/google";
+
+// Core AI SDK Functions
+import { streamText, convertToModelMessages, wrapLanguageModel } from "ai";
+
+// Development Tools
+import { devToolsMiddleware } from "@ai-sdk/devtools";
+
+// Web Framework
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+```
+
+**Breakdown:**
+
+| Import | Source | Purpose |
+|--------|--------|---------|
+| `google` | `@ai-sdk/google` | Provider-specific function to create Google model instances |
+| `streamText` | `ai` | Generate streaming text responses |
+| `convertToModelMessages` | `ai` | Convert UI message format to provider-specific format |
+| `wrapLanguageModel` | `ai` | Add middleware capabilities to language models |
+| `devToolsMiddleware` | `@ai-sdk/devtools` | Enable debugging and inspection tools |
+| `Hono` | `hono` | Fast web framework for Node.js/Edge |
+| `cors` | `hono/cors` | Cross-Origin Resource Sharing middleware |
+
+**Key Pattern:**
+Each provider exports a function (e.g., `google()`, `openai()`, `anthropic()`) that creates a language model instance. This is the only provider-specific code you'll need to change when adding new providers.
+
+#### 3.2.2 Endpoint Configuration
+
+```typescript
+const app = new Hono();
+
+// CORS Configuration
+app.use(
+  "/*",
+  cors({
+    origin: env.CORS_ORIGIN,
+    allowMethods: ["GET", "POST", "OPTIONS"],
+    allowHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  }),
+);
+
+// AI Endpoint
+app.post("/ai", async (c) => {
+  const body = await c.req.json();
+  const uiMessages = body.messages || [];
+
+  // Model creation and streaming (see 3.2.3 and 3.2.4)
+  const model = wrapLanguageModel({
+    model: google("gemini-2.5-flash"),
+    middleware: devToolsMiddleware(),
+  });
+
+  const result = streamText({
+    model,
+    messages: await convertToModelMessages(uiMessages),
+  });
+
+  return result.toUIMessageStreamResponse();
+});
+```
+
+**Endpoint Analysis:**
+
+**Route:** `POST /ai`
+
+**Request Body:**
+```typescript
+{
+  "messages": [
+    {
+      "role": "user" | "assistant" | "system",
+      "content": string | Array<ContentPart>
+    }
+  ]
+}
+```
+
+**Response:** Server-Sent Events (SSE) stream with UI message format
+
+**Flow:**
+1. Parse JSON request body
+2. Extract `messages` array (default to empty array if not provided)
+3. Create model instance with middleware
+4. Generate streaming response
+5. Return UI message stream for frontend consumption
+
+**Security Considerations:**
+- CORS is configured to only allow requests from `env.CORS_ORIGIN`
+- API key is never exposed to the client (server-side only)
+- Input validation through TypeScript types and Zod schemas (in `packages/env`)
+
+#### 3.2.3 Model Creation Pattern
+
+```typescript
+const model = wrapLanguageModel({
+  model: google("gemini-2.5-flash"),
+  middleware: devToolsMiddleware(),
+});
+```
+
+**Pattern Breakdown:**
+
+**1. Provider Function Call**
+```typescript
+google("gemini-2.5-flash")
+```
+- **Function:** `google()` from `@ai-sdk/google`
+- **Parameter:** Model ID string (`"gemini-2.5-flash"`)
+- **Returns:** Language model instance configured for Google Gemini
+
+**Available Google Models:**
+- `gemini-2.5-flash` - Fast, cost-effective (current choice)
+- `gemini-2.5-flash-thinking` - With thinking mode
+- `gemini-2.0-flash-exp` - Experimental version
+- `gemini-pro` - More capable, slower
+- `gemini-1.5-pro` - Previous generation
+
+**2. Model Wrapping**
+```typescript
+wrapLanguageModel({ model, middleware })
+```
+- **Purpose:** Add middleware capabilities to the language model
+- **Benefits:**
+  - Enables debugging tools
+  - Allows custom middleware injection
+  - Maintains provider-agnostic interface
+  - Supports future extensibility
+
+**3. DevTools Middleware**
+```typescript
+devToolsMiddleware()
+```
+- **Purpose:** Enable AI SDK DevTools for debugging
+- **Features:**
+  - Request/response inspection
+  - Token usage tracking
+  - Performance metrics
+  - Error tracing
+
+**Why This Pattern?**
+
+| Benefit | Description |
+|---------|-------------|
+| **Consistency** | Same pattern works for all providers |
+| **Debugging** | DevTools middleware essential for development |
+| **Extensibility** | Easy to add custom middleware later |
+| **Type Safety** | Full TypeScript support throughout |
+
+#### 3.2.4 Streaming Implementation
+
+```typescript
+const result = streamText({
+  model,
+  messages: await convertToModelMessages(uiMessages),
+});
+
+return result.toUIMessageStreamResponse();
+```
+
+**Streaming Breakdown:**
+
+**1. Message Conversion**
+```typescript
+await convertToModelMessages(uiMessages)
+```
+- **Input:** Array of UI messages from frontend
+- **Output:** Array of provider-specific model messages
+- **Purpose:** Transform frontend message format to backend format
+- **Automatic:** Handles different message structures per provider
+
+**UI Message Format (Frontend → Backend):**
+```typescript
+interface UiMessage {
+  role: "user" | "assistant" | "system";
+  content: string | Array<{
+    type: "text" | "image" | "tool-call" | "tool-result";
+    [key: string]: any;
+  }>;
+}
+```
+
+**Model Message Format (Backend → Provider):**
+- Provider-specific format
+- Automatically generated by `convertToModelMessages()`
+- Optimized for each provider's API
+
+**2. Streaming Text Generation**
+```typescript
+const result = streamText({
+  model,
+  messages,  // Converted messages
+});
+```
+- **Function:** `streamText()` from AI SDK
+- **Returns:** StreamResult object with multiple methods
+- **Async:** Generates tokens in real-time
+
+**StreamResult Methods:**
+- `textStream` - Async iterable of text chunks
+- `fullStream` - Complete stream with metadata
+- `toUIMessageStreamResponse()` - HTTP Response for frontend
+- `toDataStreamResponse()` - Lower-level data stream
+
+**3. UI Message Stream Response**
+```typescript
+return result.toUIMessageStreamResponse();
+```
+- **Returns:** HTTP Response with Server-Sent Events (SSE)
+- **Format:** UI message format compatible with frontend
+- **Real-time:** Streams tokens as they're generated
+- **Automatic:** Handles all streaming complexity
+
+**Response Format:**
+```
+data: {"type":"text-delta","delta":"Hello"}
+data: {"type":"text-delta","delta":" there"}
+data: {"type":"text-delta","delta":"!"}
+data: [DONE]
+```
+
+**Why Streaming?**
+
+| Advantage | Description |
+|-----------|-------------|
+| **User Experience** | Real-time response generation feels faster |
+| **Perceived Latency** | Time to first token (TTFT) is much lower |
+| **Cost Feedback** | Users can stop generation if unsatisfied |
+| **Large Outputs** | No waiting for complete responses |
+| **Natural Chat** | Mimics human conversation patterns |
+
+---
+
+### 3.3 Frontend Implementation
+
+**File:** `apps/web/src/routes/ai/+page.svelte`
+
+The frontend implementation is **provider-agnostic**, meaning it works with any AI provider without changes. This is one of the key benefits of using the AI SDK.
+
+#### 3.3.1 Chat Component Setup
+
+```typescript
+import { Chat } from "@ai-sdk/svelte";
+import { DefaultChatTransport } from "ai";
+
+// Initialize Chat with transport
+const chat = new Chat({
+  transport: new DefaultChatTransport({
+    api: `${PUBLIC_SERVER_URL}/ai`,
+  }),
+});
+```
+
+**Component Breakdown:**
+
+**1. Chat Component**
+- **Source:** `@ai-sdk/svelte`
+- **Purpose:** Pre-built chat UI component
+- **Features:**
+  - Message management
+  - Automatic streaming handling
+  - Typing indicators
+  - Error handling
+  - Reactive state management
+
+**2. Transport Layer**
+- **Class:** `DefaultChatTransport`
+- **Purpose:** Communicate with server `/ai` endpoint
+- **Features:**
+  - Automatic message formatting
+  - Stream handling
+  - Error recovery
+  - Retry logic
+
+**3. API Endpoint**
+```typescript
+api: `${PUBLIC_SERVER_URL}/ai`
+```
+- **Environment Variable:** `PUBLIC_SERVER_URL`
+- **Route:** `/ai` (server endpoint)
+- **Protocol:** POST with Server-Sent Events (SSE)
+
+**Provider Agnostic Design:**
+
+The frontend doesn't know or care which AI provider is being used:
+- ✅ No provider-specific imports
+- ✅ No model configuration
+- ✅ No API key handling
+- ✅ Same interface for all providers
+
+This means you can **change providers on the server without touching frontend code**.
+
+#### 3.3.2 Message Handling and UI
+
+```typescript
+// Send message
+function handleSubmit(e: Event) {
+  e.preventDefault();
+  const text = input.trim();
+  if (!text) return;
+  chat.sendMessage({ text });
+  input = "";
+}
+
+// Access messages
+chat.messages  // Reactive array of messages
+```
+
+**Message Structure:**
+```typescript
+interface Message {
+  id: string;
+  role: "user" | "assistant" | "system";
+  parts: Array<{
+    type: "text" | "image" | "tool-call" | "tool-result";
+    text?: string;
+    [key: string]: any;
+  }>;
+  createdAt?: Date;
+}
+```
+
+**UI Rendering (Svelte):**
+```svelte
+{#each chat.messages as message (message.id)}
+  <div class:message-user={message.role === "user"}>
+    {#each message.parts as part}
+      {#if part.type === "text"}
+        {part.text}
+      {/if}
+    {/each}
+  </div>
+{/each}
+```
+
+**Key Features:**
+
+1. **Automatic Streaming**
+   - Messages appear in real-time as tokens are generated
+   - No manual stream handling required
+   - Automatic scrolling to latest message
+
+2. **Reactive State**
+   - `chat.messages` is a Svelte 5 `$state` rune
+   - UI updates automatically when messages change
+   - No manual state management needed
+
+3. **Error Handling**
+   - Automatic retry on failure
+   - Error messages displayed in UI
+   - Graceful degradation
+
+4. **Type Safety**
+   - Full TypeScript support
+   - Message parts are typed
+   - Compile-time error checking
+
+**Why This Design?**
+
+| Benefit | Description |
+|---------|-------------|
+| **Zero Provider Lock-in** | Frontend works with any provider |
+| **Minimal Code** | ~100 lines for full chat UI |
+| **Type Safe** | Full TypeScript support |
+| **Reactive** | Automatic updates with Svelte 5 runes |
+| **Maintainable** | Clean separation of concerns |
+
+---
+
+### 3.4 Environment Configuration
+
+**Current State:** ⚠️ No AI provider variables in environment schema yet
+
+**File:** `packages/env/src/server.ts`
+
+**Current Environment Schema:**
+```typescript
+export const env = createEnv({
+  server: {
+    DATABASE_URL: z.string().min(1),
+    BETTER_AUTH_SECRET: z.string().min(32),
+    BETTER_AUTH_URL: z.url(),
+    CORS_ORIGIN: z.url(),
+    NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+    // ⚠️ No AI provider variables configured yet
+  },
+});
+```
+
+**Current Environment Variables:**
+
+The Google API key is automatically loaded by the AI SDK from one of these environment variables:
+
+1. **Primary:** `GOOGLE_GENERATIVE_AI_API_KEY`
+2. **Alternative:** `GOOGLE_API_KEY`
+
+The AI SDK automatically checks for these variables in the environment, so even though they're not in the Zod schema, they still work.
+
+**⚠️ Gap Identified:**
+
+For production use, the environment schema should be updated to:
+- Validate AI provider API keys
+- Support multiple providers
+- Implement provider selection logic
+- Add configuration validation
+
+**Planned Update (Phase 5):**
+```typescript
+export const env = createEnv({
+  server: {
+    // Existing variables...
+    DATABASE_URL: z.string().min(1),
+    BETTER_AUTH_SECRET: z.string().min(32),
+    BETTER_AUTH_URL: z.url(),
+    CORS_ORIGIN: z.url(),
+    NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+
+    // AI Provider Configuration
+    AI_PROVIDER: z.enum(["openai", "anthropic", "google", "groq"]).optional(),
+
+    // API Keys (at least one required)
+    OPENAI_API_KEY: z.string().min(1).optional(),
+    ANTHROPIC_API_KEY: z.string().min(1).optional(),
+    GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1).optional(),
+    GROQ_API_KEY: z.string().min(1).optional(),
+  },
+});
+```
+
+**For Now:**
+
+When adding a new provider, you need to:
+1. Add the environment variable to `.env` or `.env.local`
+2. The AI SDK will automatically pick it up
+3. No schema validation yet (will be added in Phase 5)
+
+**Example `.env.local` for Google Gemini:**
+```bash
+# AI Provider Configuration
+GOOGLE_GENERATIVE_AI_API_KEY=your_google_api_key_here
+# Alternative: GOOGLE_API_KEY=your_google_api_key_here
+```
+
+---
+
+### 3.5 Key Takeaways for New Providers
+
+Based on the current Google Gemini implementation, here are the key patterns and principles to follow when adding new AI providers:
+
+#### Pattern Consistency
+
+**✅ Always Follow This Pattern:**
+
+```typescript
+// 1. Import provider
+import { [provider] } from "@ai-sdk/[provider]";
+
+// 2. Import AI SDK functions (same for all providers)
+import { streamText, convertToModelMessages, wrapLanguageModel } from "ai";
+import { devToolsMiddleware } from "@ai-sdk/devtools";
+
+// 3. Create model with middleware
+const model = wrapLanguageModel({
+  model: [provider]("[model-id]"),
+  middleware: devToolsMiddleware(),
+});
+
+// 4. Generate streaming response
+const result = streamText({
+  model,
+  messages: await convertToModelMessages(uiMessages),
+});
+
+// 5. Return UI message stream
+return result.toUIMessageStreamResponse();
+```
+
+**What Changes:**
+- Provider import (line 1)
+- Provider function call (line 9)
+- Model ID (line 9)
+- Environment variable name
+
+**What Stays the Same:**
+- `wrapLanguageModel()` pattern
+- `devToolsMiddleware()` usage
+- `streamText()` implementation
+- `convertToModelMessages()` call
+- `toUIMessageStreamResponse()` return
+
+#### Frontend Independence
+
+**✅ Zero Frontend Changes Required**
+
+When adding a new provider:
+- ❌ Don't touch `apps/web/src/routes/ai/+page.svelte`
+- ❌ Don't modify `Chat` component
+- ❌ Don't change transport configuration
+- ✅ Only update server code in `apps/server/src/index.ts`
+
+The frontend is completely provider-agnostic due to the AI SDK's architecture.
+
+#### Server Changes Are Isolated
+
+**✅ Changes Limited to Endpoint Implementation**
+
+When adding a new provider, you only need to modify:
+- Import statements (add provider import)
+- Model creation (use provider function instead of `google()`)
+- Environment variable (add API key to `.env`)
+
+Everything else in the server remains unchanged.
+
+#### Middleware is Essential
+
+**✅ Always Use `wrapLanguageModel()`**
+
+Don't skip the middleware wrapper:
+- Enables DevTools for debugging
+- Allows future custom middleware
+- Maintains consistency
+- Best practice recommended by AI SDK
+
+#### Environment Variables
+
+**✅ Follow Provider-Specific Patterns**
+
+Each provider has its own environment variable name:
+- OpenAI: `OPENAI_API_KEY`
+- Anthropic: `ANTHROPIC_API_KEY`
+- Google: `GOOGLE_GENERATIVE_AI_API_KEY` or `GOOGLE_API_KEY`
+- Groq: `GROQ_API_KEY`
+
+Check the provider documentation for the exact variable name.
+
+#### Testing Strategy
+
+**✅ Test incrementally:**
+
+1. **Unit Test:** Verify model creation
+   ```typescript
+   const model = wrapLanguageModel({
+     model: openai("gpt-4o-mini"),
+     middleware: devToolsMiddleware(),
+   });
+   console.log("Model created successfully");
+   ```
+
+2. **Integration Test:** Test `/ai` endpoint with curl
+   ```bash
+   curl -X POST http://localhost:PORT/ai \
+     -H "Content-Type: application/json" \
+     -d '{"messages":[{"role":"user","content":"Hello"}]}'
+   ```
+
+3. **Frontend Test:** Open chat UI and send a message
+   - Verify streaming works
+   - Check for errors in browser console
+   - Confirm message appears in real-time
+
+#### Error Handling
+
+**✅ The AI SDK handles most errors automatically:**
+
+- Invalid API keys → Authentication error (401)
+- Rate limits → Rate limit error (429)
+- Network issues → Timeout error
+- Invalid model ID → Model not found error
+
+For production, add custom error handling:
+```typescript
+app.post("/ai", async (c) => {
+  try {
+    const body = await c.req.json();
+    const uiMessages = body.messages || [];
+
+    const model = wrapLanguageModel({
+      model: google("gemini-2.5-flash"),
+      middleware: devToolsMiddleware(),
+    });
+
+    const result = streamText({
+      model,
+      messages: await convertToModelMessages(uiMessages),
+    });
+
+    return result.toUIMessageStreamResponse();
+  } catch (error) {
+    console.error("AI provider error:", error);
+    return c.json({ error: "AI service temporarily unavailable" }, 503);
+  }
+});
+```
+
+#### Checklist for New Providers
+
+When adding a new provider, ensure you:
+
+- [ ] Install provider package (`bun add @ai-sdk/[provider]`)
+- [ ] Import provider function
+- [ ] Add environment variable for API key
+- [ ] Update model creation to use provider function
+- [ ] Use correct model ID for provider
+- [ ] Keep `wrapLanguageModel()` pattern
+- [ ] Keep `devToolsMiddleware()` usage
+- [ ] Test with curl command
+- [ ] Test with frontend chat UI
+- [ ] Verify streaming works correctly
+- [ ] Check for errors in browser console
+- [ ] Verify no frontend changes needed
+- [ ] Document the integration
+
+---
+
+### 3.6 Summary
+
+The current Google Gemini implementation demonstrates a clean, maintainable pattern for AI provider integration:
+
+**Strengths:**
+- ✅ Minimal code (~10 lines for endpoint)
+- ✅ Consistent pattern across providers
+- ✅ Full streaming support
+- ✅ Type-safe with TypeScript
+- ✅ Provider-agnostic frontend
+- ✅ Development tools integration
+
+**Key Pattern:**
+```typescript
+// This 4-line pattern is all you need to change providers
+const model = wrapLanguageModel({
+  model: [provider]("[model-id]"),
+  middleware: devToolsMiddleware(),
+});
+```
+
+**Next Steps:**
+- Proceed to [Section 4: Step-by-Step Integration Guide](#4-step-by-step-integration-guide) for detailed instructions on adding new providers
+- See [Section 5: Provider-Specific Configurations](#5-provider-specific-configurations) for setup details for each major provider
+
+---
+
+## Next Sections
+
+> **Next:** [4. Step-by-Step Integration Guide](#4-step-by-step-integration-guide)
+>
+> This section provides detailed, step-by-step instructions for integrating new AI providers into SambungChat.
+
+---
+
+**Document Status:** 🚧 In Progress - Phase 3, Task 2 (Section 3 Complete)
 
 **Last Updated:** 2025-01-11
 **Contributors:** SambungChat Development Team
