@@ -6,6 +6,12 @@ This document provides comprehensive architecture documentation for the SambungC
 
 1. [Overview](#overview)
 2. [Technology Stack](#technology-stack)
+   - [Frontend Layer](#frontend-layer)
+   - [Backend Layer](#backend-layer)
+   - [Authentication & Authorization](#authentication--authorization)
+   - [Data Layer](#data-layer)
+   - [Build & Development Tools](#build--development-tools)
+   - [Tech Stack Layers](#tech-stack-layers)
 3. [Project Structure](#project-structure)
 4. [System Architecture](#system-architecture)
 5. [Database Schema](#database-schema)
@@ -110,6 +116,125 @@ The architecture follows these core principles:
 - Turborepo optimizes build times with intelligent caching
 - Shared configs ensure consistency across all packages
 - Automated linting and formatting maintain code quality
+
+### Tech Stack Layers
+
+The following diagram visualizes the complete technology stack organized into four distinct layers, showing how each layer builds upon the one below it:
+
+```mermaid
+flowchart TB
+    subgraph Presentation["🎨 Presentation Layer - User Interface"]
+        direction LR
+        SvelteKit["⚡ SvelteKit<br/>Web Framework"]
+        Tailwind["🎨 TailwindCSS<br/>Styling"]
+        Shadcn["🧩 shadcn/ui<br/>Components"]
+        Browser["🌐 Web Browser"]
+    end
+
+    subgraph APILayer["📡 API Layer - Request Handling"]
+        direction LR
+        Hono["🚀 Hono<br/>Web Server"]
+        ORPC["🔌 ORPC<br/>Type-Safe RPC"]
+        Middleware["🛡️ Middleware<br/>CORS, Logging, Errors"]
+    end
+
+    subgraph Business["💼 Business Logic - Domain Logic"]
+        direction LR
+        AuthPackage["🔐 packages/auth<br/>Better-Auth Config"]
+        APIPackage["📦 packages/api<br/>Routers & Procedures"]
+        Validation["✅ Zod Validation<br/>Schema Validation"]
+    end
+
+    subgraph Data["💾 Data Layer - Data Management"]
+        direction LR
+        Drizzle["🗃️ Drizzle ORM<br/>Type-Safe Queries"]
+        PostgreSQL["🐘 PostgreSQL<br/>Relational Database"]
+        Migrations["📋 Migrations<br/>Schema Management"]
+    end
+
+    %% Connections between layers
+    Browser --> SvelteKit
+    SvelteKit --> Tailwind
+    SvelteKit --> Shadcn
+
+    Tailwind --> Hono
+    Shadcn --> Hono
+    SvelteKit -.->|HTTP Request| Hono
+
+    Hono --> Middleware
+    Middleware --> ORPC
+
+    ORPC --> AuthPackage
+    ORPC --> APIPackage
+    ORPC --> Validation
+
+    AuthPackage --> APIPackage
+    APIPackage --> Drizzle
+    Validation --> Drizzle
+
+    Drizzle --> PostgreSQL
+    Drizzle --> Migrations
+    Migrations -.->|Sync| PostgreSQL
+
+    %% Response flow (dotted lines)
+    PostgreSQL -.->|Query Results| Drizzle
+    Drizzle -.->|Typed Data| APIPackage
+    APIPackage -.->|Response| ORPC
+    ORPC -.->|JSON| Hono
+    Hono -.->|HTTP Response| SvelteKit
+    SvelteKit -.->|Render UI| Browser
+
+    %% Styling
+    classDef presentationNode fill:#3b82f6,stroke:#1d4ed8,color:#fff,stroke-width:2px
+    classDef apiNode fill:#8b5cf6,stroke:#6d28d9,color:#fff,stroke-width:2px
+    classDef businessNode fill:#f59e0b,stroke:#d97706,color:#fff,stroke-width:2px
+    classDef dataNode fill:#10b981,stroke:#059669,color:#fff,stroke-width:2px
+
+    class SvelteKit,Tailwind,Shadcn,Browser presentationNode
+    class Hono,ORPC,Middleware apiNode
+    class AuthPackage,APIPackage,Validation businessNode
+    class Drizzle,PostgreSQL,Migrations dataNode
+```
+
+**Layer Responsibilities:**
+
+1. **Presentation Layer** (Blue)
+   - **SvelteKit**: Reactive web framework for building user interfaces
+   - **TailwindCSS**: Utility-first CSS framework for rapid styling
+   - **shadcn/ui**: Pre-built, accessible UI components
+   - **Web Browser**: Client-side rendering and user interaction
+
+2. **API Layer** (Purple)
+   - **Hono**: Lightweight, high-performance web server
+   - **ORPC**: End-to-end type-safe RPC framework
+   - **Middleware**: Cross-cutting concerns (CORS, logging, error handling)
+
+3. **Business Logic Layer** (Orange)
+   - **packages/auth**: Authentication and authorization logic
+   - **packages/api**: Domain-specific procedures and routers
+   - **Zod Validation**: Runtime type validation and schema enforcement
+
+4. **Data Layer** (Green)
+   - **Drizzle ORM**: Type-safe database queries and migrations
+   - **PostgreSQL**: Reliable relational database engine
+   - **Migrations**: Schema version control and evolution
+
+**Data Flow:**
+
+```
+Request Flow:
+Browser → SvelteKit → Hono → ORPC → Business Logic → Drizzle → PostgreSQL
+
+Response Flow:
+PostgreSQL → Drizzle → Business Logic → ORPC → Hono → SvelteKit → Browser
+```
+
+**Layer Interactions:**
+
+- **Top-Down**: Each layer calls only the layer directly below it
+- **Bottom-Up**: Responses flow back through the same path
+- **Type Safety**: TypeScript types flow seamlessly across all layers
+- **Separation of Concerns**: Each layer has a single, well-defined responsibility
 
 ---
 
