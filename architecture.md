@@ -189,20 +189,90 @@ sambung-chat/
 
 ### Package Dependencies
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Package Dependency Graph                  │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Apps ["📱 apps/ - Applications"]
+        direction TB
+        Web["🌐 web<br/>SvelteKit Frontend"]
+        Server["⚡ server<br/>Hono Backend"]
+    end
 
-Detailed dependency diagrams will be added in Phase 2.
+    subgraph Packages ["📦 packages/ - Shared Packages"]
+        direction TB
+
+        subgraph CorePackages ["Core Infrastructure"]
+            API["🔌 api<br/>ORPC Routers & Procedures"]
+            Auth["🔐 auth<br/>Better-Auth Configuration"]
+            DB["💾 db<br/>Drizzle Schema & Migrations"]
+            Env["⚙️ env<br/>Environment Variables"]
+        end
+
+        subgraph DevPackages ["Developer Tools"]
+            Config["📝 config<br/>TypeScript Configs"]
+            UI["🎨 ui<br/>shadcn/ui Components"]
+        end
+    end
+
+    %% App to Package Dependencies
+    Web -->|workspace:*| API
+    Web -->|workspace:*| Auth
+    Web -->|workspace:*| Env
+    Web -->|workspace:*| Config
+
+    Server -->|workspace:*| API
+    Server -->|workspace:*| Auth
+    Server -->|workspace:*| DB
+    Server -->|workspace:*| Env
+    Server -->|workspace:*| Config
+
+    %% Package to Package Dependencies
+    API -->|workspace:*| DB
+    API -->|workspace:*| Auth
+    API -->|workspace:*| Env
+
+    Auth -->|workspace:*| DB
+    Auth -->|workspace:*| Env
+
+    DB -->|workspace:*| Env
+
+    UI -->|workspace:*| Config
+
+    %% Styling
+    classDef appNode fill:#3b82f6,stroke:#1d4ed8,color:#fff,stroke-width:3px
+    classDef coreNode fill:#8b5cf6,stroke:#6d28d9,color:#fff
+    classDef devNode fill:#10b981,stroke:#059669,color:#fff
+    classDef envNode fill:#f59e0b,stroke:#d97706,color:#fff
+
+    class Web,Server appNode
+    class API,Auth,DB coreNode
+    class Config,UI devNode
+    class Env envNode
 ```
 
-**Key Dependencies:**
-- `apps/web` depends on: `packages/api`, `packages/ui`, `packages/config`, `packages/env`
-- `apps/server` depends on: `packages/api`, `packages/auth`, `packages/db`, `packages/config`, `packages/env`
-- `packages/api` depends on: `packages/db`, `packages/auth`, `packages/env`
-- `packages/auth` depends on: `packages/db`, `packages/env`
-- `packages/db` depends on: `packages/env`
+**Dependency Summary:**
+
+| Application | Direct Dependencies |
+|-------------|-------------------|
+| **apps/web** | `@sambung-chat/api`, `@sambung-chat/auth`, `@sambung-chat/env`, `@sambung-chat/config` |
+| **apps/server** | `@sambung-chat/api`, `@sambung-chat/auth`, `@sambung-chat/db`, `@sambung-chat/env`, `@sambung-chat/config` |
+
+| Package | Direct Dependencies |
+|---------|-------------------|
+| **packages/api** | `@sambung-chat/db`, `@sambung-chat/auth`, `@sambung-chat/env` |
+| **packages/auth** | `@sambung-chat/db`, `@sambung-chat/env` |
+| **packages/db** | `@sambung-chat/env` |
+| **packages/ui** | `@sambung-chat/config` |
+| **packages/env** | None (leaf package) |
+| **packages/config** | None (leaf package) |
+
+**Dependency Flow:**
+```
+apps/web ──┐
+           ├──► packages/api ──► packages/auth ──► packages/db ──► packages/env
+apps/server ─┘                                              (leaf)
+                           │
+                           └──► packages/config (leaf)
+```
 
 ---
 
