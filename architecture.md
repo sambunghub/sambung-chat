@@ -350,6 +350,208 @@ flowchart TB
     class Drizzle,PostgreSQL data
 ```
 
+### Component Interaction Flow
+
+The following diagram shows how the major components interact during a typical API request, including authentication, data validation, and database operations:
+
+```mermaid
+flowchart TB
+    subgraph Frontend["🌐 Frontend Layer (SvelteKit)"]
+        direction TB
+        Browser["👤 User Browser"]
+        SvelteKit["⚡ SvelteKit App"]
+        Pages["📄 Pages/Routes"]
+        Components["🧩 Components"]
+        ORPCClient["🔌 ORPC Client"]
+    end
+
+    subgraph Network["🌐 Network Layer"]
+        HTTP["HTTPS/HTTP"]
+    end
+
+    subgraph Backend["⚙️ Backend Layer (Hono)"]
+        direction TB
+        HonoServer["🚀 Hono Server"]
+        CORS["CORS Middleware"]
+        Logger["Logger Middleware"]
+        ErrorHandler["Error Handler"]
+    end
+
+    subgraph APILayer["📡 API Layer (ORPC)"]
+        direction TB
+        ORPCRouter["🔌 ORPC Router"]
+        AuthRouter["🔐 Auth Router"]
+        TodoRouter["📝 Todo Router"]
+        ProtectedProc["🔒 Protected Procedures"]
+        PublicProc["🌍 Public Procedures"]
+    end
+
+    subgraph Validation["✅ Validation Layer"]
+        ZodSchemas["Zod Schemas"]
+        InputValidation["Input Validation"]
+        OutputValidation["Output Validation"]
+    end
+
+    subgraph BusinessLogic["💼 Business Logic (packages/api)"]
+        direction TB
+        AuthService["Auth Service"]
+        TodoService["Todo Service"]
+        AuthMiddleware["Auth Middleware"]
+    end
+
+    subgraph DataAccess["💾 Data Access Layer"]
+        direction TB
+        DrizzleORM["🗃️ Drizzle ORM"]
+        QueryBuilder["Query Builder"]
+        Migrations["Migrations"]
+    end
+
+    subgraph Database["🗄️ Database Layer"]
+        direction TB
+        Connection["Connection Pool"]
+        PostgreSQL["💾 PostgreSQL"]
+        Tables["Tables:<br/>user, session,<br/>account, todo"]
+    end
+
+    %% Request Flow - Frontend to Backend
+    Browser -->|User Action| SvelteKit
+    SvelteKit --> Pages
+    SvelteKit --> Components
+    Pages --> ORPCClient
+    Components --> ORPCClient
+    ORPCClient -.->|Type-Safe Request| HTTP
+
+    %% Request Flow - Network to Backend
+    HTTP -.->|HTTP Request| HonoServer
+
+    %% Backend Processing
+    HonoServer --> CORS
+    CORS --> Logger
+    Logger --> ORPCRouter
+
+    %% Error Handling Branch
+    HonoServer -.->|Error| ErrorHandler
+    ErrorHandler -.->|Error Response| HTTP
+
+    %% API Routing
+    ORPCRouter -->|/auth/*| AuthRouter
+    ORPCRouter -->|/todo/*| TodoRouter
+
+    %% Authentication Check
+    AuthRouter -->|Public| PublicProc
+    TodoRouter -->|Protected| ProtectedProc
+
+    ProtectedProc --> AuthMiddleware
+    AuthMiddleware -.->|Not Authenticated| ErrorHandler
+    AuthMiddleware -->|Authenticated| AuthService
+
+    %% Validation
+    PublicProc --> InputValidation
+    ProtectedProc --> InputValidation
+    InputValidation --> ZodSchemas
+    ZodSchemas -->|Valid| AuthService
+    ZodSchemas -->|Valid| TodoService
+    ZodSchemas -.->|Invalid| ErrorHandler
+
+    %% Business Logic to Database
+    AuthService --> DrizzleORM
+    TodoService --> DrizzleORM
+
+    %% Database Operations
+    DrizzleORM --> QueryBuilder
+    QueryBuilder --> Migrations
+    QueryBuilder --> Connection
+    Connection --> PostgreSQL
+    PostgreSQL --> Tables
+
+    %% Response Flow - Database to Frontend
+    Tables -->|Query Result| PostgreSQL
+    PostgreSQL -->|Data| Connection
+    Connection -->|Results| QueryBuilder
+    QueryBuilder -->|ORM Results| DrizzleORM
+    DrizzleORM -->|Typed Data| AuthService
+    DrizzleORM -->|Typed Data| TodoService
+
+    AuthService --> OutputValidation
+    TodoService --> OutputValidation
+    OutputValidation --> ZodSchemas
+
+    ZodSchemas -->|Valid Response| PublicProc
+    ZodSchemas -->|Valid Response| ProtectedProc
+
+    PublicProc --> ORPCRouter
+    ProtectedProc --> ORPCRouter
+
+    ORPCRouter -->|JSON Response| HonoServer
+    HonoServer -->|HTTP Response| HTTP
+    HTTP -.->|JSON Response| ORPCClient
+    ORPCClient -->|Typed Data| SvelteKit
+    SvelteKit -->|Update UI| Browser
+
+    %% Styling
+    classDef frontendNode fill:#3b82f6,stroke:#1d4ed8,color:#fff,stroke-width:2px
+    classDef networkNode fill:#64748b,stroke:#475569,color:#fff,stroke-width:2px
+    classDef backendNode fill:#8b5cf6,stroke:#6d28d9,color:#fff,stroke-width:2px
+    classDef apiNode fill:#f59e0b,stroke:#d97706,color:#fff,stroke-width:2px
+    classDef validationNode fill:#ec4899,stroke:#db2777,color:#fff,stroke-width:2px
+    classDef businessNode fill:#10b981,stroke:#059669,color:#fff,stroke-width:2px
+    classDef dataNode fill:#ef4444,stroke:#dc2626,color:#fff,stroke-width:2px
+    classDef dbNode fill:#84cc16,stroke:#65a30d,color:#fff,stroke-width:2px
+
+    class Browser,SvelteKit,Pages,Components,ORPCClient frontendNode
+    class HTTP networkNode
+    class HonoServer,CORS,Logger,ErrorHandler backendNode
+    class ORPCRouter,AuthRouter,TodoRouter,ProtectedProc,PublicProc apiNode
+    class ZodSchemas,InputValidation,OutputValidation validationNode
+    class AuthService,TodoService,AuthMiddleware businessNode
+    class DrizzleORM,QueryBuilder,Migrations dataNode
+    class Connection,PostgreSQL,Tables dbNode
+```
+
+**Key Interactions:**
+
+1. **Frontend Request Flow:**
+   - User interacts with SvelteKit pages and components
+   - ORPC client makes type-safe requests to the backend
+   - All requests are validated with Zod schemas before sending
+
+2. **Backend Processing:**
+   - Hono server handles incoming HTTP requests with middleware chain (CORS, logging, error handling)
+   - ORPC router routes requests to appropriate API routers (auth, todo, etc.)
+   - Protected procedures check authentication via middleware
+
+3. **Authentication & Authorization:**
+   - Auth middleware validates session tokens
+   - Unauthenticated requests are rejected at the protected procedure level
+   - Public procedures bypass authentication checks
+
+4. **Business Logic & Validation:**
+   - Input validation ensures data integrity before processing
+   - Business logic services (auth, todo) handle domain-specific operations
+   - Output validation ensures responses match expected types
+
+5. **Database Operations:**
+   - Drizzle ORM provides type-safe database access
+   - Connection pooling manages database connections efficiently
+   - All database operations are transactional and type-safe
+
+6. **Response Flow:**
+   - Database results flow back through ORM as typed data
+   - Responses are validated against Zod schemas
+   - Type-safe JSON responses returned to frontend
+   - Frontend updates UI with fully typed data
+
+**Error Handling:**
+- Errors at any level propagate to the error handler
+- Consistent error responses returned to frontend
+- Frontend receives typed error information
+
+**Type Safety:**
+- End-to-end type safety from frontend to database
+- Zod schemas ensure runtime validation
+- TypeScript types inferred from schemas
+- Compile-time guarantees prevent type mismatches
+
 ### Request Flow Overview
 
 1. **User Interaction**: User interacts with SvelteKit frontend in browser
