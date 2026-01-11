@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.1] - 2025-01-11
+## [0.0.1] - 2026-01-11
 
 ### Added
 - **UI Package with shadcn-svelte Integration**
@@ -27,15 +27,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Establish base CSS styles and Tailwind integration
   - Document component usage patterns in README.md and AGENTS.md
 
+- **Comprehensive Documentation Suite**
+  - **Testing Guide** ([docs/TESTING.md](docs/TESTING.md))
+    - Complete testing strategy with Vitest, integration tests, and Playwright E2E
+    - Test structure and organization guidelines
+    - Coverage requirements: 80% backend, 70% frontend
+    - Factory pattern for test data
+    - Mock database utilities for integration tests
+
+  - **Database Documentation** ([docs/DATABASE.md](docs/DATABASE.md))
+    - Complete schema documentation for all tables
+    - Entity Relationship Diagram (ERD)
+    - Migration guide with Drizzle ORM
+    - Command reference for database operations
+    - Drizzle Studio setup
+    - Backup and restore procedures
+
+  - **Environment Configuration** ([docs/ENVIRONMENT.md](docs/ENVIRONMENT.md))
+    - Complete environment variable reference
+    - Server and client environment setup
+    - Security best practices
+    - Environment-specific configs (dev, prod, test)
+    - Docker environment configuration
+
+  - **Contributing Guide** ([.github/CONTRIBUTING.md](.github/CONTRIBUTING.md))
+    - Development workflow guidelines
+    - Backend-first approach explanation
+    - Coding standards (TypeScript, Svelte 5, ORPC)
+    - Testing requirements
+    - Commit guidelines (Conventional Commits)
+    - Pull request process and template
+
 - **Backend-First Development Plan**
   - Add comprehensive backend-first development workflow documentation
   - Define API-driven development approach
   - Outline database schema and ORPC integration patterns
+  - Testing strategy with unit, integration, and E2E tests
+  - Module breakdown for chat, message, prompt, and API key management
+
+- **UI/UX Design Updates**
+  - Update layout specifications with Navigation Rail (64px) + Secondary Sidebar (280px) pattern
+  - Add responsive behavior for desktop, tablet, and mobile
+  - Component hierarchy aligned with backend modules
 
 - **Project Documentation**
   - Add comprehensive project documentation
   - Document API reference with implementation status
   - Add important notices and development guidelines
+  - ORPC implementation reference guide
 
 ### Changed
 - **Monorepo Configuration**
