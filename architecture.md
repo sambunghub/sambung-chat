@@ -24,6 +24,7 @@ This document provides comprehensive architecture documentation for the SambungC
    - [Authentication Architecture](#authentication-architecture)
    - [Login Flow (Detailed)](#login-flow-detailed)
    - [Protected Route Access Sequence](#protected-route-access-sequence)
+   - [Session Management Flow](#session-management-flow)
    - [Authentication Features](#authentication-features)
    - [Security Considerations](#security-considerations)
 7. [API Request Flow](#api-request-flow)
@@ -1765,7 +1766,245 @@ export const appRouter = router({
 5. **Session Expiration**: Automatic timeout of inactive sessions
 6. **IP Tracking**: Session IP validation for enhanced security
 
-Detailed authentication sequence diagrams will be added in Phase 4.
+### Session Management Flow
+
+The following flow diagram illustrates the complete session lifecycle including creation, validation, and destruction:
+
+```mermaid
+flowchart TB
+    subgraph Creation ["🎟️ Session Creation (After Login)"]
+        direction TB
+        Login[User successfully signs in]
+        Generate[Generate cryptographically random token]
+        CreateRecord[Create session record in database]
+        SetCookie[Set HTTP-only, Secure cookie]
+        ReturnSession[Return session to client]
+
+        Login --> Generate
+        Generate --> CreateRecord
+        CreateRecord --> SetCookie
+        SetCookie --> ReturnSession
+
+        note1[Store in session table:<br/>• userId (FK to user)<br/>• token (unique, random)<br/>• expiresAt (30 days)<br/>• ipAddress (from request)<br/>• userAgent (from request)]
+        CreateRecord -.-> note1
+
+        note2[Cookie attributes:<br/>• HttpOnly (no JS access)<br/>• Secure (HTTPS only)<br/>• SameSite=None<br/>• Path=/]
+        SetCookie -.-> note2
+    end
+
+    subgraph Validation ["🔍 Session Validation (Every Request)"]
+        direction TB
+        Request[Client makes protected request]
+        ExtractCookie[Browser includes session cookie]
+        GetSession[Better-Auth getSession extracts token]
+        QueryDB[Query session table by token]
+        CheckExpire[Check expiration timestamp]
+        JoinUser[Join with user table]
+        ValidSession[Return session with user data]
+        InvalidSession[Return null session]
+
+        Request --> ExtractCookie
+        ExtractCookie --> GetSession
+        GetSession --> QueryDB
+        QueryDB --> CheckExpire
+        CheckExpire -->|Session exists & not expired| JoinUser
+        CheckExpire -->|Not found or expired| InvalidSession
+        JoinUser --> ValidSession
+
+        note3[Indexes used:<br/>• session.token (UNIQUE)<br/>• session.userId (INDEX)<br/>• user.id (PRIMARY KEY)]
+        QueryDB -.-> note3
+    end
+
+    subgraph Destruction ["🗑️ Session Destruction (Logout)"]
+        direction TB
+        Logout[User clicks sign out]
+        SignOutRequest[POST /api/auth/sign-out]
+        DeleteSession[Delete session from database]
+        ClearCookie[Clear session cookie<br/>(set expired date)]
+        ClearState[Clear client-side state]
+        Redirect[Redirect to home/login]
+
+        Logout --> SignOutRequest
+        SignOutRequest --> DeleteSession
+        DeleteSession --> ClearCookie
+        ClearCookie --> ClearState
+        ClearState --> Redirect
+
+        note4[SQL: DELETE FROM session<br/>WHERE token = ?<br/>Cascade: None (manual delete)]
+        DeleteSession -.-> note4
+    end
+
+    Creation --> Validation
+    Validation -.->|Optional auto-refresh| Creation
+    Validation --> Destruction
+
+    style Creation fill:#dbeafe,stroke:#3b82f6,color:#1e40af
+    style Validation fill:#fef3c7,stroke:#f59e0b,color:#92400e
+    style Destruction fill:#fee2e2,stroke:#ef4444,color:#991b1b
+```
+
+#### Session Lifecycle States
+
+```mermaid
+stateDiagram-v2
+    [*] --> NoSession: Application starts
+
+    NoSession --> Creating: User submits credentials
+    Creating --> Active: Login successful
+
+    Active --> Validating: Client makes request
+    Validating --> Active: Session valid
+    Validating --> Expired: Session expired
+
+    Active --> Destroying: User logs out
+    Expired --> Destroying: Cleanup
+
+    Destroying --> NoSession: Session deleted
+    Expired --> NoSession: Auto-logout
+
+    note right of Active
+        Session stored in:
+        • Database (session table)
+        • Browser cookie (HttpOnly)
+        • Client state (Svelte store)
+    end note
+
+    note right of Validating
+        Every protected request:
+        1. Extract token from cookie
+        2. Query database
+        3. Check expiration
+        4. Return user data
+    end note
+```
+
+#### Session Creation Process
+
+**Trigger:** Successful login via `/api/auth/sign-in/email`
+
+**Steps:**
+1. **Token Generation**: Better-Auth generates cryptographically random session token
+2. **Database Insert**: Create session record with:
+   - `id` - UUID primary key
+   - `userId` - Foreign key to user table (cascade delete)
+   - `token` - Unique random string (indexed)
+   - `expiresAt` - Timestamp (default: current date + 30 days)
+   - `ipAddress` - Client IP address (from request)
+   - `userAgent` - Browser user agent (from request)
+3. **Cookie Setting**: Set session cookie with:
+   - `HttpOnly=true` - Prevent JavaScript access (XSS protection)
+   - `Secure=true` - HTTPS only transmission
+   - `SameSite=None` - Cross-origin support for SPA
+   - `Path=/` - Available on all routes
+4. **Client Storage**: Browser stores cookie and sends automatically on subsequent requests
+5. **Reactive Update**: Svelte store updates with session data
+
+**Database Query:**
+```sql
+INSERT INTO session (id, userId, token, expiresAt, ipAddress, userAgent)
+VALUES (?, ?, ?, ?, ?, ?);
+```
+
+#### Session Validation Process
+
+**Trigger:** Every protected API request via ORPC
+
+**Steps:**
+1. **Cookie Extraction**: Better-Auth `getSession()` reads session token from request headers
+2. **Database Query**: Drizzle queries session table by token (indexed lookup)
+3. **Expiration Check**: Verify `expiresAt > NOW()`
+4. **User Join**: If session valid, join with user table via `userId`
+5. **Context Population**: Return `{ session: { session, user } }` to ORPC context
+6. **Middleware Check**: `requireAuth` middleware validates `context.session?.user` exists
+7. **Handler Execution**: Protected procedure receives guaranteed authenticated context
+
+**Database Query:**
+```sql
+-- Step 1: Validate session token
+SELECT * FROM session
+WHERE token = ? AND expiresAt > NOW();
+
+-- Step 2: Get user data (if session valid)
+SELECT * FROM user WHERE id = ?;
+```
+
+**Performance:**
+- Indexes on `session.token` (UNIQUE) and `user.id` (PRIMARY KEY)
+- O(log n) lookup complexity
+- 2 database queries per protected request
+- Optional caching reduces database load
+
+#### Session Destruction Process
+
+**Trigger:** User clicks sign out button
+
+**Steps:**
+1. **Client Request**: `authClient.signOut()` sends POST to `/api/auth/sign-out`
+2. **Session Deletion**: Better-Auth deletes session record from database
+3. **Cookie Clearing**: Server clears cookie by setting:
+   - Same cookie name and path
+   - `expires` attribute to past date (e.g., `Thu, 01 Jan 1970 00:00:00 GMT`)
+   - Browser removes expired cookie
+4. **State Clearing**: Client-side Svelte store cleared (session becomes `null`)
+5. **Navigation**: `onSuccess` callback redirects to home or login page
+
+**Database Query:**
+```sql
+DELETE FROM session WHERE token = ?;
+```
+
+**Cookie Clearing:**
+```http
+Set-Cookie: session_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=None
+```
+
+#### Session Security Features
+
+✅ **HTTP-Only Cookies**: JavaScript cannot access session token (XSS protection)
+✅ **Secure Flag**: Token only transmitted over HTTPS (MITM protection)
+✅ **SameSite=None**: Allows cross-origin requests while maintaining security
+✅ **Token Randomness**: Cryptographically random tokens prevent guessing attacks
+✅ **Expiration**: Sessions expire after 30 days (configurable)
+✅ **IP Tracking**: Optional IP validation for enhanced security
+✅ **User Agent Tracking**: Detect suspicious session changes
+✅ **Database Validation**: Every request validated server-side (not just client-side)
+✅ **Cascade Deletes**: User deletion removes all sessions automatically
+
+#### Session Management Best Practices
+
+**Security:**
+- Never expose session token in URLs or JavaScript
+- Use HTTPS in production (required for `Secure` flag)
+- Implement logout functionality for explicit session termination
+- Consider session timeout for inactivity (not currently implemented)
+
+**Performance:**
+- Leverage database indexes on `token` and `userId` columns
+- Cache sessions in memory to reduce database hits
+- Use efficient queries (avoid `SELECT *` when possible)
+
+**User Experience:**
+- Provide clear sign out functionality
+- Show active sessions in user settings (future enhancement)
+- Allow users to revoke all sessions (future enhancement)
+- Implement "remember me" option (extend expiration)
+
+**Monitoring:**
+- Log failed session validations (potential attacks)
+- Track session creation/deletion for audit trail
+- Monitor unusual patterns (multiple sessions from different IPs)
+- Alert on session hijacking attempts
+
+#### Error Scenarios
+
+| Scenario | Detection | Response | User Experience |
+|----------|-----------|----------|-----------------|
+| Invalid token | Database returns null | 401 Unauthorized | Redirect to login |
+| Expired session | `expiresAt < NOW()` | 401 Unauthorized | Redirect to login |
+| Missing cookie | Cookie not in headers | 401 Unauthorized | Redirect to login |
+| Database error | Exception in query | 500 Internal Server Error | "Request failed. Try again." |
+| Session deletion failed | DELETE returns 0 rows | 200 OK (idempotent) | Session already cleared |
+| Cookie setting failed | Browser rejects cookie | Error on next request | Show error message |
 
 ---
 
