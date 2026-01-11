@@ -15,6 +15,10 @@ This document provides comprehensive architecture documentation for the SambungC
 3. [Project Structure](#project-structure)
 4. [System Architecture](#system-architecture)
 5. [Database Schema](#database-schema)
+   - [Schema Overview](#schema-overview)
+   - [Authentication Schema ERD](#authentication-schema-erd)
+   - [Application Schema ERD](#application-schema-erd)
+   - [Entity Relationships](#entity-relationships)
 6. [Authentication Flow](#authentication-flow)
 7. [API Request Flow](#api-request-flow)
 8. [Data Flow](#data-flow)
@@ -833,6 +837,150 @@ classDiagram
 3. **Strategic Indexes**: Indexes on foreign keys (`user_id`) and lookup fields (`token`, `identifier`)
 4. **Nullable Fields**: Optional data (images, tokens, IP addresses) use nullable fields
 5. **Unique Constraints**: Ensure data integrity (unique emails, session tokens, account IDs)
+
+### Application Schema ERD
+
+The following Entity Relationship Diagram (ERD) shows the current application schema for the `todo` table, along with potential relationships and enhancements:
+
+```mermaid
+classDiagram
+    direction TB
+
+    class User {
+        +text id 🗝️ PK
+        +text name 👤 NOT NULL
+        +text email 📧 NOT NULL UK
+        +boolean emailVerified ✅ NOT NULL
+        +text image 🖼️ NULLABLE
+        +timestamp createdAt ⏰ NOT NULL DEFAULT now()
+        +timestamp updatedAt ⏰ NOT NULL AUTO-UPDATE
+    }
+
+    class Todo {
+        +serial id 🗝️ PK AUTO-INCREMENT
+        +text text 📝 NOT NULL
+        +boolean completed ✅ NOT NULL DEFAULT: false
+    }
+
+    class TodoEnhanced {
+        +serial id 🗝️ PK AUTO-INCREMENT
+        +text userId 🔗 FK NOT NULL
+        +text title 📝 NOT NULL
+        +text description 📄 NULLABLE
+        +boolean completed ✅ NOT NULL DEFAULT: false
+        +integer priority 🔢 NULLABLE
+        +timestamp dueDate 📅 NULLABLE
+        +timestamp createdAt ⏰ NOT NULL DEFAULT now()
+        +timestamp updatedAt ⏰ NOT NULL AUTO-UPDATE
+        +timestamp completedAt ⏰ NULLABLE
+        +index(userId)
+        +index(userId, completed)
+        +onDelete(CASCADE)
+    }
+
+    User "1" -- "0..*" TodoEnhanced : owns >
+    Note beside User "User owns todos<br/>(potential relationship)"
+    Note beside Todo "🔵 Current State<br/>Minimal structure for demo<br/>No user association yet<br/>No timestamps"
+    Note beside TodoEnhanced "🟢 Potential Enhancement<br/>Add user relationship<br/>Add timestamps<br/>Add metadata fields<br/>Add performance indexes"
+```
+
+**Current State (todo table):**
+
+The todo table is currently a minimal example table with no user association:
+
+| Field | Type | Constraints | Purpose |
+|-------|------|-------------|---------|
+| `id` | serial | PRIMARY KEY, AUTO-INCREMENT | Unique todo identifier |
+| `text` | text | NOT NULL | Todo item description |
+| `completed` | boolean | NOT NULL, DEFAULT: false | Completion status |
+
+**Current Characteristics:**
+- ✅ Simple structure suitable for demonstration
+- ⚠️ No user association (all users see all todos)
+- ⚠️ No timestamp tracking (created, updated, completed)
+- ⚠️ No metadata fields (priority, due date, tags)
+- ⚠️ No indexes beyond primary key
+- ⚠️ No foreign key relationships
+
+**Potential Enhancements:**
+
+To make the todo table production-ready, consider these enhancements:
+
+1. **Add User Association**
+   - Add `user_id` foreign key referencing `user.id`
+   - Enables proper data isolation (users only see their own todos)
+   - Add `ON DELETE CASCADE` to automatically clean up todos when user is deleted
+
+2. **Add Timestamp Tracking**
+   - `created_at` - Track when todo was created
+   - `updated_at` - Track when todo was last modified
+   - `completed_at` - Track when todo was marked complete
+
+3. **Add Metadata Fields**
+   - `priority` - Integer priority level (1-5, or custom)
+   - `due_date` - Optional due date for time-sensitive tasks
+   - `description` - Extended description field beyond the title
+   - `tags` - Categorization (could use JSONB or separate table)
+
+4. **Add Performance Indexes**
+   - Index on `(user_id, completed)` for efficient queries (e.g., "show incomplete todos for user")
+   - Index on `due_date` if time-based queries are common
+   - Composite index on `(user_id, priority)` for priority-based views
+
+**Recommended Migration Path:**
+
+```sql
+-- Step 1: Add user_id column (nullable initially to avoid breaking existing data)
+ALTER TABLE todo ADD COLUMN user_id text REFERENCES user(id) ON DELETE CASCADE;
+
+-- Step 2: Add timestamp columns
+ALTER TABLE todo ADD COLUMN created_at timestamp NOT NULL DEFAULT now();
+ALTER TABLE todo ADD COLUMN updated_at timestamp NOT NULL DEFAULT now();
+ALTER TABLE todo ADD COLUMN completed_at timestamp;
+
+-- Step 3: Add metadata columns (all nullable initially)
+ALTER TABLE todo ADD COLUMN priority integer;
+ALTER TABLE todo ADD COLUMN due_date timestamp;
+
+-- Step 4: Create indexes for performance
+CREATE INDEX todo_userId_idx ON todo(user_id);
+CREATE INDEX todo_userId_completed_idx ON todo(user_id, completed);
+
+-- Step 5: Populate user_id for existing todos (if applicable)
+-- UPDATE todo SET user_id = 'default-user-id' WHERE user_id IS NULL;
+
+-- Step 6: Make user_id NOT NULL (after data migration)
+-- ALTER TABLE todo ALTER COLUMN user_id SET NOT NULL;
+```
+
+**Current Relationship Status:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Current State                                               │
+├─────────────────────────────────────────────────────────────┤
+│ todo (standalone) - No foreign key relationships           │
+│ All todos are visible to all users (no data isolation)      │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ Recommended State                                           │
+├─────────────────────────────────────────────────────────────┤
+│ user (1) ──────< (N) todo                                  │
+│                                                             │
+│ One user can have many todos                               │
+│ Each todo belongs to exactly one user                      │
+│ Deleting a user cascades to delete all their todos         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Design Considerations:**
+
+1. **Data Isolation**: Adding `user_id` is critical for multi-user applications to ensure users can only access their own data
+2. **Performance**: Composite index on `(user_id, completed)` optimizes the most common query pattern
+3. **Data Integrity**: Cascade delete ensures orphans don't exist when a user is deleted
+4. **Flexibility**: Keep optional metadata fields nullable to accommodate different todo use cases
+5. **Audit Trail**: Timestamps enable sorting by creation/modification date and tracking completion time
 
 ### Entity Relationships
 
