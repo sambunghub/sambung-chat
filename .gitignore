@@ -50,3 +50,6 @@ tmp
 temp
 
 volume-data/
+
+# Auto Claude data directory
+.auto-claude/
