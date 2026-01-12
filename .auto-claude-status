@@ -3,7 +3,7 @@
   "spec": "001-create-ai-provider-integration-guide-for-adding-ne",
   "state": "building",
   "subtasks": {
-    "completed": 26,
+    "completed": 27,
     "total": 29,
     "in_progress": 1,
     "failed": 0
@@ -18,8 +18,8 @@
     "max": 1
   },
   "session": {
-    "number": 17,
+    "number": 18,
     "started_at": "2026-01-12T17:44:31.010957"
   },
-  "last_update": "2026-01-12T19:24:56.167665"
+  "last_update": "2026-01-12T19:29:52.993478"
 }
