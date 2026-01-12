@@ -52,6 +52,11 @@ This document provides comprehensive architecture documentation for the SambungC
    - [Data Flow Best Practices](#data-flow-best-practices)
    - [Type Safety Flow](#type-safety-flow)
 9. [Development Workflow](#development-workflow)
+   - [Local Development](#local-development)
+   - [Development Scripts](#development-scripts)
+   - [Database Workflow](#database-workflow)
+   - [Turborepo Build Optimization](#turborepo-build-optimization)
+   - [Complete Development Workflow](#complete-development-workflow)
 10. [Design Decisions](#design-decisions)
 11. [Contributor Onboarding](#contributor-onboarding)
 
@@ -4241,7 +4246,296 @@ Turborepo provides intelligent build caching:
 3. **Remote Caching**: Share cache across team (if configured)
 4. **Incremental Builds**: Fast iteration during development
 
-Detailed workflow diagrams will be added in Phase 7.
+### Complete Development Workflow
+
+The following diagram shows the complete development workflow from code changes through build, testing, and deployment:
+
+```mermaid
+flowchart TD
+    Start([👨‍💻 Developer<br/>Start]) --> Edit[📝 Edit Code<br/>Modify files in<br/>apps/ or packages/]
+
+    Edit --> Save[💾 Save Changes]
+
+    Save --> BuildStart{🏗️ Run Build?}
+    BuildStart -->|Manual build<br/>bun run build| Build[⚙️ Turborepo Build]
+    BuildStart -->|Skip build<br/>Hot reload| TypeCheck
+
+    Build --> BuildSuccess{Build<br/>Success?}
+    BuildSuccess -->|✅ Build OK| TypeCheck[🔍 Type Check<br/>bun run check-types]
+    BuildSuccess -->|❌ Build Failed| BuildError[🔧 Fix Build Errors]
+
+    BuildError --> LogBuild[📋 Check Build Logs<br/>Review error messages]
+    LogBuild --> FixBuild[🔨 Fix Build Issues<br/>Fix syntax, dependencies,<br/>or configuration]
+    FixBuild --> Build
+
+    TypeCheck --> TypeSuccess{Types<br/>Valid?}
+    TypeSuccess -->|✅ Types OK| DBChange{Database<br/>Schema Change?}
+    TypeSuccess -->|❌ Type Errors| TypeError[🔧 Fix Type Errors]
+
+    TypeError --> LogType[📋 Check Type Errors<br/>Review TypeScript errors]
+    LogType --> FixType[🔨 Fix Type Issues<br/>Fix type annotations,<br/>imports, or interfaces]
+    FixType --> TypeCheck
+
+    DBChange -->|✅ Yes, schema changed| DBEdit[📝 Edit Schema<br/>Modify files in<br/>packages/db/src/schema/]
+    DBChange -->|❌ No schema change| Test[🧪 Local Testing<br/>bun run dev]
+
+    DBEdit --> DBGenerate[🔨 Generate Migration<br/>bun run db:generate]
+    DBGenerate --> DBReview{Review<br/>Migration?}
+    DBReview -->|✅ Approved| DBPush[💾 Push Schema<br/>bun run db:push]
+    DBReview -->|❌ Needs changes| DBEdit
+
+    DBPush --> DBSuccess{Migration<br/>Success?}
+    DBSuccess -->|✅ Schema Updated| DBVerify[✅ Verify Schema<br/>bun run db:studio]
+    DBSuccess -->|❌ Migration Failed| DBError[🔧 Fix Migration Errors]
+
+    DBError --> LogDB[📋 Check DB Logs<br/>Review migration errors]
+    LogDB --> FixDB[🔨 Fix Migration<br/>Modify schema or<br/>migration file]
+    FixDB --> DBGenerate
+
+    DBVerify --> Test
+
+    Test --> DevServer{Dev Server<br/>Running?}
+    DevServer -->|✅ Yes| ManualTest[🖱️ Manual Testing<br/>Test changes in browser<br/>at localhost:5173]
+    DevServer -->|❌ No| StartDev[🚀 Start Dev Server<br/>bun run dev]
+
+    StartDev --> RunningWait[⏳ Wait for server<br/>Web: localhost:5173<br/>API: localhost:3000]
+    RunningWait --> ManualTest
+
+    ManualTest --> TestPass{Tests<br/>Pass?}
+    TestPass -->|✅ Working as expected| Lint[📋 Lint Code<br/>bun run lint]
+    TestPass -->|❌ Issues found| FixTest[🔧 Fix Test Failures]
+
+    FixTest --> DebugTest[🐛 Debug Issues<br/>Add console.log<br/>Check browser console]
+    DebugTest --> FixTestCode[🔨 Fix Test Code<br/>Fix logic, styling,<br/>or functionality]
+    FixTestCode --> ManualTest
+
+    Lint --> LintPass{Linting<br/>Pass?}
+    LintPass -->|✅ No issues| Format[✨ Format Code<br/>bun run format]
+    LintPass -->|❌ Linting errors| FixLint[🔧 Fix Linting Issues]
+
+    FixLint --> AutoFix[🔨 Auto-fix Linting<br/>bun run lint --fix]
+    AutoFix --> ManualLint[🔨 Manual Fixes<br/>Fix remaining issues]
+    ManualLint --> Lint
+
+    Format --> CommitReady{Ready to<br/>Commit?}
+    CommitReady -->|❌ Need more changes| Edit
+    CommitReady -->|✅ Ready| Stage[📦 Stage Changes<br/>git add .]
+
+    Stage --> Commit[💾 Commit Code<br/>git commit -m message]
+    Commit --> Push[📤 Push Changes<br/>git push]
+
+    Push --> CI[🔄 CI/CD Pipeline]
+    CI --> CIPass{CI/CD<br/>Pass?}
+    CIPass -->|✅ All checks pass| Merge([🎉 Ready to Merge])
+    CIPass -->|❌ CI failed| CIFail[🔧 Fix CI Failures]
+
+    CIFail --> CILog[📋 Check CI Logs<br/>Review build/test logs]
+    CILog --> FixCI[🔨 Fix CI Issues<br/>Fix failing tests,<br/>build issues, or linting]
+    FixCI --> Edit
+
+    Merge --> Deploy{Deploy?}
+    Deploy -->|✅ Deploy| Production([🚀 Production<br/>Deployment])
+    Deploy -->|❌ Wait| Done([✅ Development<br/>Complete])
+
+    Production --> Done
+
+    classDef successStyle fill:#10b981,stroke:#059669,color:#fff
+    classDef errorStyle fill:#ef4444,stroke:#dc2626,color:#fff
+    classDef warningStyle fill:#f59e0b,stroke:#d97706,color:#fff
+    classDef infoStyle fill:#3b82f6,stroke:#2563eb,color:#fff
+    classDef processStyle fill:#8b5cf6,stroke:#7c3aed,color:#fff
+
+    class Start,Merge,Done,Production successStyle
+    class BuildError,TypeError,DBError,FixTest,FixLint,CIFail errorStyle
+    class BuildSuccess,TypeSuccess,DBSuccess,DevServer,TestPass,LintPass,CommitReady,CIPass,Deploy warningStyle
+    class Edit,Save,Build,TypeCheck,DBEdit,DBGenerate,DBPush,Test,StartDev,ManualTest,Lint,Format,Stage,Commit,Push,CI infoStyle
+    class BuildStart,DBChange,DBReview,LogBuild,LogType,LogDB,DebugTest,RunningWait processStyle
+```
+
+#### Key Workflow Stages
+
+**1. Code Editing Phase**
+- Developer modifies files in `apps/` (web, server) or `packages/` (api, db, auth, etc.)
+- Hot reload provides instant feedback during development
+- Changes are tracked by Turborepo for intelligent caching
+
+**2. Build Phase**
+- **Command**: `bun run build`
+- Turborepo builds all packages in dependency order
+- Incremental builds only rebuild changed packages
+- Build artifacts cached locally and remotely (if configured)
+- Common build failures: syntax errors, missing dependencies, type mismatches
+
+**3. Type Checking Phase**
+- **Command**: `bun run check-types`
+- TypeScript compiler validates all packages
+- Ensures type safety across workspace boundaries
+- Catches type errors before runtime
+- Common type errors: missing imports, wrong types, interface mismatches
+
+**4. Database Migration Phase** (if schema changes)
+- **Generate**: `bun run db:generate` - Create migration from schema changes
+- **Review**: Manually review generated migration in `packages/db/src/migrations/`
+- **Apply**: `bun run db:push` - Push schema changes to database
+- **Verify**: `bun run db:studio` - Open Drizzle Studio to verify changes
+- Common migration issues: SQL syntax errors, constraint violations, data loss risks
+
+**5. Local Testing Phase**
+- **Command**: `bun run dev` - Start development servers
+- **Web**: http://localhost:5173 (SvelteKit frontend)
+- **API**: http://localhost:3000 (Hono backend)
+- Manual testing of new features and bug fixes
+- Browser console and network tab for debugging
+- Common issues: CORS errors, authentication failures, API errors
+
+**6. Code Quality Phase**
+- **Lint**: `bun run lint` - Check code quality and style
+- **Format**: `bun run format` - Format code with Prettier
+- **Auto-fix**: `bun run lint --fix` - Auto-fix linting issues
+- Ensures consistent code style across the monorepo
+
+**7. Commit & Push Phase**
+- **Stage**: `git add .` - Stage all changes
+- **Commit**: `git commit -m "message"` - Commit with descriptive message
+- **Push**: `git push` - Push to remote repository
+- Triggers CI/CD pipeline for automated testing
+
+#### Workflow Decision Points
+
+| Decision Point | Question | Paths |
+|----------------|----------|-------|
+| **Build Start** | Should I build? | Manual build → Turborepo build<br/>Skip build → Hot reload |
+| **Build Success** | Did build succeed? | ✅ → Type check<br/>❌ → Fix build errors |
+| **Type Success** | Are types valid? | ✅ → Check DB changes<br/>❌ → Fix type errors |
+| **DB Change** | Did schema change? | ✅ → Migration workflow<br/>❌ → Local testing |
+| **DB Review** | Migration approved? | ✅ → Push to DB<br/>❌ → Modify schema |
+| **DB Success** | Migration succeed? | ✅ → Verify schema<br/>❌ → Fix migration |
+| **Test Pass** | Tests passing? | ✅ → Lint code<br/>❌ → Fix test failures |
+| **Lint Pass** | Linting passing? | ✅ → Format code<br/>❌ → Fix linting |
+| **Commit Ready** | Ready to commit? | ✅ → Stage & commit<br/>❌ → More changes |
+| **CI Pass** | CI/CD passing? | ✅ → Ready to merge<br/>❌ → Fix CI failures |
+| **Deploy** | Deploy now? | ✅ → Production<br/>❌ -> Complete |
+
+#### Turborepo Optimization Features
+
+**1. Intelligent Caching**
+```bash
+# Turborepo caches build outputs
+# Only rebuilds packages that changed
+# Example: Change packages/api/src/routers/todo.ts
+# Turborepo rebuilds: api, server
+# Turborepo skips: web, db, auth, ui, config, env
+```
+
+**2. Parallel Task Execution**
+```bash
+# Turborepo runs independent tasks in parallel
+# Example: bun run build
+# - Builds packages/db and packages/config in parallel
+# - Then builds packages/auth (depends on db)
+# - Finally builds apps/server (depends on auth, api)
+```
+
+**3. Task Pipelines**
+```json
+// turbo.json configuration
+{
+  "pipeline": {
+    "build": {
+      "dependsOn": ["^build"],  // Build dependencies first
+      "outputs": [".next/**", "dist/**"]  // Cache these outputs
+    },
+    "check-types": {
+      "dependsOn": ["^build"]  // Type check after building
+    }
+  }
+}
+```
+
+**4. Incremental Development**
+```bash
+# Hot reload during development
+# Only recompiles changed files
+# Preserves application state
+# Example: Edit apps/web/src/routes/+page.svelte
+# - SvelteKit hot reloads only that component
+# - No full page refresh needed
+# - State preserved in other components
+```
+
+#### Error Recovery Strategies
+
+**Build Errors**
+1. Check build logs for specific error messages
+2. Common causes:
+   - Missing dependencies: `bun install`
+   - Syntax errors: Fix code syntax
+   - TypeScript errors: Fix type annotations
+   - Configuration errors: Check turbo.json, tsconfig.json
+3. Re-run build after fixing: `bun run build`
+
+**Type Errors**
+1. Review TypeScript error messages
+2. Common causes:
+   - Missing imports: Add import statements
+   - Wrong types: Fix type annotations
+   - Interface mismatches: Align interfaces
+   - Missing dependencies: Install missing packages
+3. Re-run type check: `bun run check-types`
+
+**Migration Errors**
+1. Review migration SQL in `packages/db/src/migrations/`
+2. Common causes:
+   - SQL syntax errors: Fix SQL syntax
+   - Constraint violations: Check foreign keys, unique constraints
+   - Data conflicts: Backup data before migration
+3. Fix schema and regenerate: `bun run db:generate`
+4. Test migration on local database first
+
+**Test Failures**
+1. Reproduce issue in browser
+2. Check browser console for JavaScript errors
+3. Check Network tab for API errors
+4. Common causes:
+   - Authentication failures: Check session, cookies
+   - API errors: Check ORPC procedures, database queries
+   - UI bugs: Check Svelte components, TailwindCSS classes
+5. Fix code and re-test manually
+
+**CI Failures**
+1. Check CI logs in GitHub Actions
+2. Common causes:
+   - Linting issues: Run `bun run lint` locally
+   - Test failures: Run tests locally
+   - Build issues: Run `bun run build` locally
+   - Type errors: Run `bun run check-types` locally
+3. Fix issues locally and push again
+
+#### Best Practices
+
+**Before Building**
+- ✅ Run `bun install` after pulling changes
+- ✅ Review changed files with `git diff`
+- ✅ Ensure local database is running
+
+**Before Committing**
+- ✅ All tests passing: Manual testing in browser
+- ✅ Linting passing: `bun run lint`
+- ✅ Types valid: `bun run check-types`
+- ✅ Code formatted: `bun run format`
+- ✅ Database schema pushed: `bun run db:push`
+
+**Before Pushing**
+- ✅ Descriptive commit message following conventions
+- ✅ All changes committed (no unstaged files)
+- ✅ No sensitive data in commits (API keys, passwords)
+
+**Development Workflow Tips**
+- 🚀 Use hot reload for fast iteration (skip build step)
+- 🐛 Use browser DevTools for debugging
+- 🔍 Use Drizzle Studio (`bun run db:studio`) for database inspection
+- 📋 Check Turborepo cache with `turbo prune --dry-run`
+- ⚡ Use `bun run dev:web` or `bun run dev:server` for individual apps
 
 ---
 
