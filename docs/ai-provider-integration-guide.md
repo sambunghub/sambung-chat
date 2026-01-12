@@ -5700,15 +5700,1411 @@ In this section, you learned:
 
 ---
 
-**Next Steps:**
+# 7. Testing and Validation
 
-> **Next:** [7. Testing and Validation](#7-testing-and-validation)
->
-> Learn how to test your AI provider integration, validate environment configuration, and ensure production readiness.
+Comprehensive testing procedures for validating AI provider integrations and ensuring production readiness.
+
+## Overview
+
+Testing is a critical step in integrating any AI provider. This section provides:
+
+- **Step-by-step testing procedures** - From basic connectivity to production validation
+- **Manual testing guides** - How to manually test each integration component
+- **Automated testing examples** - Unit tests, integration tests, and end-to-end tests
+- **Performance testing** - Response time, throughput, and cost validation
+- **Troubleshooting** - Common issues and their solutions
+
+**Time Investment:** 30-60 minutes for comprehensive testing
+
+**Prerequisites:**
+- Provider integration implemented (Section 4)
+- Environment variables configured (Section 6)
+- Server running locally
+- cURL or Postman for API testing
 
 ---
 
-**Document Status:** 🚧 In Progress - Phase 3, Task 5 (Section 6 Complete)
+## 7.1 Testing Strategy Overview
+
+### Testing Pyramid
+
+```
+        ┌──────────────┐
+        │   Manual     │  ← User acceptance testing
+        │   Testing    │
+        ├──────────────┤
+        │ Integration  │  ← API endpoint testing
+        │   Testing    │
+        ├──────────────┤
+        │   Unit       │  ← Component testing
+        │   Testing    │
+        └──────────────┘
+```
+
+### Testing Levels
+
+| Level | Purpose | Tools | Time |
+|-------|---------|-------|------|
+| **Unit Tests** | Test individual functions | Vitest, Jest | 5-10 min |
+| **Integration Tests** | Test API endpoints | Supertest, cURL | 10-15 min |
+| **Manual Tests** | Verify user experience | Browser, cURL | 10-20 min |
+| **Performance Tests** | Validate response times | cURL, Apache Bench | 5-10 min |
+| **Production Tests** | Verify production readiness | Monitoring tools | Ongoing |
+
+### Testing Checklist
+
+- [ ] Server starts without errors
+- [ ] Health check endpoint responds
+- [ ] Model info endpoint returns correct data
+- [ ] Simple AI request succeeds
+- [ ] Multi-turn conversation works
+- [ ] Streaming responses work correctly
+- [ ] Error handling works (empty messages, invalid format)
+- [ ] Long messages handled properly
+- [ ] Special characters and Unicode work
+- [ ] Rate limiting handled gracefully
+- [ ] Provider-specific features work
+- [ ] Environment variables validated
+- [ ] Frontend integration works
+- [ ] Performance benchmarks acceptable
+
+---
+
+## 7.2 Manual Testing Procedures
+
+### Test Environment Setup
+
+**Before testing, ensure:**
+
+```bash
+# 1. Install dependencies
+cd apps/server
+npm install
+
+# 2. Configure environment
+cp .env.example .env.local
+# Edit .env.local with your API keys
+
+# 3. Start development server
+npm run dev
+
+# 4. Verify server is running
+curl http://localhost:3001/health
+```
+
+**Expected Response:**
+```json
+{
+  "status": "ok",
+  "provider": "your-provider-name"
+}
+```
+
+---
+
+### Test 1: Server Startup Validation
+
+**Purpose:** Verify server starts without errors and loads provider configuration
+
+**Steps:**
+
+1. Start the server:
+   ```bash
+   npm run dev
+   ```
+
+2. Check console output for:
+   - ✅ Server listening on port 3001
+   - ✅ Provider loaded successfully
+   - ✅ No error messages
+   - ✅ Environment variables loaded
+
+3. Common startup errors:
+
+   | Error | Cause | Solution |
+   |-------|-------|----------|
+   | `Cannot find module '@ai-sdk/provider'` | Provider package not installed | Run `npm install @ai-sdk/provider` |
+   | `API_KEY is not defined` | Environment variable missing | Check `.env.local` configuration |
+   | `Invalid API key` | Incorrect API key format | Verify API key in provider dashboard |
+   | `Port 3001 already in use` | Port conflict | Kill existing process or change port |
+
+**Success Criteria:**
+- Server starts without errors
+- Provider is initialized correctly
+- Health endpoint is accessible
+
+---
+
+### Test 2: Health Check Endpoint
+
+**Purpose:** Verify server health and provider configuration
+
+**cURL Command:**
+```bash
+curl http://localhost:3001/health
+```
+
+**Expected Response:**
+```json
+{
+  "status": "ok",
+  "provider": "openai",
+  "model": "gpt-4o-mini",
+  "timestamp": "2025-01-12T10:30:00.000Z"
+}
+```
+
+**Verification Checklist:**
+
+- [ ] HTTP status code is 200
+- [ ] Response JSON is valid
+- [ ] `status` field is "ok"
+- [ ] `provider` field matches your provider
+- [ ] `model` field shows correct model ID
+- [ ] Response time is under 100ms
+
+**Alternative Testing Methods:**
+
+```bash
+# Using httpie
+http GET http://localhost:3001/health
+
+# Using wget
+wget -qO- http://localhost:3001/health
+
+# Using browser
+# Navigate to http://localhost:3001/health
+```
+
+---
+
+### Test 3: Model Info Endpoint
+
+**Purpose:** Verify available models are correctly listed
+
+**cURL Command:**
+```bash
+curl http://localhost:3001/ai/models
+```
+
+**Expected Response:**
+```json
+{
+  "provider": "openai",
+  "models": [
+    {
+      "id": "gpt-4o-mini",
+      "name": "GPT-4o Mini",
+      "context": 128000,
+      "description": "Fast and efficient model for most tasks"
+    },
+    {
+      "id": "gpt-4o",
+      "name": "GPT-4o",
+      "context": 128000,
+      "description": "Latest multimodal model"
+    }
+  ],
+  "count": 2
+}
+```
+
+**Verification Checklist:**
+
+- [ ] HTTP status code is 200
+- [ ] Response includes provider name
+- [ ] Models array is not empty
+- [ ] Each model has required fields (id, name, context)
+- [ ] Model IDs match provider documentation
+- [ ] Context window sizes are correct
+
+**Provider-Specific Model Verification:**
+
+| Provider | Expected Models | Verification |
+|----------|----------------|--------------|
+| OpenAI | gpt-4o, gpt-4o-mini, o1-mini | Check [OpenAI models](https://platform.openai.com/docs/models) |
+| Anthropic | claude-3-5-sonnet-20241022, claude-3-5-haiku-20241022 | Check [Anthropic models](https://docs.anthropic.com/en/docs/about-claude/models) |
+| Google | gemini-2.5-flash, gemini-2.5-pro | Check [Google models](https://ai.google.dev/gemini-api/docs/models) |
+| Groq | llama-3.3-70b-versatile, mixtral-8x7b-32768 | Check [Groq models](https://console.groq.com/docs/models) |
+| Ollama | llama3.2, mistral, gemma2 | Run `ollama list` locally |
+
+---
+
+### Test 4: Simple AI Request
+
+**Purpose:** Verify basic AI functionality
+
+**cURL Command:**
+```bash
+curl -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      {
+        "role": "user",
+        "content": "Say hello and nothing else"
+      }
+    ]
+  }'
+```
+
+**Expected Response (Streaming):**
+
+```
+data: {"type":"text","text":"Hello"}
+
+data: {"type":"finish","finishReason":"stop","usage":{"promptTokens":10,"completionTokens":1}}
+
+```
+
+**Verification Checklist:**
+
+- [ ] HTTP status code is 200
+- [ ] Response is streaming (Server-Sent Events format)
+- [ ] Response contains text content
+- [ ] Response is brief (matches prompt constraint)
+- [ ] Streaming works (multiple `data:` lines)
+- [ ] Finish reason is "stop" (normal completion)
+- [ ] Usage statistics included (promptTokens, completionTokens)
+
+**Testing Different Prompt Types:**
+
+```bash
+# Test 1: Simple question
+curl -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"What is 2+2?"}]}'
+
+# Test 2: Code generation
+curl -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"Write a hello world function in JavaScript"}]}'
+
+# Test 3: Long-form response
+curl -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"Explain quantum computing in simple terms"}]}'
+```
+
+---
+
+### Test 5: Multi-Turn Conversation
+
+**Purpose:** Verify conversation context is maintained
+
+**cURL Command:**
+```bash
+curl -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      {
+        "role": "user",
+        "content": "My name is Alice"
+      },
+      {
+        "role": "assistant",
+        "content": "Hello Alice! Nice to meet you."
+      },
+      {
+        "role": "user",
+        "content": "What is my name?"
+      }
+    ]
+  }'
+```
+
+**Expected Response:**
+
+```
+data: {"type":"text","text":"Your name is Alice."}
+
+...
+```
+
+**Verification Checklist:**
+
+- [ ] Response correctly identifies the name as "Alice"
+- [ ] Conversation context is maintained across turns
+- [ ] Assistant responses from history are used for context
+- [ ] No confusion about user identity
+
+**Testing Context Retention:**
+
+```bash
+# Test with longer conversation history
+curl -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      {"role": "user", "content": "Remember the number 42"},
+      {"role": "assistant", "content": "I will remember 42"},
+      {"role": "user", "content": "Remember the color blue"},
+      {"role": "assistant", "content": "I will remember blue"},
+      {"role": "user", "content": "What number and color did I ask you to remember?"}
+    ]
+  }'
+```
+
+**Expected:** Response should include both "42" and "blue"
+
+---
+
+### Test 6: Error Handling - Empty Messages
+
+**Purpose:** Verify error handling for invalid input
+
+**cURL Command:**
+```bash
+curl -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": []
+  }'
+```
+
+**Expected Response:**
+```json
+{
+  "error": "Invalid request: messages array required"
+}
+```
+
+**Verification Checklist:**
+
+- [ ] HTTP status code is 400 (Bad Request)
+- [ ] Error message is clear and descriptive
+- [ ] Response is JSON (not streaming)
+- [ ] No server crash or timeout
+
+**Additional Error Tests:**
+
+```bash
+# Test: Missing messages field
+curl -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  -d '{}'
+
+# Test: Invalid message format
+curl -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user"}]}'
+
+# Test: Invalid role
+curl -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"invalid","content":"test"}]}'
+```
+
+---
+
+### Test 7: Error Handling - Invalid Format
+
+**Purpose:** Verify JSON validation works
+
+**cURL Command:**
+```bash
+curl -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  -d 'invalid json'
+```
+
+**Expected Response:**
+```json
+{
+  "error": "Invalid JSON"
+}
+```
+
+**Verification Checklist:**
+
+- [ ] HTTP status code is 400
+- [ ] Error message indicates JSON parsing issue
+- [ ] No server crash
+- [ ] Response is immediate (no timeout)
+
+---
+
+### Test 8: Long Message Handling
+
+**Purpose:** Verify provider handles long messages correctly
+
+**cURL Command:**
+```bash
+# Generate a 1000-character message
+curl -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"messages\": [
+      {
+        \"role\": \"user\",
+        \"content\": \"$(printf 'A%.0s' {1..1000})\"
+      }
+    ]
+  }"
+```
+
+**Or use a pre-written long message:**
+
+```bash
+curl -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      {
+        "role": "user",
+        "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. [repeat to 1000+ chars]"
+      }
+    ]
+  }'
+```
+
+**Verification Checklist:**
+
+- [ ] Request processes successfully
+- [ ] Response is generated (may be truncated)
+- [ ] No "request too large" error for reasonable sizes
+- [ ] Streaming works for long responses
+- [ ] Token usage is tracked correctly
+
+**Testing Context Limits:**
+
+```bash
+# Test near context window limit (varies by provider)
+# For GPT-4o-mini (128K tokens), send a very long message
+
+# Generate a message with ~100K tokens (extremely long)
+# This should work but may be slow
+curl -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  --max-time 120 \
+  -d '{
+    "messages": [
+      {
+        "role": "user",
+        "content": "Extremely long message..."
+      }
+    ]
+  }'
+```
+
+---
+
+### Test 9: Special Characters and Unicode
+
+**Purpose:** Verify provider handles various character encodings
+
+**cURL Command:**
+```bash
+curl -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello 世界! 🌍🚀 Testing émojis Ñoñoñño"
+      }
+    ]
+  }'
+```
+
+**Verification Checklist:**
+
+- [ ] Request processes successfully
+- [ ] Special characters are preserved
+- [ ] Unicode emojis are handled correctly
+- [ ] Response encoding is correct
+- [ ] No character corruption
+
+**Additional Character Tests:**
+
+```bash
+# Test 1: Mathematical symbols
+curl -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"∫ x² dx = ?"}]}'
+
+# Test 2: Right-to-left text (Arabic, Hebrew)
+curl -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"مرحبا بالعالم"}]}'
+
+# Test 3: Code snippets with special chars
+curl -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"const regex = /<[^>]+>/g;"}]}'
+
+# Test 4: Zero-width characters
+curl -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"Test\u200Bzero\u200Bwidth"}]}'
+```
+
+---
+
+### Test 10: Streaming Response Validation
+
+**Purpose:** Verify streaming works correctly end-to-end
+
+**cURL Command:**
+```bash
+curl -N -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      {
+        "role": "user",
+        "content": "Count from 1 to 10, one number per line"
+      }
+    ]
+  }'
+```
+
+**Expected Output:**
+```
+data: {"type":"text","text":"1\n"}
+
+data: {"type":"text","text":"2\n"}
+
+data: {"type":"text","text":"3\n"}
+
+...
+
+data: {"type":"finish","finishReason":"stop","usage":{"promptTokens":20,"completionTokens":15}}
+```
+
+**Verification Checklist:**
+
+- [ ] Response is streaming (chunks arrive incrementally)
+- [ ] Each chunk is valid JSON
+- [ ] Chunks are separated by newlines
+- [ ] Streaming feels responsive (no long pauses)
+- [ ] Final message includes `finish` event
+- [ ] Usage statistics are accurate
+- [ ] Total completion tokens ≈ sum of chunk tokens
+
+**Testing Streaming Latency:**
+
+```bash
+# Measure time to first token
+time curl -N -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"Say hello"}]}' \
+  | head -n 1
+```
+
+**Expected:** First chunk should arrive within 500ms (varies by provider)
+
+---
+
+### Test 11: Frontend Integration
+
+**Purpose:** Verify frontend Chat component works with new provider
+
+**Setup:**
+
+1. Start the server:
+   ```bash
+   cd apps/server
+   npm run dev
+   ```
+
+2. Start the frontend (in separate terminal):
+   ```bash
+   cd apps/web
+   npm run dev
+   ```
+
+3. Open browser to `http://localhost:5173/ai`
+
+**Testing in Browser:**
+
+1. **Send a simple message:**
+   - Type "Hello!" in the chat input
+   - Press Enter
+   - ✅ Verify: Message appears in chat
+   - ✅ Verify: AI response streams in
+   - ✅ Verify: No console errors
+
+2. **Send multiple messages:**
+   - Send 3-4 messages in sequence
+   - ✅ Verify: Conversation context maintained
+   - ✅ Verify: Each response is unique
+
+3. **Check browser console:**
+   - Open DevTools (F12)
+   - Go to Console tab
+   - ✅ Verify: No error messages
+   - ✅ Verify: Network requests to `/ai` endpoint succeed
+
+4. **Check network tab:**
+   - Open Network tab in DevTools
+   - Filter by `/ai`
+   - Click on the request
+   - ✅ Verify: Request payload contains messages array
+   - ✅ Verify: Response type is `text/event-stream`
+   - ✅ Verify: Status code is 200
+
+**Common Frontend Issues:**
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| CORS error | Server CORS misconfigured | Check `cors()` middleware in server |
+| Messages not appearing | Frontend not handling stream | Check `Chat` component setup |
+| Context not maintained | Messages not sent correctly | Verify request payload format |
+| Very slow responses | Network or provider issue | Check Network tab for timing |
+
+---
+
+### Test 12: Rate Limiting (if applicable)
+
+**Purpose:** Verify rate limiting is handled gracefully
+
+**Test:**
+
+```bash
+# Send 10 rapid requests
+for i in {1..10}; do
+  curl -X POST http://localhost:3001/ai \
+    -H "Content-Type: application/json" \
+    -d '{"messages":[{"role":"user","content":"Say hi"}]}' &
+done
+wait
+```
+
+**Expected Behavior:**
+
+- **With rate limiting:** Some requests may return 429 (Too Many Requests)
+- **Without rate limiting:** All requests should succeed (but may be slow)
+
+**Verification Checklist:**
+
+- [ ] Server doesn't crash under load
+- [ ] Rate limit errors (if any) are clear
+- [ ] Retry-after header is set (if rate limited)
+- [ ] Requests are queued or rejected gracefully
+
+**Provider Rate Limits (as of 2025):**
+
+| Provider | Free Tier | Paid Tier | Error Code |
+|----------|-----------|-----------|------------|
+| OpenAI | 3 req/min | 10,000 req/min | 429 |
+| Anthropic | 5 req/min | 50+ req/min | 429 |
+| Google | 15 req/min | 60+ req/min | 429 |
+| Groq | 30 req/min | 60+ req/min | 429 |
+| Ollama | Unlimited | Unlimited | N/A |
+
+---
+
+## 7.3 Automated Testing
+
+### Unit Testing
+
+**Purpose:** Test individual functions and components
+
+**Setup:**
+
+```bash
+# Install testing dependencies
+npm install --save-dev vitest @vitest/coverage-v8
+```
+
+**Example Unit Test:**
+
+```typescript
+// tests/provider.test.ts
+import { describe, it, expect, beforeEach } from 'vitest';
+import { openai } from '@ai-sdk/openai';
+import { anthropic } from '@ai-sdk/anthropic';
+
+describe('Provider Initialization', () => {
+  it('should create OpenAI model', () => {
+    const model = openai('gpt-4o-mini', {
+      apiKey: 'test-key'
+    });
+
+    expect(model).toBeDefined();
+    expect(model.modelId).toBe('gpt-4o-mini');
+  });
+
+  it('should create Anthropic model', () => {
+    const model = anthropic('claude-3-5-sonnet-20241022', {
+      apiKey: 'test-key'
+    });
+
+    expect(model).toBeDefined();
+    expect(model.modelId).toBe('claude-3-5-sonnet-20241022');
+  });
+
+  it('should fail with invalid API key', async () => {
+    const model = openai('gpt-4o-mini', {
+      apiKey: 'invalid-key'
+    });
+
+    // This should fail when making a request
+    await expect(
+      generateText({ model, prompt: 'test' })
+    ).rejects.toThrow();
+  });
+});
+```
+
+**Run Unit Tests:**
+
+```bash
+npm run test
+```
+
+---
+
+### Integration Testing
+
+**Purpose:** Test API endpoints with real HTTP requests
+
+**Setup:**
+
+```bash
+npm install --save-dev supertest
+```
+
+**Example Integration Test:**
+
+```typescript
+// tests/integration/ai-endpoint.test.ts
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { buildApp } from '../server';
+import { request } from 'supertest';
+
+describe('AI Endpoint Integration', () => {
+  let app: any;
+
+  beforeAll(() => {
+    app = buildApp();
+  });
+
+  afterAll(() => {
+    // Cleanup
+  });
+
+  it('should return health check', async () => {
+    const response = await request(app)
+      .get('/health')
+      .expect(200);
+
+    expect(response.body.status).toBe('ok');
+    expect(response.body.provider).toBeDefined();
+  });
+
+  it('should handle simple AI request', async () => {
+    const response = await request(app)
+      .post('/ai')
+      .send({
+        messages: [
+          { role: 'user', content: 'Say hello' }
+        ]
+      })
+      .expect(200);
+
+    expect(response.text).toContain('hello');
+  });
+
+  it('should reject empty messages', async () => {
+    const response = await request(app)
+      .post('/ai')
+      .send({ messages: [] })
+      .expect(400);
+
+    expect(response.body.error).toContain('Invalid request');
+  });
+
+  it('should handle multi-turn conversation', async () => {
+    const response = await request(app)
+      .post('/ai')
+      .send({
+        messages: [
+          { role: 'user', content: 'My name is Bob' },
+          { role: 'assistant', content: 'Hello Bob!' },
+          { role: 'user', content: 'What is my name?' }
+        ]
+      })
+      .expect(200);
+
+    expect(response.text).toContain('Bob');
+  });
+});
+```
+
+**Run Integration Tests:**
+
+```bash
+npm run test:integration
+```
+
+---
+
+### End-to-End Testing
+
+**Purpose:** Test complete user flows
+
+**Example E2E Test:**
+
+```typescript
+// tests/e2e/chat-flow.test.ts
+import { describe, it, expect } from 'vitest';
+import { chromium } from 'playwright';
+
+describe('Chat Flow E2E', () => {
+  it('should complete a chat conversation', async () => {
+    const browser = await chromium.launch();
+    const page = await browser.newPage();
+
+    // Navigate to chat page
+    await page.goto('http://localhost:5173/ai');
+
+    // Wait for chat input to be ready
+    await page.waitForSelector('input[type="text"]');
+
+    // Type a message
+    await page.fill('input[type="text"]', 'Hello!');
+
+    // Send message
+    await page.press('input[type="text"]', 'Enter');
+
+    // Wait for AI response
+    await page.waitForSelector('.ai-message');
+
+    // Verify response
+    const response = await page.textContent('.ai-message');
+    expect(response).toBeTruthy();
+    expect(response?.toLowerCase()).toContain('hello');
+
+    await browser.close();
+  });
+});
+```
+
+**Run E2E Tests:**
+
+```bash
+npm run test:e2e
+```
+
+---
+
+### Test Script Automation
+
+**Purpose:** Run all manual tests automatically
+
+**Example Test Script (based on examples):**
+
+```bash
+#!/bin/bash
+
+# AI Provider Integration Test Script
+# Tests all aspects of provider integration
+
+set -e
+
+BASE_URL="${BASE_URL:-http://localhost:3001}"
+echo "🧪 Testing AI Provider Integration at $BASE_URL"
+echo ""
+
+# Colors for output
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Test counter
+TESTS_PASSED=0
+TESTS_FAILED=0
+
+# Function to print test result
+print_result() {
+  if [ $1 -eq 0 ]; then
+    echo -e "${GREEN}✅ PASS${NC}: $2"
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+  else
+    echo -e "${RED}❌ FAIL${NC}: $2"
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+  fi
+}
+
+# Test 1: Health check
+echo "Test 1: Health check endpoint"
+response=$(curl -s -w "\n%{http_code}" "$BASE_URL/health")
+http_code=$(echo "$response" | tail -n1)
+body=$(echo "$response" | sed '$d')
+
+if [ "$http_code" = "200" ]; then
+  print_result 0 "Health check returns 200"
+else
+  print_result 1 "Health check failed with HTTP $http_code"
+fi
+echo ""
+
+# Test 2: Simple AI request
+echo "Test 2: Simple AI request"
+response=$(curl -s -w "\n%{http_code}" -X POST "$BASE_URL/ai" \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"Say hello"}]}' \
+  --max-time 30)
+http_code=$(echo "$response" | tail -n1)
+
+if [ "$http_code" = "200" ]; then
+  print_result 0 "Simple AI request successful"
+else
+  print_result 1 "Simple AI request failed with HTTP $http_code"
+fi
+echo ""
+
+# ... more tests ...
+
+# Summary
+echo ""
+echo "==================================="
+echo "Test Summary:"
+echo -e "${GREEN}Passed: $TESTS_PASSED${NC}"
+echo -e "${RED}Failed: $TESTS_FAILED${NC}"
+echo "==================================="
+
+if [ $TESTS_FAILED -gt 0 ]; then
+  exit 1
+fi
+```
+
+**Usage:**
+
+```bash
+# Make script executable
+chmod +x test.sh
+
+# Run tests
+./test.sh
+
+# Or run with custom URL
+BASE_URL=http://localhost:3001 ./test.sh
+```
+
+---
+
+## 7.4 Performance Testing
+
+### Response Time Testing
+
+**Purpose:** Measure response times and identify bottlenecks
+
+**Test 1: Time to First Token (TTFT)**
+
+```bash
+# Measure time to first chunk
+time curl -N -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"Say hello"}]}' \
+  | head -n 1
+```
+
+**Benchmark Targets (as of 2025):**
+
+| Provider | Target TTFT | Notes |
+|----------|-------------|-------|
+| Groq | < 100ms | Ultra-fast LPU inference |
+| Google | < 500ms | Fast Gemini models |
+| OpenAI | < 1000ms | GPT-4o-mini |
+| Anthropic | < 1000ms | Claude 3.5 Sonnet |
+| Ollama | Varies | Hardware-dependent |
+
+---
+
+**Test 2: Total Response Time**
+
+```bash
+# Measure complete request time
+time curl -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"Count to 10"}]}'
+```
+
+---
+
+**Test 3: Throughput Testing**
+
+```bash
+# Send 100 requests and measure average time
+for i in {1..100}; do
+  curl -X POST http://localhost:3001/ai \
+    -H "Content-Type: application/json" \
+    -d '{"messages":[{"role":"user","content":"Hi"}]}' \
+    -w "%{time_total}\n" \
+    -o /dev/null \
+    -s
+done | awk '{sum+=$1; count++} END {print "Average:", sum/count, "seconds"}'
+```
+
+---
+
+### Load Testing
+
+**Purpose:** Test server under concurrent load
+
+**Using Apache Bench:**
+
+```bash
+# Install ab
+sudo apt-get install apache2-utils  # Ubuntu/Debian
+brew install apache2                 # macOS
+
+# Run load test: 100 requests, 10 concurrent
+ab -n 100 -c 10 -p request.json -T application/json \
+  http://localhost:3001/ai
+```
+
+**request.json:**
+```json
+{
+  "messages": [
+    {"role": "user", "content": "Say hello"}
+  ]
+}
+```
+
+**Expected Output:**
+```
+Concurrency Level:      10
+Time taken for tests:   5.234 seconds
+Complete requests:      100
+Failed requests:        0
+Total transferred:      45000 bytes
+Requests per second:    19.11 [#/sec] (mean)
+Time per request:       523.406 [ms] (mean)
+```
+
+---
+
+**Using wrk (modern alternative):**
+
+```bash
+# Install wrk
+brew install wrk  # macOS
+# or
+sudo apt-get install wrk  # Ubuntu/Debian
+
+# Run load test
+wrk -t4 -c100 -d30s --latency \
+  -s request.lua \
+  http://localhost:3001/ai
+```
+
+**request.lua:**
+```lua
+wrk.method = "POST"
+wrk.body   = '{"messages":[{"role":"user","content":"Hi"}]}'
+wrk.headers["Content-Type"] = "application/json"
+```
+
+---
+
+### Memory Testing
+
+**Purpose:** Monitor memory usage during requests
+
+**Test:**
+
+```bash
+# Monitor server memory while sending requests
+# In one terminal, start monitoring:
+watch -n 1 'ps aux | grep "node.*server" | awk "{print \$6}"'
+
+# In another terminal, send requests:
+for i in {1..100}; do
+  curl -X POST http://localhost:3001/ai \
+    -H "Content-Type: application/json" \
+    -d '{"messages":[{"role":"user","content":"Test"}]}'
+done
+```
+
+**Verification:**
+- Memory usage should not grow continuously
+- Memory should stabilize after garbage collection
+- No memory leaks (memory returns to baseline)
+
+---
+
+## 7.5 Validation Checklist
+
+### Pre-Integration Checklist
+
+**Environment Setup:**
+- [ ] Node.js 18+ installed
+- [ ] npm dependencies installed
+- [ ] Provider package installed (`@ai-sdk/provider`)
+- [ ] Environment variables configured
+- [ ] API keys obtained from provider
+- [ ] `.env.local` created (not committed)
+- [ ] `.gitignore` includes `.env*`
+
+**Code Implementation:**
+- [ ] Provider imported correctly
+- [ ] Model created with correct model ID
+- [ ] Middleware configured (`devToolsMiddleware()`)
+- [ ] Streaming implemented (`streamText()`)
+- [ ] Error handling added
+- [ ] CORS configured
+- [ ] Health check endpoint added
+
+---
+
+### Post-Integration Checklist
+
+**Functionality:**
+- [ ] Server starts without errors
+- [ ] Health check returns 200
+- [ ] Model info endpoint works
+- [ ] Simple AI request succeeds
+- [ ] Multi-turn conversation works
+- [ ] Streaming responses work
+- [ ] Error handling works (400 errors)
+- [ ] Long messages handled
+- [ ] Special characters work
+- [ ] Frontend integration works
+
+**Performance:**
+- [ ] Time to first token < 1s
+- [ ] Total response time acceptable
+- [ ] No memory leaks detected
+- [ ] Handles concurrent requests
+
+**Quality:**
+- [ ] Code follows project patterns
+- [ ] TypeScript compilation succeeds
+- [ ] No console.log statements
+- [ ] Error messages are clear
+- [ ] Logging added (if needed)
+
+**Documentation:**
+- [ ] README updated with provider info
+- [ ] Environment variables documented
+- [ ] API key generation link added
+- [ ] Testing procedures documented
+- [ ] Troubleshooting section added
+
+**Security:**
+- [ ] API keys not in code
+- [ ] API keys not in git
+- [ ] Environment-specific keys used
+- [ ] Input validation implemented
+- [ ] Rate limiting considered
+
+---
+
+### Production Readiness Checklist
+
+**Deployment:**
+- [ ] Production environment variables set
+- [ ] API keys have production permissions
+- [ ] Monitoring configured (logging, metrics)
+- [ ] Error tracking set up (Sentry, etc.)
+- [ ] Health checks configured
+- [ ] Rate limiting configured (if needed)
+- [ ] Cost monitoring set up
+
+**Testing:**
+- [ ] All manual tests passed
+- [ ] Automated tests passing
+- [ ] Load testing completed
+- [ ] Performance benchmarks met
+- [ ] Frontend tested in production environment
+
+**Monitoring:**
+- [ ] Response time monitoring
+- [ ] Error rate monitoring
+- [ ] Token usage tracking
+- [ ] Cost tracking
+- [ ] Uptime monitoring
+
+**Documentation:**
+- [ ] Runbook created (deployment, rollback)
+- [ ] On-call procedures documented
+- [ ] Known issues documented
+- [ ] Configuration documented
+
+---
+
+## 7.6 Common Testing Issues and Solutions
+
+### Issue 1: "API Key Not Found"
+
+**Cause:** Environment variable not loaded
+
+**Solution:**
+```bash
+# Check environment variable is set
+echo $YOUR_PROVIDER_API_KEY
+
+# Restart server after changing .env.local
+npm run dev
+
+# Verify server loads the variable
+# Add temporary console.log in server.ts:
+console.log('API Key:', process.env.YOUR_PROVIDER_API_KEY ? 'SET' : 'NOT SET');
+```
+
+---
+
+### Issue 2: "Cannot Find Module"
+
+**Cause:** Provider package not installed
+
+**Solution:**
+```bash
+# Install provider package
+npm install @ai-sdk/provider
+
+# Verify installation
+npm list @ai-sdk/provider
+
+# Clear cache and reinstall
+rm -rf node_modules package-lock.json
+npm install
+```
+
+---
+
+### Issue 3: Streaming Not Working
+
+**Cause:** Streaming configuration issue
+
+**Solution:**
+```typescript
+// Ensure using streamText, not generateText
+import { streamText } from 'ai';
+
+// Return proper stream response
+return result.toDataStreamResponse();
+// or
+return result.toUIMessageStreamResponse();
+```
+
+---
+
+### Issue 4: Very Slow Responses
+
+**Cause:** Network issue, provider slowdown, or large context
+
+**Solution:**
+```bash
+# Test provider API directly
+curl https://api.provider.com/v1/models \
+  -H "Authorization: Bearer $YOUR_API_KEY"
+
+# Check response time
+time curl -X POST http://localhost:3001/ai \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"Hi"}]}'
+
+# Try smaller message
+# Reduce context window size
+# Check provider status page
+```
+
+---
+
+### Issue 5: "Request Too Large"
+
+**Cause:** Message exceeds provider's context limit
+
+**Solution:**
+```typescript
+// Check message size before sending
+const messageSize = JSON.stringify(messages).length;
+const maxSize = 128000; // Adjust based on provider
+
+if (messageSize > maxSize) {
+  return new Response('Message too large', { status: 400 });
+}
+
+// Or truncate message
+const truncatedMessages = messages.slice(-10); // Keep last 10
+```
+
+---
+
+### Issue 6: Frontend Not Updating
+
+**Cause:** Streaming not configured correctly
+
+**Solution:**
+```typescript
+// Server: Return correct stream format
+return result.toUIMessageStreamResponse();
+
+// Frontend: Use Chat component
+import { Chat } from '@ai-sdk/svelte';
+import { DefaultChatTransport } from '@ai-sdk/svelte';
+
+<Chat
+  transport={new DefaultChatTransport({
+    url: '/ai'
+  })}
+/>
+```
+
+---
+
+## Summary
+
+In this section, you learned:
+
+✅ **Testing Strategy**
+- Testing pyramid (unit, integration, manual)
+- Testing levels and time investment
+- Comprehensive testing checklist
+
+✅ **Manual Testing Procedures**
+- 12 comprehensive manual tests
+- Server startup and health checks
+- Simple and complex AI requests
+- Error handling validation
+- Special characters and Unicode
+- Streaming response validation
+- Frontend integration testing
+
+✅ **Automated Testing**
+- Unit tests with Vitest
+- Integration tests with Supertest
+- End-to-end tests with Playwright
+- Test script automation
+
+✅ **Performance Testing**
+- Response time measurement
+- Time to first token benchmarking
+- Load testing with Apache Bench and wrk
+- Memory usage monitoring
+
+✅ **Validation Checklists**
+- Pre-integration checklist
+- Post-integration checklist
+- Production readiness checklist
+
+✅ **Common Issues**
+- API key configuration
+- Module installation
+- Streaming issues
+- Performance problems
+- Size limits
+- Frontend integration
+
+---
+
+**Next Steps:**
+
+> **Next:** [8. Troubleshooting and Common Issues](#8-troubleshooting-and-common-issues)
+>
+> Learn how to diagnose and resolve common integration issues, debug problems, and get help.
+
+---
+
+**Document Status:** 🚧 In Progress - Phase 6, Task 1 (Section 7 Complete)
 
 **Last Updated:** 2025-01-12
 **Contributors:** SambungChat Development Team
