@@ -28,6 +28,14 @@ This document provides comprehensive architecture documentation for the SambungC
    - [Authentication Features](#authentication-features)
    - [Security Considerations](#security-considerations)
 7. [API Request Flow](#api-request-flow)
+   - [ORPC Architecture](#orpc-architecture)
+   - [ORPC Request Lifecycle (Protected Procedure)](#orpc-request-lifecycle-protected-procedure)
+   - [ORPC Request Lifecycle (Public Procedure)](#orpc-request-lifecycle-public-procedure)
+   - [Key Steps Explained](#key-steps-explained)
+   - [Database Operations](#database-operations)
+   - [Middleware Flow](#middleware-flow)
+   - [Type Safety Benefits](#type-safety-benefits)
+   - [Error Scenarios](#error-scenarios)
 8. [Data Flow](#data-flow)
 9. [Development Workflow](#development-workflow)
 10. [Design Decisions](#design-decisions)
@@ -2100,7 +2108,272 @@ flowchart LR
 - **Refactoring Safety**: Changes propagate across frontend and backend
 - **Validation**: Runtime validation ensures data integrity
 
-Detailed API request diagrams will be added in Phase 5.
+### ORPC Request Lifecycle (Protected Procedure)
+
+The following sequence diagram shows the complete lifecycle of a protected ORPC procedure call, from the client through the entire middleware chain to the database and back.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client as 🌐 SvelteKit Client
+    participant Network as 📡 HTTP/HTTPS
+    participant Hono as ⚡ Hono Server
+    participant Context as 📦 Context Creator
+    participant BetterAuth as 🔐 Better-Auth
+    participant ORPC as 🔌 ORPC Router
+    participant AuthMW as 🛡️ Auth Middleware
+    participant Zod as ✅ Zod Validator
+    participant Handler as ⚙️ Procedure Handler
+    participant Drizzle as 🗃️ Drizzle ORM
+    participant PostgreSQL as 💾 PostgreSQL
+
+    Note over Client,PostgreSQL: Protected Procedure Call Flow
+
+    Client->>Network: api.privateData()
+    Note over Client,Network: TypeScript ensures<br/>method exists & types match
+
+    Network->>Hono: POST /rpc/privateData
+    Note over Hono: Request received
+
+    Hono->>Hono: Logger middleware
+    Note over Hono: Log request details
+
+    Hono->>Hono: CORS middleware
+    Note over Hono: Validate origin & headers
+
+    Hono->>Context: createContext({ context: HonoContext })
+    Note over Context: Extract per-request data
+
+    Context->>BetterAuth: auth.api.getSession({ headers })
+    Note over BetterAuth: Extract session token<br/>from request headers
+
+    BetterAuth->>BetterAuth: Parse session cookie
+    BetterAuth-->>Context: session object or null
+
+    Context-->>Hono: { session }
+    Hono->>ORPC: rpcHandler.handle(request, { context })
+
+    ORPC->>ORPC: Match route to privateData procedure
+    ORPC->>AuthMW: Execute middleware chain
+    Note over AuthMW: requireAuth middleware
+
+    AuthMW->>AuthMW: Check context.session?.user
+    alt Session & User Exist
+        AuthMW-->>ORPC: Authorized
+        ORPC->>Zod: Validate input schema (if any)
+        Note over Zod: Runtime type checking
+
+        alt Input Valid
+            Zod-->>ORPC: Validation passed
+            ORPC->>Handler: Execute handler with context
+            Note over Handler: context.session.user<br/>is guaranteed to exist
+
+            Handler->>Drizzle: db.query.user.findMany()
+            Drizzle->>PostgreSQL: SELECT * FROM users
+            PostgreSQL-->>Drizzle: User records
+            Drizzle-->>Handler: Typed user data
+
+            Handler-->>ORPC: { message, user }
+            ORPC-->>Hono: JSON response
+            Hono-->>Network: HTTP 200 OK
+            Network-->>Client: Response data
+            Note over Client: TypeScript knows<br/>response shape: { message, user }
+        else Input Invalid
+            Zod-->>ORPC: ZodValidationError
+            ORPC-->>Hono: HTTP 400 Bad Request
+            Hono-->>Network: Error details
+            Network-->>Client: Error response
+        end
+    else No Session or User
+        AuthMW->>AuthMW: throw new ORPCError("UNAUTHORIZED")
+        AuthMW-->>ORPC: UNAUTHORIZED error
+        ORPC-->>Hono: HTTP 401 Unauthorized
+        Hono-->>Network: Error response
+        Network-->>Client: Redirect to login
+    end
+```
+
+### ORPC Request Lifecycle (Public Procedure)
+
+For public procedures, the flow is simpler as no authentication middleware is executed:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client as 🌐 SvelteKit Client
+    participant Network as 📡 HTTP/HTTPS
+    participant Hono as ⚡ Hono Server
+    participant Context as 📦 Context Creator
+    participant ORPC as 🔌 ORPC Router
+    participant Zod as ✅ Zod Validator
+    participant Handler as ⚙️ Procedure Handler
+    participant Drizzle as 🗃️ Drizzle ORM
+    participant PostgreSQL as 💾 PostgreSQL
+
+    Note over Client,PostgreSQL: Public Procedure Call Flow
+
+    Client->>Network: api.todos.create({ text: "Buy milk" })
+    Note over Client,Network: TypeScript validates<br/>input shape at compile time
+
+    Network->>Hono: POST /rpc/todos/create
+    Hono->>Hono: Logger & CORS middleware
+
+    Hono->>Context: createContext({ context: HonoContext })
+    Context->>Context: auth.api.getSession({ headers })
+    Note over Context: Session extracted but<br/>NOT required for public procedures
+    Context-->>Hono: { session: null | session }
+    Hono->>ORPC: rpcHandler.handle(request, { context })
+
+    ORPC->>ORPC: Match route to todos.create procedure
+    Note over ORPC: No auth middleware<br/>for publicProcedure
+    ORPC->>Zod: Validate input against schema
+    Note over Zod: z.object({ text: z.string().min(1) })
+
+    alt Input Valid
+        Zod-->>ORPC: Validation passed
+        ORPC->>Handler: Execute handler with input
+        Handler->>Drizzle: db.insert(todo).values(input)
+        Drizzle->>PostgreSQL: INSERT INTO todos (text)
+        PostgreSQL-->>Drizzle: Created todo record
+        Drizzle-->>Handler: Insert result
+        Handler-->>ORPC: Created todo
+        ORPC-->>Hono: JSON response
+        Hono-->>Network: HTTP 200 OK
+        Network-->>Client: { id, text, completed }
+    else Input Invalid
+        Zod-->>ORPC: ZodValidationError
+        ORPC-->>Hono: HTTP 400 Bad Request
+        Hono-->>Network: Error details
+        Network-->>Client: { error: "text must be at least 1 character" }
+    end
+```
+
+### Key Steps Explained
+
+#### 1. **Client-Side Type Safety**
+   - ORPC client is generated from backend router definition
+   - TypeScript provides autocomplete and type checking
+   - Compile-time errors if wrong methods or data shapes are used
+
+#### 2. **HTTP Transport**
+   - All ORPC calls use standard HTTP POST requests
+   - Requests sent to `/rpc` prefix on Hono server
+   - JSON request/response bodies with proper Content-Type headers
+
+#### 3. **Hono Middleware Chain**
+   - **Logger**: Logs all incoming requests with timing
+   - **CORS**: Validates origin, methods, headers for cross-origin requests
+   - **Context Creation**: Per-request context containing session
+
+#### 4. **ORPC Router**
+   - **Route Matching**: Matches request path to procedure definition
+   - **Middleware Execution**: Runs procedure-specific middleware chain
+   - **Error Handling**: Catches errors and formats proper HTTP responses
+
+#### 5. **Authentication Middleware** (Protected Procedures Only)
+   - **requireAuth**: Checks `context.session?.user` exists
+   - **Authorization**: Throws `ORPCError("UNAUTHORIZED")` if not authenticated
+   - **Context Enrichment**: Provides guaranteed `context.session.user` to handler
+
+#### 6. **Zod Input Validation**
+   - **Runtime Validation**: Validates request data against schema
+   - **Type Coercion**: Converts strings to numbers, booleans, etc.
+   - **Error Formatting**: Returns detailed validation errors to client
+
+#### 7. **Procedure Handler**
+   - **Business Logic**: Executes application-specific logic
+   - **Type-Safe Context**: Access to typed context (session, user, etc.)
+   - **Database Operations**: Uses Drizzle ORM for type-safe queries
+
+#### 8. **Drizzle ORM**
+   - **Query Building**: Type-safe query builder
+   - **SQL Generation**: Generates optimized SQL queries
+   - **Result Mapping**: Maps database rows to TypeScript objects
+
+#### 9. **Response Flow**
+   - **Typed Response**: Handler return type determines response shape
+   - **JSON Serialization**: Automatic JSON conversion
+   - **HTTP Status**: Proper status codes (200, 400, 401, 500)
+
+### Database Operations
+
+**Tables Accessed** (varies by procedure):
+- **todo** (for todo procedures)
+- **user** (for authentication-related queries)
+- **session** (for session validation)
+
+**Indexes Used**:
+- `session.token` (UNIQUE) - Session lookup by token
+- `session.userId` (INDEX) - User's sessions lookup
+- `todo.id` (PRIMARY KEY) - Todo record lookup
+
+**Query Patterns**:
+```typescript
+// Insert
+db.insert(todo).values({ text: input.text })
+
+// Select all
+db.select().from(todo)
+
+// Select with filter
+db.select().from(todo).where(eq(todo.id, input.id))
+
+// Update
+db.update(todo).set({ completed: input.completed }).where(eq(todo.id, input.id))
+
+// Delete
+db.delete(todo).where(eq(todo.id, input.id))
+```
+
+### Middleware Flow
+
+The middleware chain demonstrates the "onion" pattern, where each layer wraps the next:
+
+```typescript
+// Context Creation (apps/server/src/index.ts)
+const context = await createContext({ context: honoContext });
+
+// ORPC Handler (apps/server/src/index.ts)
+const rpcResult = await rpcHandler.handle(request, {
+  prefix: "/rpc",
+  context: context,
+});
+
+// Auth Middleware (packages/api/src/index.ts)
+const requireAuth = o.middleware(async ({ context, next }) => {
+  if (!context.session?.user) {
+    throw new ORPCError("UNAUTHORIZED");
+  }
+  return next({
+    context: {
+      session: context.session,
+    },
+  });
+});
+
+// Protected Procedure (packages/api/src/index.ts)
+export const protectedProcedure = publicProcedure.use(requireAuth);
+```
+
+### Type Safety Benefits
+
+1. **No API Contracts**: Types automatically inferred from implementation
+2. **Compile-Time Checks**: TypeScript catches errors before runtime
+3. **IDE Autocomplete**: Full IntelliSense support for API methods
+4. **Refactoring Safety**: Changes propagate across frontend and backend
+5. **Runtime Validation**: Zod ensures data integrity at runtime
+6. **End-to-End Types**: Single source of truth for data shapes
+
+### Error Scenarios
+
+| Scenario | Detection | Response | User Experience |
+|----------|-----------|----------|-----------------|
+| **Invalid Input** | Zod validation fails | 400 Bad Request with error details | Client shows validation errors |
+| **Unauthorized** | requireAuth middleware | 401 Unauthorized | Redirect to login page |
+| **Session Expired** | Session validation fails | 401 Unauthorized | Redirect to login with message |
+| **Database Error** | Drizzle throws error | 500 Internal Server Error | Client shows error message |
+| **Network Error** | HTTP request fails | Network error | Client shows offline message |
+| **Procedure Not Found** | ORPC route matching fails | 404 Not Found | Client shows "Not found" message |
 
 ---
 
