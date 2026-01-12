@@ -1,6 +1,6 @@
 import type { AppRouterClient } from '@sambung-chat/api/routers/index';
 
-import { PUBLIC_SERVER_URL } from '$env/dynamic/public';
+import { PUBLIC_SERVER_URL } from '$env/static/public';
 import { createORPCClient } from '@orpc/client';
 import { RPCLink } from '@orpc/client/fetch';
 import { createTanstackQueryUtils } from '@orpc/tanstack-query';
