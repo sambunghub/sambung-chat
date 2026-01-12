@@ -14,6 +14,7 @@ export default [
       '**/*.d.ts',
       '.turbo/**',
       '.auto-claude/**',
+      'examples/**',
     ],
   },
   js.configs.recommended,
