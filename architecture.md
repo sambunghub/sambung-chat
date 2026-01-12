@@ -41,6 +41,7 @@ This document provides comprehensive architecture documentation for the SambungC
      - [Read Todos Operation](#read-todos-operation)
      - [Update Todo Operation](#update-todo-operation)
      - [Delete Todo Operation](#delete-todo-operation)
+   - [Error Handling Flow](#error-handling-flow)
 8. [Data Flow](#data-flow)
 9. [Development Workflow](#development-workflow)
 10. [Design Decisions](#design-decisions)
@@ -2732,6 +2733,431 @@ export const todoRouter = {
   // ... other procedures with user filtering
 };
 ```
+
+### Error Handling Flow
+
+The following sequence diagram shows how errors propagate through the entire ORPC middleware chain, handlers, and back to the frontend, covering all major error types and their detection points.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client as 🌐 SvelteKit Client
+    participant Network as 📡 HTTP/HTTPS
+    participant Hono as ⚡ Hono Server
+    participant Context as 📦 Context Creator
+    participant BetterAuth as 🔐 Better-Auth
+    participant ORPC as 🔌 ORPC Router
+    participant AuthMW as 🛡️ Auth Middleware
+    participant Zod as ✅ Zod Validator
+    participant Handler as ⚙️ Procedure Handler
+    participant Drizzle as 🗃️ Drizzle ORM
+    participant PostgreSQL as 💾 PostgreSQL
+
+    Note over Client,PostgreSQL: Complete Error Handling Flow
+
+    Client->>Network: api.protectedProcedure({ data: "..." })
+    Network->>Hono: POST /rpc/protectedProcedure
+
+    Hono->>Hono: Logger middleware
+    Hono->>Hono: CORS middleware
+
+    Note over Hono: Error Point 1:<br/>Network/Transport Errors
+
+    alt Network/Transport Error
+        Hono-->>Network: 500 Internal Server Error
+        Network-->>Client: Network error response
+        Client->>Client: Show offline/network error message
+    else Request Received Successfully
+        Hono->>Context: createContext({ context: HonoContext })
+        Context->>BetterAuth: auth.api.getSession({ headers })
+
+        Note over Context: Error Point 2:<br/>Session Extraction Errors
+
+        alt Session Parsing Error
+            BetterAuth-->>Context: Parse error
+            Context-->>Hono: Error context
+            Hono-->>Network: 400 Bad Request
+            Network-->>Client: { error: "Invalid session format" }
+            Client->>Client: Show error message
+        else Session Parsed Successfully
+            BetterAuth-->>Context: session object or null
+            Context-->>Hono: { session }
+            Hono->>ORPC: rpcHandler.handle(request, { context })
+
+            ORPC->>ORPC: Match route to procedure
+
+            Note over ORPC: Error Point 3:<br/>Route Matching Errors
+
+            alt Route Not Found
+                ORPC-->>Hono: 404 Not Found
+                Hono-->>Network: Error response
+                Network-->>Client: { error: "Procedure not found" }
+                Client->>Client: Show 404 error page
+            else Route Matched Successfully
+                ORPC->>AuthMW: Execute middleware chain
+
+                Note over AuthMW: Error Point 4:<br/>Authorization Errors
+
+                alt Not Authenticated
+                    AuthMW->>AuthMW: Check context.session?.user
+                    AuthMW->>AuthMW: throw new ORPCError("UNAUTHORIZED")
+                    AuthMW-->>ORPC: UNAUTHORIZED error
+                    ORPC-->>Hono: HTTP 401 Unauthorized
+                    Hono-->>Network: WWW-Authenticate header
+                    Network-->>Client: 401 Unauthorized
+                    Client->>Client: Redirect to login page
+                else Authenticated Successfully
+                    AuthMW-->>ORPC: Authorized
+                    ORPC->>Zod: Validate input against schema
+
+                    Note over Zod: Error Point 5:<br/>Input Validation Errors
+
+                    alt Input Invalid
+                        Zod-->>ORPC: ZodValidationError
+                        ORPC-->>Hono: HTTP 400 Bad Request
+                        Hono-->>Network: { error: "Validation failed", details: [...] }
+                        Network-->>Client: Validation error response
+                        Client->>Client: Show validation errors to user
+                    else Input Valid
+                        Zod-->>ORPC: Validation passed
+                        ORPC->>Handler: Execute handler with context
+
+                        Note over Handler: Error Point 6:<br/>Business Logic Errors
+
+                        alt Business Logic Error
+                            Handler->>Handler: Custom validation fails
+                            Handler->>Handler: throw new ORPCError("BAD_REQUEST", "Custom message")
+                            Handler-->>ORPC: Business logic error
+                            ORPC-->>Hono: HTTP 400 Bad Request
+                            Hono-->>Network: { error: "Custom message" }
+                            Network-->>Client: Error response
+                            Client->>Client: Show error message
+                        else Business Logic Success
+                            Handler->>Drizzle: db.query.user.findMany()
+
+                            Note over Drizzle: Error Point 7:<br/>Database Errors
+
+                            alt Database Connection Error
+                                Drizzle->>Drizzle: Connection timeout/failure
+                                Drizzle->>Drizzle: throw new Error("Database connection failed")
+                                Drizzle-->>Handler: Database error
+                                Handler-->>ORPC: Error propagation
+                                ORPC-->>Hono: HTTP 500 Internal Server Error
+                                Hono-->>Network: { error: "Database error", details: "..." }
+                                Network-->>Client: 500 error response
+                                Client->>Client: Show generic error message
+                            else Database Query Error
+                                Drizzle->>PostgreSQL: SELECT * FROM users
+                                PostgreSQL-->>Drizzle: Query error (constraint violation, etc.)
+                                Drizzle-->>Handler: Query error
+                                Handler-->>ORPC: Error propagation
+                                ORPC-->>Hono: HTTP 500 Internal Server Error
+                                Hono-->>Network: { error: "Query failed" }
+                                Network-->>Client: 500 error response
+                                Client->>Client: Show generic error message
+                            else Database Success
+                                PostgreSQL-->>Drizzle: User records
+                                Drizzle-->>Handler: Typed user data
+
+                                Handler-->>ORPC: { data: [...] }
+                                ORPC-->>Hono: JSON response
+                                Hono-->>Network: HTTP 200 OK
+                                Network-->>Client: Success response
+                                Client->>Client: Update UI with data
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+```
+
+**Key Error Types Explained:**
+
+#### 1. **Network/Transport Errors**
+   - **Detection**: Hono server receives invalid HTTP request
+   - **Causes**: Malformed JSON, invalid Content-Type, network timeout
+   - **Response**: 500 Internal Server Error
+   - **Client Handling**: Show offline/network error message
+
+#### 2. **Session Parsing Errors**
+   - **Detection**: Better-Auth fails to parse session cookie
+   - **Causes**: Corrupted cookie, invalid token format, expired token signature
+   - **Response**: 400 Bad Request with "Invalid session format"
+   - **Client Handling**: Clear invalid session, redirect to login
+
+#### 3. **Route Matching Errors**
+   - **Detection**: ORPC cannot match request path to any procedure
+   - **Causes**: Typo in endpoint, procedure not exported, wrong HTTP method
+   - **Response**: 404 Not Found
+   - **Client Handling**: Show 404 error page or "Not found" message
+
+#### 4. **Authorization Errors (401 Unauthorized)**
+   - **Detection**: `requireAuth` middleware checks `context.session?.user`
+   - **Causes**: No session cookie, session expired, user not found in database
+   - **Response**: HTTP 401 Unauthorized with ORPCError("UNAUTHORIZED")
+   - **Client Handling**: Redirect to login page with return URL
+
+#### 5. **Input Validation Errors (400 Bad Request)**
+   - **Detection**: Zod runtime validation against schema
+   - **Causes**: Missing required fields, wrong data types, constraint violations (min/max)
+   - **Response**: HTTP 400 Bad Request with validation error details
+   - **Client Handling**: Show validation errors next to form fields
+
+#### 6. **Business Logic Errors**
+   - **Detection**: Custom validation in procedure handler
+   - **Causes**: Application-specific rules (e.g., "email already exists", "insufficient funds")
+   - **Response**: HTTP 400 Bad Request with ORPCError("BAD_REQUEST", custom message)
+   - **Client Handling**: Show custom error message to user
+
+#### 7. **Database Errors (500 Internal Server Error)**
+   - **Detection**: Drizzle ORM throws error during query execution
+   - **Causes**:
+     - **Connection Error**: Database server down, network issue, connection pool exhausted
+     - **Query Error**: Constraint violation (unique, foreign key), syntax error, timeout
+   - **Response**: HTTP 500 Internal Server Error with generic error message
+   - **Client Handling**: Show generic error message (hide sensitive details)
+   - **Server Logging**: Log full error stack trace for debugging
+
+#### 8. **Unexpected Server Errors (500 Internal Server Error)**
+   - **Detection**: Unhandled exception in any middleware or handler
+   - **Causes**: Runtime exceptions, null pointer errors, unexpected conditions
+   - **Response**: HTTP 500 Internal Server Error with generic message
+   - **Client Handling**: Show generic error message
+   - **Server Logging**: Log full error stack trace for debugging
+
+### Error Detection Points
+
+The error handling flow shows 7 distinct error detection points in the request lifecycle:
+
+| Error Point | Layer | Error Types | HTTP Status Codes |
+|-------------|-------|-------------|-------------------|
+| **1** | Network/Transport | Network errors, malformed requests | 500 |
+| **2** | Context Creation | Session parsing errors | 400 |
+| **3** | ORPC Router | Route not found | 404 |
+| **4** | Auth Middleware | Authorization errors | 401 |
+| **5** | Zod Validator | Input validation errors | 400 |
+| **6** | Procedure Handler | Business logic errors | 400, 403 |
+| **7** | Database Layer | Connection errors, query errors | 500 |
+
+### Error Response Format
+
+ORPC standardizes error responses across all error types:
+
+```typescript
+// Success Response (200 OK)
+{
+  "data": { ... },
+  "error": null
+}
+
+// Error Response (400, 401, 404, 500)
+{
+  "data": null,
+  "error": {
+    "code": "VALIDATION_ERROR" | "UNAUTHORIZED" | "NOT_FOUND" | "INTERNAL_SERVER_ERROR",
+    "message": "Human-readable error message",
+    "details": { ... } // Additional error details (optional)
+  }
+}
+```
+
+**Example Error Responses:**
+
+```typescript
+// Validation Error (400)
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Validation failed",
+    "details": {
+      "issues": [
+        {
+          "code": "too_small",
+          "path": ["text"],
+          "message": "String must contain at least 1 character(s)"
+        }
+      ]
+    }
+  }
+}
+
+// Authorization Error (401)
+{
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Authentication required",
+    "details": null
+  }
+}
+
+// Not Found Error (404)
+{
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Procedure not found: /rpc/unknown",
+    "details": null
+  }
+}
+
+// Internal Server Error (500)
+{
+  "error": {
+    "code": "INTERNAL_SERVER_ERROR",
+    "message": "An unexpected error occurred",
+    "details": null // Details logged on server, not sent to client
+  }
+}
+```
+
+### Client-Side Error Handling
+
+SvelteKit clients handle ORPC errors using the onError callback:
+
+```typescript
+// In Svelte components
+const { data, error } = await api.protectedProcedure({ input });
+
+if (error) {
+  // Error is already typed and standardized
+  switch (error.code) {
+    case "VALIDATION_ERROR":
+      // Show validation errors
+      error.details.issues.forEach(issue => {
+        showFieldError(issue.path[0], issue.message);
+      });
+      break;
+
+    case "UNAUTHORIZED":
+      // Redirect to login
+      redirect('/login?return=' + encodeURIComponent(window.location.pathname));
+      break;
+
+    case "NOT_FOUND":
+      // Show 404 message
+      showToast('Resource not found', 'error');
+      break;
+
+    case "INTERNAL_SERVER_ERROR":
+      // Show generic error message
+      showToast('Something went wrong. Please try again.', 'error');
+      break;
+
+    default:
+      // Unknown error
+      showToast('An unexpected error occurred', 'error');
+  }
+}
+```
+
+### Error Handling Best Practices
+
+#### Server-Side Error Handling
+
+1. **Never Expose Sensitive Information**
+   ```typescript
+   // ❌ Bad: Expose database error details
+   throw new ORPCError("INTERNAL_SERVER_ERROR", dbError.message);
+
+   // ✅ Good: Log error server-side, send generic message
+   console.error('Database error:', dbError);
+   throw new ORPCError("INTERNAL_SERVER_ERROR", "An error occurred");
+   ```
+
+2. **Use Appropriate HTTP Status Codes**
+   - `400` (Bad Request): Validation errors, business logic errors
+   - `401` (Unauthorized): Missing or invalid authentication
+   - `403` (Forbidden): Authenticated but insufficient permissions
+   - `404` (Not Found): Route or resource not found
+   - `500` (Internal Server Error): Unexpected server errors
+
+3. **Provide Actionable Error Messages**
+   ```typescript
+   // ❌ Bad: Generic error
+   throw new ORPCError("BAD_REQUEST", "Error");
+
+   // ✅ Good: Specific, actionable error
+   throw new ORPCError("BAD_REQUEST", "Email already registered. Please sign in.");
+   ```
+
+4. **Log Errors for Debugging**
+   ```typescript
+   // Log error with context
+   console.error('Procedure error:', {
+     procedure: 'protectedProcedure',
+     userId: context.session?.user.id,
+     error: error.message,
+     stack: error.stack,
+     timestamp: new Date().toISOString()
+   });
+   ```
+
+#### Client-Side Error Handling
+
+1. **Always Handle Errors Explicitly**
+   ```typescript
+   // ❌ Bad: Ignore errors
+   const result = await api.someProcedure();
+
+   // ✅ Good: Handle errors
+   const { data, error } = await api.someProcedure();
+   if (error) {
+     // Handle error appropriately
+   }
+   ```
+
+2. **Show User-Friendly Messages**
+   ```typescript
+   // ❌ Bad: Show technical error
+   alert(error.message); // "Zod validation error: ..."
+
+   // ✅ Good: Show user-friendly message
+   showToast('Please enter a valid email address', 'error');
+   ```
+
+3. **Implement Retry Logic for Transient Errors**
+   ```typescript
+   // Retry failed requests with exponential backoff
+   const retryWithBackoff = async (fn, maxRetries = 3) => {
+     for (let i = 0; i < maxRetries; i++) {
+       try {
+         return await fn();
+       } catch (error) {
+         if (i === maxRetries - 1) throw error;
+         await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+       }
+     }
+   };
+   ```
+
+4. **Track Errors for Monitoring**
+   ```typescript
+   // Log errors to monitoring service (Sentry, LogRocket, etc.)
+   if (error && error.code !== 'VALIDATION_ERROR') {
+     trackError('orpc_error', {
+       code: error.code,
+       message: error.message,
+       procedure: 'protectedProcedure'
+     });
+   }
+   ```
+
+### Expanded Error Scenarios Table
+
+| Scenario | Detection Point | Response Code | User Experience | Server Action |
+|----------|-----------------|---------------|-----------------|---------------|
+| **Invalid Input** | Zod validation | 400 Bad Request | Show validation errors next to fields | Log validation errors (optional) |
+| **Unauthorized** | Auth middleware | 401 Unauthorized | Redirect to login page | Log unauthorized access attempt |
+| **Session Expired** | Session validation | 401 Unauthorized | Redirect to login with "session expired" message | Log expired session access |
+| **Forbidden** | Custom middleware | 403 Forbidden | Show "insufficient permissions" message | Log authorization failure |
+| **Not Found** | Route matching | 404 Not Found | Show 404 error page | Log missing route/endpoint |
+| **Database Connection Error** | Drizzle ORM | 500 Internal Server Error | Show generic error message | Log full error with connection details |
+| **Database Query Error** | PostgreSQL | 500 Internal Server Error | Show generic error message | Log full SQL error (sanitized) |
+| **Network Timeout** | HTTP client | Network error | Show offline/network error message | Log timeout (server-side if applicable) |
+| **Rate Limited** | Rate limit middleware | 429 Too Many Requests | Show "rate limited, try again later" | Log rate limit exceeded |
+| **Business Logic Error** | Procedure handler | 400 Bad Request | Show custom error message | Log business logic violation |
+| **Unexpected Exception** | Any layer | 500 Internal Server Error | Show generic error message | Log full stack trace |
 
 ---
 
