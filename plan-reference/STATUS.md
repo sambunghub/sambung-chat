@@ -1,9 +1,9 @@
 # SambungChat Development Status
 
-**Last Updated:** 2026-01-11
+**Last Updated:** 2026-01-12
 **Current Phase:** Phase 1 - MVP Foundation
 **Current Week:** 3
-**Overall Progress:** 19% (11/59 tasks completed)
+**Overall Progress:** 27% (16/59 tasks completed)
 
 ---
 
@@ -12,11 +12,11 @@
 | Metric          | Value |
 | --------------- | ----- |
 | **Total Tasks** | 59    |
-| **Completed**   | 11    |
+| **Completed**   | 16    |
 | **In Progress** | 0     |
-| **Pending**     | 48    |
+| **Pending**     | 43    |
 | **Blocked**     | 0     |
-| **P0 Blockers** | 3     |
+| **P0 Blockers** | 1     |
 
 ---
 
@@ -27,31 +27,31 @@
 
 ---
 
-### Week 1-2: Repository Setup & Infrastructure 🔄 67%
+### Week 1-2: Repository Setup & Infrastructure ✅ 100%
 
-| Task                                  | Status     | Priority | Dependencies | Notes                                     |
-| ------------------------------------- | ---------- | -------- | ------------ | ----------------------------------------- |
-| Add LICENSE file (AGPL-3.0)           | ✅         | P0       | -            | Add AGPL-3.0 LICENSE to root directory    |
-| Create .github/ templates             | ⏳ pending | P0       | -            | Create community standard templates       |
-| Setup CI/CD GitHub Actions            | ⏳ pending | P0       | -            | Setup type checking and linting workflows |
-| Configure ESLint, Prettier, and Husky | ⏳ pending | P1       | -            | Configure code quality tools              |
-| Initialize monorepo structure         | ✅         | P0       | -            |                                           |
-| Setup SvelteKit 5 + Hono + Drizzle    | ✅         | P0       | -            |                                           |
-| Configure Better Auth                 | ✅         | P0       | -            |                                           |
-| Database schema and connection        | ✅         | P0       | -            |                                           |
-| Setup shadcn-svelte components        | ✅         | P1       | -            |                                           |
+| Task                                  | Status | Priority | Dependencies | Notes                                                   |
+| ------------------------------------- | ------ | -------- | ------------ | ------------------------------------------------------- |
+| Add LICENSE file (AGPL-3.0)           | ✅     | P0       | -            | Add AGPL-3.0 LICENSE to root directory                  |
+| Create .github/ templates             | ✅     | P0       | -            | Create community standard templates                     |
+| Setup CI/CD GitHub Actions            | ✅     | P0       | -            | Setup type checking, linting, build, and test workflows |
+| Configure ESLint, Prettier, and Husky | ✅     | P1       | -            | Configure code quality tools                            |
+| Initialize monorepo structure         | ✅     | P0       | -            |                                                         |
+| Setup SvelteKit 5 + Hono + Drizzle    | ✅     | P0       | -            |                                                         |
+| Configure Better Auth                 | ✅     | P0       | -            |                                                         |
+| Database schema and connection        | ✅     | P0       | -            |                                                         |
+| Setup shadcn-svelte components        | ✅     | P1       | -            |                                                         |
 
 ---
 
-### Week 3-4: Authentication & Layout 🔄 10%
+### Week 3-4: Authentication & Layout 🔄 30%
 
 | Task                               | Status     | Priority | Dependencies                       | Notes                                         |
 | ---------------------------------- | ---------- | -------- | ---------------------------------- | --------------------------------------------- |
 | Fix conflicting Header exports     | ✅         | P0       | -                                  |                                               |
 | Create auth router with procedures | ⏳ pending | P1       | better-auth-setup                  | Implement signIn, signUp, signOut, getSession |
 | Write unit tests for auth router   | ⏳ pending | P1       | auth-router                        | Unit tests with Vitest                        |
-| Build login UI page                | ⏳ pending | P1       | auth-router                        | Login form with email/password                |
-| Build register UI page             | ⏳ pending | P1       | auth-router                        | Registration form with validation             |
+| Build login UI page                | ✅         | P1       | auth-router                        | Login form with email/password                |
+| Build register UI page             | ✅         | P1       | auth-router                        | Registration form with validation             |
 | Create AuthLayout component        | ⏳ pending | P1       | -                                  | Centered card layout for auth pages           |
 | Implement session management       | ⏳ pending | P1       | auth-router                        | Protected routes middleware                   |
 | Create NavigationRail component    | ⏳ pending | P1       | -                                  | 64px icon-only navigation rail                |
@@ -139,14 +139,6 @@
 
 ### P0 - Critical Blockers (Must Resolve)
 
-| ID                 | Task                      | Blocked Since | Reason  | Action Required                     |
-| ------------------ | ------------------------- | ------------- | ------- | ----------------------------------- |
-| `github-templates` | Create .github/ templates | Week 1        | Pending | Create community standard templates |
-
-| ID      | Task                       | Blocked Since | Reason  | Action Required                           |
-| ------- | -------------------------- | ------------- | ------- | ----------------------------------------- |
-| `ci-cd` | Setup CI/CD GitHub Actions | Week 1        | Pending | Setup type checking and linting workflows |
-
 | ID               | Task                          | Blocked Since | Reason  | Action Required          |
 | ---------------- | ----------------------------- | ------------- | ------- | ------------------------ |
 | `v0.1.0-release` | Prepare v0.1.0 GitHub release | Week 12       | Pending | Changelog, release notes |
@@ -167,9 +159,9 @@
 
 | Category       | Completed | Total | Progress |
 | -------------- | --------- | ----- | -------- |
-| Infrastructure | 2         | 5     | 40%      |
+| Infrastructure | 5         | 5     | 100%     |
 | Backend        | 5         | 16    | 31%      |
-| Frontend       | 1         | 19    | 5%       |
+| Frontend       | 3         | 19    | 16%      |
 | Testing        | 0         | 5     | 0%       |
 | Security       | 0         | 2     | 0%       |
 | Docs           | 0         | 1     | 0%       |
@@ -182,6 +174,26 @@
 ---
 
 ## Recent Activity
+
+### 2026-01-12
+
+- ✅ Create .github/ templates
+
+### 2026-01-12
+
+- ✅ Setup CI/CD GitHub Actions
+
+### 2026-01-12
+
+- ✅ Configure ESLint, Prettier, and Husky
+
+### 2026-01-12
+
+- ✅ Build login UI page
+
+### 2026-01-12
+
+- ✅ Build register UI page
 
 ### 2026-01-11
 
@@ -203,40 +215,20 @@
 
 - ✅ Create message router with streaming
 
-### 2026-01-11
-
-- ✅ Add pin favorite chats
-
-### 2026-01-10
-
-- ✅ Setup shadcn-svelte components
-
-### 2026-01-09
-
-- ✅ Database schema and connection
-
-### 2026-01-08
-
-- ✅ Configure Better Auth
-
-### 2026-01-07
-
-- ✅ Setup SvelteKit 5 + Hono + Drizzle
-
 ---
 
 ## Next Steps (Priority Order)
 
-1. **[P0]** Create .github/ templates
-2. **[P0]** Setup CI/CD GitHub Actions
-3. **[P0]** Prepare v0.1.0 GitHub release
-4. **[P1]** Configure ESLint, Prettier, and Husky
-5. **[P1]** Create auth router with procedures
-6. **[P1]** Write unit tests for auth router
-7. **[P1]** Build login UI page
-8. **[P1]** Build register UI page
-9. **[P1]** Create AuthLayout component
-10. **[P1]** Implement session management
+1. **[P0]** Prepare v0.1.0 GitHub release
+2. **[P1]** Create auth router with procedures
+3. **[P1]** Write unit tests for auth router
+4. **[P1]** Create AuthLayout component
+5. **[P1]** Implement session management
+6. **[P1]** Create NavigationRail component
+7. **[P1]** Create SecondarySidebar component
+8. **[P1]** Create AppLayout component
+9. **[P1]** Define message database schema
+10. **[P1]** Run database migration
 
 ---
 
