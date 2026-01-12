@@ -2425,11 +2425,1791 @@ const recentMessages = messages.slice(-10);  // Keep last 10 messages
 
 ---
 
+## 5. Provider-Specific Configurations
+
+This section provides detailed setup instructions and configuration guides for specific AI providers. Each provider includes installation steps, environment configuration, code examples, model selection guidance, and best practices.
+
+### 5.1 OpenAI Integration
+
+#### 5.1.1 Overview
+
+OpenAI is one of the most widely used AI providers, offering access to GPT models (GPT-4o, GPT-4 Turbo, GPT-3.5 Turbo) and the new o1 reasoning models. OpenAI models are known for excellent performance, strong multimodal capabilities, and extensive ecosystem support.
+
+**Key Characteristics:**
+- **Models:** GPT-4o, GPT-4o-mini, GPT-4 Turbo, o1-preview, o1-mini, GPT-3.5 Turbo
+- **Context Window:** Up to 128K tokens for GPT-4o
+- **Strengths:** Fast response times, excellent multimodal support, wide adoption
+- **Best For:** General-purpose applications, production workloads, multimodal tasks
+- **Cost:** $0.15-$15 per million input tokens (depending on model)
+- **Speed:** Fast to very fast
+
+#### 5.1.2 Installation
+
+Install the OpenAI provider package:
+
+```bash
+npm install @ai-sdk/openai
+```
+
+Verify installation:
+
+```bash
+npm list @ai-sdk/openai
+# @ai-sdk/openai@1.x.x
+```
+
+#### 5.1.3 Environment Configuration
+
+**Required Environment Variable:**
+
+```bash
+OPENAI_API_KEY=sk-proj-...
+```
+
+**Optional Configuration Variables:**
+
+```bash
+# Custom base URL (for proxies or Azure OpenAI)
+OPENAI_BASE_URL=https://api.openai.com/v1
+
+# Organization ID (for org-specific API keys)
+OPENAI_ORGANIZATION=org-...
+
+# Project ID (for new API keys)
+OPENAI_PROJECT=proj_...
+```
+
+**Update `.env.local`:**
+
+```bash
+# .env.local
+OPENAI_API_KEY=sk-proj-your-api-key-here
+```
+
+**Update `.env.example`:**
+
+```bash
+# .env.example
+# OpenAI API Configuration
+OPENAI_API_KEY=sk-proj-...
+# Optional: Custom base URL for proxies or Azure
+# OPENAI_BASE_URL=https://api.openai.com/v1
+# Optional: Organization ID
+# OPENAI_ORGANIZATION=org-...
+```
+
+#### 5.1.4 Server Implementation
+
+**Step 1: Import OpenAI Provider**
+
+```typescript
+// apps/server/src/index.ts
+import { openai } from "@ai-sdk/openai";
+import { streamText, convertToModelMessages, wrapLanguageModel } from "ai";
+import { devToolsMiddleware } from "@ai-sdk/devtools";
+```
+
+**Step 2: Create OpenAI Model Instance**
+
+```typescript
+// Basic model creation
+const model = openai("gpt-4o-mini");
+
+// With middleware (recommended)
+const model = wrapLanguageModel({
+  model: openai("gpt-4o-mini"),
+  middleware: devToolsMiddleware(),
+});
+
+// With custom configuration
+const model = openai("gpt-4o-mini", {
+  baseURL: process.env.OPENAI_BASE_URL,
+  organization: process.env.OPENAI_ORGANIZATION,
+});
+```
+
+**Step 3: Update Endpoint (Replace Current Provider)**
+
+```typescript
+// apps/server/src/index.ts
+
+app.post("/ai", async (c) => {
+  const { messages } = await c.req.json();
+
+  const model = wrapLanguageModel({
+    model: openai("gpt-4o-mini"),
+    middleware: devToolsMiddleware(),
+  });
+
+  const result = streamText({
+    model,
+    messages: await convertToModelMessages(messages),
+  });
+
+  return result.toUIMessageStreamResponse();
+});
+```
+
+**Alternative: Multi-Provider Configuration**
+
+```typescript
+// apps/server/src/index.ts
+
+function getModel(provider: string) {
+  const modelMap = {
+    openai: () => openai("gpt-4o-mini"),
+    anthropic: () => anthropic("claude-3-5-sonnet-20241022"),
+    google: () => google("gemini-2.5-flash"),
+    groq: () => groq("llama-3.3-70b-versatile"),
+  };
+
+  const modelFactory = modelMap[provider as keyof typeof modelMap] || modelMap.openai;
+  return wrapLanguageModel({
+    model: modelFactory(),
+    middleware: devToolsMiddleware(),
+  });
+}
+
+app.post("/ai", async (c) => {
+  const { messages, provider = "openai" } = await c.req.json();
+
+  const result = streamText({
+    model: getModel(provider),
+    messages: await convertToModelMessages(messages),
+  });
+
+  return result.toUIMessageStreamResponse();
+});
+```
+
+#### 5.1.5 Model Selection Guide
+
+**Available OpenAI Models:**
+
+| Model | Context | Speed | Cost (Input/Output) | Best For |
+|-------|---------|-------|---------------------|----------|
+| `gpt-4o` | 128K | Fast | $2.50/$10.00 | Multimodal, production |
+| `gpt-4o-mini` | 128K | Very Fast | $0.15/$0.60 | High-volume, cost-effective |
+| `gpt-4-turbo` | 128K | Fast | $10.00/$30.00 | Legacy GPT-4 |
+| `gpt-4` | 8K | Medium | $30.00/$60.00 | Original GPT-4 |
+| `gpt-3.5-turbo` | 16K | Very Fast | $0.50/$1.50 | Simple tasks, testing |
+| `o1-preview` | 128K | Slow | $15.00/$60.00 | Complex reasoning |
+| `o1-mini` | 128K | Slow | $3.00/$12.00 | Reasoning (faster) |
+
+**Recommendations:**
+
+**For SambungChat:**
+- **Primary Choice:** `gpt-4o-mini` - Best balance of cost, speed, and quality
+- **Premium Option:** `gpt-4o` - For complex multimodal tasks
+- **Budget Option:** `gpt-3.5-turbo` - For simple queries and testing
+- **Reasoning Tasks:** `o1-preview` or `o1-mini` - For complex problem-solving
+
+**Model Selection Criteria:**
+
+```typescript
+// Example: Model selection by task complexity
+function selectOpenAIModel(complexity: "low" | "medium" | "high") {
+  const models = {
+    low: "gpt-3.5-turbo",
+    medium: "gpt-4o-mini",
+    high: "gpt-4o",
+  };
+  return openai(models[complexity]);
+}
+
+// Example: Model selection by use case
+function selectModelByUseCase(useCase: string) {
+  const modelMap: Record<string, string> = {
+    chat: "gpt-4o-mini",
+    code: "gpt-4o",
+    reasoning: "o1-preview",
+    simple: "gpt-3.5-turbo",
+    multimodal: "gpt-4o",
+  };
+  return openai(modelMap[useCase] || "gpt-4o-mini");
+}
+```
+
+#### 5.1.6 Complete Integration Example
+
+**Complete Server Implementation:**
+
+```typescript
+// apps/server/src/index.ts
+
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import { openai } from "@ai-sdk/openai";
+import { streamText, convertToModelMessages, wrapLanguageModel } from "ai";
+import { devToolsMiddleware } from "@ai-sdk/devtools";
+
+const app = new Hono();
+
+app.use("/*", cors({
+  origin: ["http://localhost:5173", "http://localhost:4173"],
+  credentials: true,
+}));
+
+app.post("/ai", async (c) => {
+  try {
+    const { messages } = await c.req.json();
+
+    // Validate input
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return c.json({ error: "Invalid messages format" }, 400);
+    }
+
+    // Create model with middleware
+    const model = wrapLanguageModel({
+      model: openai("gpt-4o-mini"),
+      middleware: devToolsMiddleware(),
+    });
+
+    // Stream text generation
+    const result = streamText({
+      model,
+      messages: await convertToModelMessages(messages),
+    });
+
+    // Return UI message stream
+    return result.toUIMessageStreamResponse();
+
+  } catch (error) {
+    console.error("OpenAI API Error:", error);
+    return c.json(
+      { error: "Failed to generate response", details: error.message },
+      500
+    );
+  }
+});
+
+export default app;
+```
+
+#### 5.1.7 Best Practices
+
+**1. Error Handling**
+
+```typescript
+app.post("/ai", async (c) => {
+  try {
+    const result = streamText({
+      model: openai("gpt-4o-mini"),
+      messages: await convertToModelMessages(messages),
+    });
+
+    return result.toUIMessageStreamResponse();
+  } catch (error) {
+    if (error.status === 401) {
+      return c.json({ error: "Invalid API key" }, 401);
+    }
+    if (error.status === 429) {
+      return c.json({ error: "Rate limit exceeded" }, 429);
+    }
+    if (error.status === 500) {
+      return c.json({ error: "OpenAI service error" }, 500);
+    }
+    return c.json({ error: "Internal server error" }, 500);
+  }
+});
+```
+
+**2. Rate Limiting**
+
+```typescript
+import { RateLimiterMemory } from "rate-limiter-flexible";
+
+const rateLimiter = new RateLimiterMemory({
+  points: 60, // Number of requests
+  duration: 60, // Per 60 seconds
+});
+
+app.post("/ai", async (c) => {
+  const ip = c.req.header("x-forwarded-for") || "unknown";
+  try {
+    await rateLimiter.consume(ip);
+  } catch (rejRes) {
+    return c.json({ error: "Too many requests" }, 429);
+  }
+  // ... proceed with request
+});
+```
+
+**3. Cost Monitoring**
+
+```typescript
+let totalTokens = 0;
+let totalCost = 0;
+
+app.post("/ai", async (c) => {
+  const result = streamText({
+    model: openai("gpt-4o-mini"),
+    messages: await convertToModelMessages(messages),
+    onFinish: ({ usage }) => {
+      totalTokens += usage.totalTokens;
+      totalCost += (usage.promptTokens * 0.15 + usage.completionTokens * 0.60) / 1_000_000;
+      console.log(`Total tokens: ${totalTokens}, Total cost: $${totalCost.toFixed(4)}`);
+    },
+  });
+
+  return result.toUIMessageStreamResponse();
+});
+```
+
+**4. Environment-Specific Models**
+
+```typescript
+const getModel = () => {
+  if (process.env.NODE_ENV === "production") {
+    return openai("gpt-4o-mini"); // Cost-effective for production
+  }
+  if (process.env.NODE_ENV === "test") {
+    return openai("gpt-3.5-turbo"); // Fast for testing
+  }
+  return openai("gpt-4o-mini"); // Default
+};
+```
+
+**5. Fallback Pattern**
+
+```typescript
+async function generateWithFallback(messages: any[]) {
+  const models = [
+    openai("gpt-4o-mini"),
+    openai("gpt-3.5-turbo"),
+  ];
+
+  for (const model of models) {
+    try {
+      const result = await streamText({
+        model,
+        messages: await convertToModelMessages(messages),
+      });
+      return result.toUIMessageStreamResponse();
+    } catch (error) {
+      console.error(`Model ${model.modelId} failed:`, error);
+      continue;
+    }
+  }
+
+  throw new Error("All models failed");
+}
+```
+
+#### 5.1.8 Common Issues and Solutions
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| `401 Unauthorized` | Invalid API key | Verify `OPENAI_API_KEY` is correct |
+| `429 Rate Limit` | Too many requests | Implement rate limiting, use exponential backoff |
+| `Model not found` | Invalid model ID | Check model name in API documentation |
+| `Context length exceeded` | Message too long | Reduce message history, use model with larger context |
+| `Timeout` | Request too slow | Increase timeout, use faster model |
+| `CORS error` | Frontend blocked | Configure CORS properly in server |
+
+**Testing the Integration:**
+
+```bash
+# Test 1: Verify API key
+curl https://api.openai.com/v1/models \
+  -H "Authorization: Bearer $OPENAI_API_KEY"
+
+# Test 2: Test endpoint
+curl -X POST http://localhost:3000/ai \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"Hello"}]}'
+
+# Test 3: Test with streaming
+curl -X POST http://localhost:3000/ai \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"Say hello"}]}'
+```
+
+---
+
+### 5.2 Anthropic Integration
+
+#### 5.2.1 Overview
+
+Anthropic provides access to Claude models (Claude 3.5 Sonnet, Claude 3 Opus, Claude 3 Haiku). Claude models are known for strong reasoning capabilities, large context windows (up to 200K tokens), and safety-focused design.
+
+**Key Characteristics:**
+- **Models:** Claude 3.5 Sonnet, Claude 3 Opus, Claude 3 Haiku
+- **Context Window:** Up to 200K tokens (largest among major providers)
+- **Strengths:** Excellent reasoning, long-context handling, safety features
+- **Best For:** Complex reasoning, long-document analysis, code generation
+- **Cost:** $3-$15 per million input tokens (depending on model)
+- **Speed:** Medium
+
+#### 5.2.2 Installation
+
+Install the Anthropic provider package:
+
+```bash
+npm install @ai-sdk/anthropic
+```
+
+Verify installation:
+
+```bash
+npm list @ai-sdk/anthropic
+# @ai-sdk/anthropic@1.x.x
+```
+
+#### 5.2.3 Environment Configuration
+
+**Required Environment Variable:**
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+**Optional Configuration Variables:**
+
+```bash
+# Custom base URL (for enterprise deployments)
+ANTHROPIC_BASE_URL=https://api.anthropic.com
+
+# API version (default: 2023-06-01)
+ANTHROPIC_VERSION=2023-06-01
+
+# Dangerous direct website access (beta feature)
+# Only enable if you understand the risks
+ANTHROPIC_DANGEROUS_DIRECT_WEBSITE_ACCESS=true
+```
+
+**Update `.env.local`:**
+
+```bash
+# .env.local
+ANTHROPIC_API_KEY=sk-ant-your-api-key-here
+```
+
+**Update `.env.example`:**
+
+```bash
+# .env.example
+# Anthropic (Claude) API Configuration
+ANTHROPIC_API_KEY=sk-ant-...
+# Optional: Custom base URL
+# ANTHROPIC_BASE_URL=https://api.anthropic.com
+# Optional: API version
+# ANTHROPIC_VERSION=2023-06-01
+```
+
+#### 5.2.4 Server Implementation
+
+**Step 1: Import Anthropic Provider**
+
+```typescript
+// apps/server/src/index.ts
+import { anthropic } from "@ai-sdk/anthropic";
+import { streamText, convertToModelMessages, wrapLanguageModel } from "ai";
+import { devToolsMiddleware } from "@ai-sdk/devtools";
+```
+
+**Step 2: Create Anthropic Model Instance**
+
+```typescript
+// Basic model creation (latest Claude 3.5 Sonnet)
+const model = anthropic("claude-3-5-sonnet-20241022");
+
+// With middleware (recommended)
+const model = wrapLanguageModel({
+  model: anthropic("claude-3-5-sonnet-20241022"),
+  middleware: devToolsMiddleware(),
+});
+
+// With custom configuration
+const model = anthropic("claude-3-5-sonnet-20241022", {
+  baseURL: process.env.ANTHROPIC_BASE_URL,
+});
+```
+
+**Step 3: Update Endpoint**
+
+```typescript
+// apps/server/src/index.ts
+
+app.post("/ai", async (c) => {
+  const { messages } = await c.req.json();
+
+  const model = wrapLanguageModel({
+    model: anthropic("claude-3-5-sonnet-20241022"),
+    middleware: devToolsMiddleware(),
+  });
+
+  const result = streamText({
+    model,
+    messages: await convertToModelMessages(messages),
+  });
+
+  return result.toUIMessageStreamResponse();
+});
+```
+
+#### 5.2.5 Model Selection Guide
+
+**Available Anthropic Models:**
+
+| Model | Context | Speed | Cost (Input/Output) | Best For |
+|-------|---------|-------|---------------------|----------|
+| `claude-3-5-sonnet-20241022` | 200K | Medium | $3.00/$15.00 | Latest Sonnet, balanced |
+| `claude-3-5-sonnet-20240620` | 200K | Medium | $3.00/$15.00 | Previous Sonnet version |
+| `claude-3-opus-20240229` | 200K | Slow | $15.00/$75.00 | Most capable, complex tasks |
+| `claude-3-sonnet-20240229` | 200K | Medium | $3.00/$15.00 | Balanced performance |
+| `claude-3-haiku-20240307` | 200K | Fast | $0.25/$1.25 | Fast, cost-effective |
+
+**Recommendations:**
+
+**For SambungChat:**
+- **Primary Choice:** `claude-3-5-sonnet-20241022` - Best balance of quality and cost
+- **Budget Option:** `claude-3-haiku-20240307` - For simple queries and high-volume
+- **Complex Tasks:** `claude-3-opus-20240229` - For reasoning-intensive tasks
+
+**Model Selection by Use Case:**
+
+```typescript
+function selectAnthropicModel(useCase: string) {
+  const modelMap: Record<string, string> = {
+    chat: "claude-3-5-sonnet-20241022",
+    "long-context": "claude-3-5-sonnet-20241022", // 200K tokens
+    reasoning: "claude-3-opus-20240229",
+    simple: "claude-3-haiku-20240307",
+    code: "claude-3-5-sonnet-20241022",
+  };
+  return anthropic(modelMap[useCase] || "claude-3-5-sonnet-20241022");
+}
+```
+
+#### 5.2.6 Special Features
+
+**Extended Context (200K Tokens)**
+
+```typescript
+// Example: Handling long documents
+async function processLongDocument(document: string) {
+  const model = anthropic("claude-3-5-sonnet-20241022");
+
+  // Can handle documents up to ~150,000 words (200K tokens)
+  const result = await streamText({
+    model,
+    messages: [
+      { role: "user", content: `Analyze this document:\n\n${document}` }
+    ],
+  });
+
+  return result.toUIMessageStreamResponse();
+}
+```
+
+**Thinking Mode (Beta)**
+
+```typescript
+// Claude's extended thinking for complex reasoning
+const model = anthropic("claude-3-5-sonnet-20241022", {
+  experimental_thinking: {
+    type: "enabled",
+    budgetTokens: 10000, // Reserve tokens for thinking
+  },
+});
+```
+
+#### 5.2.7 Complete Integration Example
+
+```typescript
+// apps/server/src/index.ts
+
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import { anthropic } from "@ai-sdk/anthropic";
+import { streamText, convertToModelMessages, wrapLanguageModel } from "ai";
+import { devToolsMiddleware } from "@ai-sdk/devtools";
+
+const app = new Hono();
+
+app.use("/*", cors({
+  origin: ["http://localhost:5173", "http://localhost:4173"],
+  credentials: true,
+}));
+
+app.post("/ai", async (c) => {
+  try {
+    const { messages } = await c.req.json();
+
+    // Validate input
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return c.json({ error: "Invalid messages format" }, 400);
+    }
+
+    // Create model with middleware
+    const model = wrapLanguageModel({
+      model: anthropic("claude-3-5-sonnet-20241022"),
+      middleware: devToolsMiddleware(),
+    });
+
+    // Stream text generation
+    const result = streamText({
+      model,
+      messages: await convertToModelMessages(messages),
+      temperature: 0.7, // Anthropic-specific: 0-1, default 0.7
+      topP: 0.9, // Anthropic-specific: 0-1, default 0.9
+    });
+
+    return result.toUIMessageStreamResponse();
+
+  } catch (error) {
+    console.error("Anthropic API Error:", error);
+
+    // Handle specific Anthropic errors
+    if (error.status === 401) {
+      return c.json({ error: "Invalid API key" }, 401);
+    }
+    if (error.status === 429) {
+      return c.json({ error: "Rate limit exceeded" }, 429);
+    }
+    if (error.status === 400) {
+      return c.json({ error: "Invalid request", details: error.message }, 400);
+    }
+
+    return c.json(
+      { error: "Failed to generate response", details: error.message },
+      500
+    );
+  }
+});
+
+export default app;
+```
+
+#### 5.2.8 Best Practices
+
+**1. Leverage Long Context**
+
+```typescript
+// Build comprehensive conversation history
+async function chatWithLongHistory(userId: string, newMessage: string) {
+  // Retrieve last 50 messages (can go up to 200K tokens)
+  const history = await getMessageHistory(userId, 50);
+
+  const result = await streamText({
+    model: anthropic("claude-3-5-sonnet-20241022"),
+    messages: [
+      ...history,
+      { role: "user", content: newMessage },
+    ],
+  });
+
+  return result.toUIMessageStreamResponse();
+}
+```
+
+**2. Use Haiku for Simple Tasks**
+
+```typescript
+// Route simple queries to Haiku for cost savings
+function selectModelByComplexity(message: string) {
+  const wordCount = message.split(/\s+/).length;
+
+  if (wordCount < 50) {
+    return anthropic("claude-3-haiku-20240307"); // Fast, cheap
+  }
+
+  return anthropic("claude-3-5-sonnet-20241022"); // Default
+}
+```
+
+**3. Handle Rate Limits**
+
+```typescript
+import RateLimit from "express-rate-limit";
+
+const anthropicLimiter = RateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 50, // Anthropic default rate limit
+  message: "Too many requests to Anthropic API",
+});
+
+app.post("/ai", anthropicLimiter, async (c) => {
+  // ... handler code
+});
+```
+
+**4. Cost Optimization**
+
+```typescript
+// Estimate tokens before sending (rough estimate)
+function estimateTokens(text: string): number {
+  return Math.ceil(text.length / 4); // Rough estimate: 1 token ≈ 4 characters
+}
+
+async function generateWithCostCheck(messages: any[]) {
+  const totalTokens = messages.reduce((sum, msg) =>
+    sum + estimateTokens(msg.content), 0
+  );
+
+  if (totalTokens > 150000) {
+    throw new Error("Message too long (would exceed 200K context)");
+  }
+
+  const estimatedCost = (totalTokens * 3) / 1_000_000; // Input cost per million
+  console.log(`Estimated cost: $${estimatedCost.toFixed(4)}`);
+
+  return streamText({
+    model: anthropic("claude-3-5-sonnet-20241022"),
+    messages: await convertToModelMessages(messages),
+  });
+}
+```
+
+#### 5.2.9 Common Issues and Solutions
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| `401 Unauthorized` | Invalid API key | Verify `ANTHROPIC_API_KEY` is correct |
+| `429 Rate Limit` | Too many requests | Implement rate limiting (50 req/min default) |
+| `400 Invalid Request` | Malformed request | Check message format, parameters |
+| `Context length exceeded` | Message > 200K tokens | Reduce message history |
+| `Timeout` | Request too slow | Increase timeout, use Haiku for speed |
+| `CORS error` | Frontend blocked | Configure CORS properly |
+
+**Testing the Integration:**
+
+```bash
+# Test 1: Verify API key
+curl https://api.anthropic.com/v1/messages \
+  -H "x-api-key: $ANTHROPIC_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "content-type: application/json" \
+  -d '{
+    "model": "claude-3-5-sonnet-20241022",
+    "max_tokens": 1024,
+    "messages": [{"role": "user", "content": "Hello"}]
+  }'
+
+# Test 2: Test endpoint
+curl -X POST http://localhost:3000/ai \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"Hello Claude"}]}'
+```
+
+---
+
+### 5.3 Groq Integration
+
+#### 5.3.1 Overview
+
+Groq provides ultra-fast inference for open-source models (Llama, Mixtral, Gemma) using their custom LPU (Language Processing Unit) hardware. Groq is known for extremely low latency and very low costs, making it ideal for real-time applications.
+
+**Key Characteristics:**
+- **Models:** Llama 3.3 70B, Llama 3.1 70B/8B, Mixtral 8x7B, Gemma 2 9B
+- **Context Window:** Up to 131K tokens (varies by model)
+- **Strengths:** World's fastest inference, very low cost, open-source models
+- **Best For:** Real-time chat, high-volume applications, cost-sensitive projects
+- **Cost:** ~$0.59 per million input tokens (very low)
+- **Speed:** Extremely fast (world's fastest LPU inference)
+
+#### 5.3.2 Installation
+
+Install the Groq provider package:
+
+```bash
+npm install @ai-sdk/groq
+```
+
+Verify installation:
+
+```bash
+npm list @ai-sdk/groq
+# @ai-sdk/groq@1.x.x
+```
+
+#### 5.3.3 Environment Configuration
+
+**Required Environment Variable:**
+
+```bash
+GROQ_API_KEY=gsk_...
+```
+
+**Optional Configuration Variables:**
+
+```bash
+# Custom base URL (rarely needed)
+GROQ_BASE_URL=https://api.groq.com/openai/v1
+```
+
+**Update `.env.local`:**
+
+```bash
+# .env.local
+GROQ_API_KEY=gsk-your-api-key-here
+```
+
+**Update `.env.example`:**
+
+```bash
+# .env.example
+# Groq API Configuration
+GROQ_API_KEY=gsk-...
+```
+
+#### 5.3.4 Server Implementation
+
+**Step 1: Import Groq Provider**
+
+```typescript
+// apps/server/src/index.ts
+import { groq } from "@ai-sdk/groq";
+import { streamText, convertToModelMessages, wrapLanguageModel } from "ai";
+import { devToolsMiddleware } from "@ai-sdk/devtools";
+```
+
+**Step 2: Create Groq Model Instance**
+
+```typescript
+// Basic model creation (Llama 3.3 70B - most capable)
+const model = groq("llama-3.3-70b-versatile");
+
+// With middleware (recommended)
+const model = wrapLanguageModel({
+  model: groq("llama-3.3-70b-versatile"),
+  middleware: devToolsMiddleware(),
+});
+
+// With custom configuration
+const model = groq("llama-3.3-70b-versatile", {
+  baseURL: process.env.GROQ_BASE_URL,
+});
+```
+
+**Step 3: Update Endpoint**
+
+```typescript
+// apps/server/src/index.ts
+
+app.post("/ai", async (c) => {
+  const { messages } = await c.req.json();
+
+  const model = wrapLanguageModel({
+    model: groq("llama-3.3-70b-versatile"),
+    middleware: devToolsMiddleware(),
+  });
+
+  const result = streamText({
+    model,
+    messages: await convertToModelMessages(messages),
+  });
+
+  return result.toUIMessageStreamResponse();
+});
+```
+
+#### 5.3.5 Model Selection Guide
+
+**Available Groq Models:**
+
+| Model | Context | Speed | Cost (Input/Output) | Best For |
+|-------|---------|-------|---------------------|----------|
+| `llama-3.3-70b-versatile` | 131K | Very Fast | $0.59/$0.79 | Most capable, general-purpose |
+| `llama-3.1-70b-versatile` | 131K | Very Fast | $0.59/$0.79 | Large context, strong performance |
+| `llama-3.1-8b-instant` | 131K | Ultra Fast | $0.05/$0.08 | Ultra-low latency, high volume |
+| `mixtral-8x7b-32768` | 32K | Very Fast | $0.24/$0.24 | Mixture-of-Experts, fast |
+| `gemma-2-9b-it` | 8K | Ultra Fast | $0.08/$0.08 | Compact, very fast |
+| `gemma-7b-it` | 8K | Ultra Fast | $0.08/$0.08 | Older Gemma model |
+
+**Recommendations:**
+
+**For SambungChat:**
+- **Primary Choice:** `llama-3.3-70b-versatile` - Best quality, still very fast
+- **Ultra-Low Latency:** `llama-3.1-8b-instant` - For real-time chat
+- **Budget Option:** `gemma-2-9b-it` - Fastest and cheapest
+
+**Model Selection by Use Case:**
+
+```typescript
+function selectGroqModel(useCase: string) {
+  const modelMap: Record<string, string> = {
+    chat: "llama-3.3-70b-versatile", // Best quality
+    realtime: "llama-3.1-8b-instant", // Ultra-fast
+    "high-volume": "llama-3.1-8b-instant", // Cost-effective
+    simple: "gemma-2-9b-it", // Fastest
+    reasoning: "llama-3.3-70b-versatile", // Most capable
+  };
+  return groq(modelMap[useCase] || "llama-3.3-70b-versatile");
+}
+```
+
+#### 5.3.6 Complete Integration Example
+
+```typescript
+// apps/server/src/index.ts
+
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import { groq } from "@ai-sdk/groq";
+import { streamText, convertToModelMessages, wrapLanguageModel } from "ai";
+import { devToolsMiddleware } from "@ai-sdk/devtools";
+
+const app = new Hono();
+
+app.use("/*", cors({
+  origin: ["http://localhost:5173", "http://localhost:4173"],
+  credentials: true,
+}));
+
+app.post("/ai", async (c) => {
+  try {
+    const { messages } = await c.req.json();
+
+    // Validate input
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return c.json({ error: "Invalid messages format" }, 400);
+    }
+
+    // Create model with middleware
+    const model = wrapLanguageModel({
+      model: groq("llama-3.3-70b-versatile"),
+      middleware: devToolsMiddleware(),
+    });
+
+    // Stream text generation
+    const result = streamText({
+      model,
+      messages: await convertToModelMessages(messages),
+    });
+
+    return result.toUIMessageStreamResponse();
+
+  } catch (error) {
+    console.error("Groq API Error:", error);
+
+    // Handle specific Groq errors
+    if (error.status === 401) {
+      return c.json({ error: "Invalid API key" }, 401);
+    }
+    if (error.status === 429) {
+      return c.json({ error: "Rate limit exceeded" }, 429);
+    }
+
+    return c.json(
+      { error: "Failed to generate response", details: error.message },
+      500
+    );
+  }
+});
+
+export default app;
+```
+
+#### 5.3.7 Best Practices
+
+**1. Leverage Speed for Real-Time Applications**
+
+```typescript
+// Use 8B model for real-time chat
+const realtimeModel = groq("llama-3.1-8b-instant");
+
+app.post("/ai/realtime", async (c) => {
+  const result = streamText({
+    model: realtimeModel,
+    messages: await convertToModelMessages(messages),
+  });
+
+  return result.toUIMessageStreamResponse();
+});
+```
+
+**2. Cost Monitoring**
+
+```typescript
+let totalCost = 0;
+
+app.post("/ai", async (c) => {
+  const result = streamText({
+    model: groq("llama-3.3-70b-versatile"),
+    messages: await convertToModelMessages(messages),
+    onFinish: ({ usage }) => {
+      const cost = (usage.promptTokens * 0.59 + usage.completionTokens * 0.79) / 1_000_000;
+      totalCost += cost;
+      console.log(`Request cost: $${cost.toFixed(6)}, Total: $${totalCost.toFixed(4)}`);
+    },
+  });
+
+  return result.toUIMessageStreamResponse();
+});
+```
+
+**3. Model Selection by Message Length**
+
+```typescript
+function selectModelByLength(messages: any[]) {
+  const totalLength = messages.reduce((sum, msg) =>
+    sum + msg.content.length, 0
+  );
+
+  // Use smaller model for short messages
+  if (totalLength < 500) {
+    return groq("llama-3.1-8b-instant"); // Ultra-fast for short queries
+  }
+
+  return groq("llama-3.3-70b-versatile"); // Default
+}
+```
+
+**4. A/B Testing Models**
+
+```typescript
+// Split traffic between models for comparison
+const models = [
+  groq("llama-3.3-70b-versatile"),
+  groq("llama-3.1-8b-instant"),
+];
+
+app.post("/ai", async (c) => {
+  const { messages, variant = "A" } = await c.req.json();
+
+  const modelIndex = variant === "A" ? 0 : 1;
+  const model = models[modelIndex];
+
+  const result = streamText({
+    model,
+    messages: await convertToModelMessages(messages),
+  });
+
+  return result.toUIMessageStreamResponse();
+});
+```
+
+#### 5.3.8 Common Issues and Solutions
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| `401 Unauthorized` | Invalid API key | Verify `GROQ_API_KEY` is correct |
+| `429 Rate Limit` | Too many requests | Groq has generous limits, but implement rate limiting |
+| `Model not found` | Invalid model ID | Check model name in Groq documentation |
+| `Timeout` | Network issues | Groq is very fast, timeouts are rare |
+| `CORS error` | Frontend blocked | Configure CORS properly |
+
+**Testing the Integration:**
+
+```bash
+# Test 1: Verify API key
+curl https://api.groq.com/openai/v1/models \
+  -H "Authorization: Bearer $GROQ_API_KEY"
+
+# Test 2: Test endpoint
+curl -X POST http://localhost:3000/ai \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"Hello, how fast are you?"}]}'
+
+# Test 3: Compare speed between models
+time curl -X POST http://localhost:3000/ai \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"Count to 10"}]}'
+```
+
+---
+
+### 5.4 Ollama Integration
+
+#### 5.4.1 Overview
+
+Ollama enables running large language models locally on your own hardware. It provides complete privacy, zero API costs, and offline capability. Ollama supports 100+ open-source models (Llama, Mistral, Gemma, Qwen, DeepSeek, and more).
+
+**⚠️ Important Notice:**
+The official Ollama provider (`ollama-ai-provider`) is a community package with reported maintenance issues (unresponsive to issues and PRs for 5+ months). Consider using the OpenAI-compatible provider or writing a custom provider for production use.
+
+**Key Characteristics:**
+- **Models:** 100+ open-source models (Llama, Mistral, Gemma, Qwen, etc.)
+- **Context Window:** Varies by model (typically 8K-32K)
+- **Strengths:** Complete privacy, zero API costs, offline capability
+- **Best For:** Local development, offline applications, privacy-sensitive projects
+- **Cost:** Free (uses local compute)
+- **Speed:** Slower than cloud providers (depends on hardware)
+
+#### 5.4.2 Installation
+
+**Step 1: Install Ollama**
+
+Download and install Ollama from https://ollama.com
+
+```bash
+# macOS
+brew install ollama
+
+# Linux
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Windows
+# Download from https://ollama.com/download
+```
+
+**Step 2: Start Ollama Server**
+
+```bash
+ollama serve
+# Server runs on http://localhost:11434
+```
+
+**Step 3: Pull a Model**
+
+```bash
+# Pull Llama 3.2
+ollama pull llama3.2
+
+# Pull Mistral
+ollama pull mistral
+
+# Pull Gemma 2
+ollama pull gemma2
+
+# List available models
+ollama list
+```
+
+**Step 4: Install Provider Package**
+
+```bash
+# Community provider (maintenance issues)
+npm install ollama-ai-provider
+
+# Alternative: Use OpenAI-compatible provider
+npm install @ai-sdk/openai
+```
+
+#### 5.4.3 Environment Configuration
+
+**Required Environment Variables:**
+
+```bash
+# For community provider
+# None required for local Ollama (defaults to http://localhost:11434)
+
+# For remote Ollama server
+OLLAMA_BASE_URL=http://your-server:11434
+
+# For OpenAI-compatible approach
+OPENAI_API_KEY=any-string  # Not used but required
+OPENAI_BASE_URL=http://localhost:11434/v1
+```
+
+**Update `.env.local`:**
+
+```bash
+# .env.local
+
+# Option 1: Using community provider
+OLLAMA_BASE_URL=http://localhost:11434
+
+# Option 2: Using OpenAI-compatible provider
+OPENAI_BASE_URL=http://localhost:11434/v1
+OPENAI_API_KEY=ollama  # Any value works
+```
+
+**Update `.env.example`:**
+
+```bash
+# .env.example
+
+# Ollama Configuration (local AI)
+# Option 1: Community provider
+OLLAMA_BASE_URL=http://localhost:11434
+
+# Option 2: OpenAI-compatible approach
+# OPENAI_BASE_URL=http://localhost:11434/v1
+# OPENAI_API_KEY=ollama
+```
+
+#### 5.4.4 Server Implementation
+
+**Option A: Using Community Provider**
+
+```typescript
+// apps/server/src/index.ts
+import { createOllama } from "ollama-ai-provider";
+import { streamText, convertToModelMessages, wrapLanguageModel } from "ai";
+import { devToolsMiddleware } from "@ai-sdk/devtools";
+
+// Create Ollama instance
+const ollama = createOllama({
+  baseURL: process.env.OLLAMA_BASE_URL || "http://localhost:11434",
+});
+
+// Create model
+const model = wrapLanguageModel({
+  model: ollama("llama3.2"),
+  middleware: devToolsMiddleware(),
+});
+
+app.post("/ai", async (c) => {
+  const { messages } = await c.req.json();
+
+  const result = streamText({
+    model,
+    messages: await convertToModelMessages(messages),
+  });
+
+  return result.toUIMessageStreamResponse();
+});
+```
+
+**Option B: Using OpenAI-Compatible Provider (Recommended)**
+
+```typescript
+// apps/server/src/index.ts
+import { createOpenAI } from "@ai-sdk/openai";
+import { streamText, convertToModelMessages, wrapLanguageModel } from "ai";
+import { devToolsMiddleware } from "@ai-sdk/devtools";
+
+// Create OpenAI-compatible client for Ollama
+const ollama = createOpenAI({
+  baseURL: process.env.OPENAI_BASE_URL || "http://localhost:11434/v1",
+  apiKey: process.env.OPENAI_API_KEY || "ollama", // Required but not used
+});
+
+// Create model (use "gpt-3.5-turbo" as placeholder, Ollama ignores it)
+const model = wrapLanguageModel({
+  model: ollama("llama3.2"), // Ollama uses the actual model name
+  middleware: devToolsMiddleware(),
+});
+
+app.post("/ai", async (c) => {
+  const { messages } = await c.req.json();
+
+  const result = streamText({
+    model,
+    messages: await convertToModelMessages(messages),
+  });
+
+  return result.toUIMessageStreamResponse();
+});
+```
+
+#### 5.4.5 Model Selection Guide
+
+**Popular Ollama Models:**
+
+| Model | Parameters | Context | Speed | Best For |
+|-------|-----------|---------|-------|----------|
+| `llama3.2` | 3B-90B | 128K | Medium-High | General-purpose, latest Llama |
+| `llama3.1` | 8B-70B | 128K | Medium-High | Proven Llama 3.1 |
+| `mistral` | 7B | 32K | High | Fast, efficient |
+| `gemma2` | 9B-27B | 8K | High | Google's Gemma models |
+| `qwen2.5` | 3B-72B | 32K | Medium | Alibaba's Qwen (strong reasoning) |
+| `deepseek-r1` | 1.5B-70B | 64K | Low-Medium | DeepSeek R1 (reasoning specialist) |
+
+**Model Selection by Use Case:**
+
+```typescript
+function selectOllamaModel(useCase: string, hardware: "low" | "medium" | "high") {
+  const modelMap: Record<string, Record<string, string>> = {
+    chat: {
+      low: "llama3.2:3b",   // Smaller model for low-end hardware
+      medium: "llama3.2:9b", // Balanced for medium hardware
+      high: "llama3.2:70b",  // Largest for high-end hardware
+    },
+    realtime: {
+      low: "phi3:mini",      // Very small, fast
+      medium: "gemma2:9b",   // Fast and capable
+      high: "llama3.2:9b",   // Best quality/speed balance
+    },
+    reasoning: {
+      low: "deepseek-r1:1.5b",
+      medium: "deepseek-r1:7b",
+      high: "deepseek-r1:32b",
+    },
+  };
+
+  return modelMap[useCase]?.[hardware] || "llama3.2:9b";
+}
+```
+
+#### 5.4.6 Hardware Requirements
+
+**Recommended Hardware by Model Size:**
+
+| Model Size | RAM | GPU | VRAM | Use Case |
+|-----------|-----|-----|------|----------|
+| 3B (Llama 3.2) | 8GB | Not required | - | Testing, low-end hardware |
+| 7B-9B | 16GB | Optional (6GB VRAM) | 6GB | Development, moderate use |
+| 14B-16B | 32GB | Recommended (10GB VRAM) | 10GB | Production use |
+| 32B-70B | 64GB+ | Required (24GB VRAM) | 24GB | High-quality production |
+
+**GPU Acceleration:**
+
+```bash
+# Check if Ollama is using GPU
+ollama ps
+
+# Expected output (with GPU):
+# NAME           ID      SIZE    PROCESSOR    UNTIL
+# llama3.2:9b    abc123  9.0 GB  100% GPU     5m
+#                        (or "GPU" column shows usage)
+
+# If no GPU detected, CPU will be used (slower)
+```
+
+#### 5.4.7 Complete Integration Example
+
+```typescript
+// apps/server/src/index.ts
+
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import { createOpenAI } from "@ai-sdk/openai";
+import { streamText, convertToModelMessages, wrapLanguageModel } from "ai";
+import { devToolsMiddleware } from "@ai-sdk/devtools";
+
+const app = new Hono();
+
+app.use("/*", cors({
+  origin: ["http://localhost:5173", "http://localhost:4173"],
+  credentials: true,
+}));
+
+// Create Ollama client using OpenAI-compatible interface
+const ollama = createOpenAI({
+  baseURL: process.env.OPENAI_BASE_URL || "http://localhost:11434/v1",
+  apiKey: process.env.OPENAI_API_KEY || "ollama",
+});
+
+app.post("/ai", async (c) => {
+  try {
+    const { messages, model = "llama3.2:9b" } = await c.req.json();
+
+    // Validate input
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return c.json({ error: "Invalid messages format" }, 400);
+    }
+
+    // Create model with middleware
+    const wrappedModel = wrapLanguageModel({
+      model: ollama(model),
+      middleware: devToolsMiddleware(),
+    });
+
+    // Stream text generation
+    const result = streamText({
+      model: wrappedModel,
+      messages: await convertToModelMessages(messages),
+      temperature: 0.7,
+      maxTokens: 2048,
+    });
+
+    return result.toUIMessageStreamResponse();
+
+  } catch (error) {
+    console.error("Ollama Error:", error);
+
+    // Handle common Ollama errors
+    if (error.code === "ECONNREFUSED") {
+      return c.json(
+        { error: "Ollama server not running. Start with: ollama serve" },
+        503
+      );
+    }
+
+    if (error.message?.includes("model")) {
+      return c.json(
+        { error: "Model not found. Pull with: ollama pull " + (await c.req.json()).model },
+        400
+      );
+    }
+
+    return c.json(
+      { error: "Failed to generate response", details: error.message },
+      500
+    );
+  }
+});
+
+// Health check endpoint
+app.get("/ai/health", async (c) => {
+  try {
+    const response = await fetch(`${process.env.OPENAI_BASE_URL || "http://localhost:11434"}/api/tags`);
+    if (response.ok) {
+      const models = await response.json();
+      return c.json({ status: "healthy", models: models.models });
+    }
+    return c.json({ status: "unhealthy" }, 503);
+  } catch (error) {
+    return c.json({ status: "unhealthy", error: error.message }, 503);
+  }
+});
+
+export default app;
+```
+
+#### 5.4.8 Model Management
+
+**List Available Models:**
+
+```bash
+# Local models
+ollama list
+
+# Via API
+curl http://localhost:11434/api/tags
+
+# Via our health check endpoint
+curl http://localhost:3000/ai/health
+```
+
+**Pull New Models:**
+
+```bash
+# Pull a model
+ollama pull llama3.2:9b
+
+# Pull specific version
+ollama pull llama3.2:9b-instruct-q4_K_M
+
+# Show model information
+ollama show llama3.2:9b
+```
+
+**Run Models:**
+
+```bash
+# Interactive chat
+ollama run llama3.2:9b
+
+# Generate from prompt
+echo "Hello" | ollama run llama3.2:9b
+```
+
+**Remove Models:**
+
+```bash
+# Remove a model
+ollama rm llama3.2:3b
+```
+
+#### 5.4.9 Remote Ollama Server
+
+**Setup Remote Server:**
+
+```bash
+# On remote server
+export OLLAMA_HOST=0.0.0.0:11434
+ollama serve
+```
+
+**Configure CORS (if needed):**
+
+```bash
+# Set OLLAMA_ORIGINS environment variable
+export OLLAMA_ORIGINS="http://localhost:5173,http://your-frontend.com"
+ollama serve
+```
+
+**Connect from Local Machine:**
+
+```bash
+# .env.local
+OPENAI_BASE_URL=http://your-server:11434/v1
+```
+
+#### 5.4.10 Best Practices
+
+**1. Model Selection Based on Hardware**
+
+```typescript
+// Detect hardware capabilities and select appropriate model
+function getModelForHardware() {
+  const gpuMemory = process.env.GPU_MEMORY ? parseInt(process.env.GPU_MEMORY) : 0;
+
+  if (gpuMemory >= 24) {
+    return "llama3.2:70b"; // High-end GPU
+  } else if (gpuMemory >= 10) {
+    return "llama3.2:9b";  // Mid-range GPU
+  } else if (gpuMemory >= 6) {
+    return "llama3.2:3b";  // Low-end GPU
+  } else {
+    return "phi3:mini";     // CPU-only
+  }
+}
+```
+
+**2. Warm-Up Model**
+
+```typescript
+// Pre-load model to avoid cold start latency
+async function warmUpModel(modelName: string) {
+  try {
+    await streamText({
+      model: ollama(modelName),
+      messages: [{ role: "user", content: "Hi" }],
+      maxTokens: 1,
+    });
+    console.log(`Model ${modelName} warmed up`);
+  } catch (error) {
+    console.error("Failed to warm up model:", error);
+  }
+}
+
+// Call on server startup
+warmUpModel("llama3.2:9b");
+```
+
+**3. Fallback to Cloud**
+
+```typescript
+// Fallback to cloud provider if Ollama fails
+async function generateWithFallback(messages: any[]) {
+  try {
+    // Try Ollama first (free, private)
+    return await streamText({
+      model: ollama("llama3.2:9b"),
+      messages: await convertToModelMessages(messages),
+    });
+  } catch (error) {
+    console.error("Ollama failed, falling back to cloud:", error);
+
+    // Fallback to Groq (very low cost)
+    return await streamText({
+      model: groq("llama-3.1-8b-instant"),
+      messages: await convertToModelMessages(messages),
+    });
+  }
+}
+```
+
+**4. Cost Monitoring (Zero with Ollama)**
+
+```typescript
+let ollamaRequests = 0;
+let cloudRequests = 0;
+let cloudCost = 0;
+
+app.post("/ai", async (c) => {
+  try {
+    // Try Ollama
+    const result = streamText({
+      model: ollama("llama3.2:9b"),
+      messages: await convertToModelMessages(messages),
+    });
+
+    ollamaRequests++;
+    return result.toUIMessageStreamResponse();
+
+  } catch (error) {
+    // Fallback to cloud
+    const result = streamText({
+      model: groq("llama-3.1-8b-instant"),
+      messages: await convertToModelMessages(messages),
+      onFinish: ({ usage }) => {
+        cloudRequests++;
+        cloudCost += (usage.totalTokens * 0.59) / 1_000_000;
+      },
+    });
+
+    return result.toUIMessageStreamResponse();
+  }
+});
+
+// Monitor costs
+setInterval(() => {
+  console.log(`
+    Ollama Requests: ${ollamaRequests} (FREE)
+    Cloud Requests: ${cloudRequests}
+    Cloud Cost: $${cloudCost.toFixed(4)}
+    Total Savings: $${cloudCost.toFixed(4)}
+  `);
+}, 60000);
+```
+
+#### 5.4.11 Common Issues and Solutions
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| `ECONNREFUSED` | Ollama not running | Start with `ollama serve` |
+| `Model not found` | Model not pulled | Run `ollama pull <model>` |
+| Very slow response | CPU-only inference | Use GPU, smaller model |
+| Out of memory | Model too large for RAM | Use smaller model (3B/7B) |
+| CORS error | Remote server blocking | Set `OLLAMA_ORIGINS` env var |
+| High latency | Cold start | Warm up model on startup |
+
+**Testing the Integration:**
+
+```bash
+# Test 1: Check Ollama server
+curl http://localhost:11434/api/tags
+
+# Test 2: Test model directly
+curl http://localhost:11434/api/generate -d '{
+  "model": "llama3.2:9b",
+  "prompt": "Hello"
+}'
+
+# Test 3: Test endpoint
+curl -X POST http://localhost:3000/ai \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"Hello from Ollama"}]}'
+
+# Test 4: Health check
+curl http://localhost:3000/ai/health
+```
+
+---
+
+### 5.5 Other Notable Providers
+
+Brief overview of other supported providers for reference. Detailed integration guides can be added as needed.
+
+#### 5.5.1 Mistral AI
+
+**Package:** `@ai-sdk/mistral`
+
+**Models:**
+- `mistral-large-latest` - Most capable
+- `mistral-medium-latest` - Balanced
+- `mistral-small-latest` - Fast, cost-effective
+- `codestral-latest` - Code-specialized
+
+**Environment:**
+```bash
+MISTRAL_API_KEY=...
+```
+
+**Best For:**
+- European data residency requirements
+- Cost-effective alternatives to OpenAI/Anthropic
+- Code generation
+
+**Quick Start:**
+```typescript
+import { mistral } from "@ai-sdk/mistral";
+
+const model = mistral("mistral-small-latest");
+```
+
+#### 5.5.2 Azure OpenAI
+
+**Package:** `@ai-sdk/azure`
+
+**Models:**
+- Same as OpenAI (GPT-4o, GPT-4 Turbo, etc.)
+- Hosted on Azure infrastructure
+
+**Environment:**
+```bash
+AZURE_OPENAI_API_KEY=...
+AZURE_OPENAI_RESOURCE_NAME=...
+AZURE_OPENAI_DEPLOYMENT_NAME=...
+AZURE_OPENAI_API_VERSION=...
+```
+
+**Best For:**
+- Enterprise applications
+- Data residency requirements
+- Azure integration
+
+**Quick Start:**
+```typescript
+import { createAzure } from "@ai-sdk/azure";
+
+const azure = createAzure({
+  resourceName: process.env.AZURE_OPENAI_RESOURCE_NAME,
+  apiKey: process.env.AZURE_OPENAI_API_KEY,
+});
+
+const model = azure("gpt-4o");
+```
+
+#### 5.5.3 Together AI
+
+**Package:** `@ai-sdk/togetherai`
+
+**Models:**
+- 100+ open-source models
+- Meta Llama, Mistral, Google Gemma, and more
+
+**Environment:**
+```bash
+TOGETHER_AI_API_KEY=...
+```
+
+**Best For:**
+- Wide model selection
+- Open-source model hosting
+- Competitive pricing
+
+**Quick Start:**
+```typescript
+import { createTogetherAi } from "@ai-sdk/togetherai";
+
+const togetherai = createTogetherAi({
+  apiKey: process.env.TOGETHER_AI_API_KEY,
+});
+
+const model = togetherai("meta-llama/Llama-3-70b-chat-hf");
+```
+
+#### 5.5.4 OpenRouter
+
+**Package:** `@openrouter/ai-sdk-provider`
+
+**Models:**
+- 100+ models from multiple providers
+- Single API access to OpenAI, Anthropic, Google, Meta, and more
+
+**Environment:**
+```bash
+OPENROUTER_API_KEY=sk-or-...
+```
+
+**Best For:**
+- Access to multiple providers through single API
+- Comparing models side-by-side
+- Flexible model switching
+
+**Quick Start:**
+```typescript
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+
+const openrouter = createOpenRouter();
+
+const model = openrouter("anthropic/claude-3.5-sonnet");
+```
+
+---
+
+### 5.6 Provider Comparison Summary
+
+| Provider | Best For | Cost | Speed | Context | Ease of Setup |
+|----------|----------|------|-------|---------|---------------|
+| **OpenAI** | General-purpose | Medium | Fast | 128K | ⭐⭐⭐⭐⭐ |
+| **Anthropic** | Complex reasoning, long documents | High | Medium | 200K | ⭐⭐⭐⭐⭐ |
+| **Groq** | Real-time, high-volume | Very Low | Very Fast | 131K | ⭐⭐⭐⭐⭐ |
+| **Ollama** | Local, offline, privacy | Free | Slow-Medium | 8K-128K | ⭐⭐⭐ |
+| **Google** | Cost-performance balance | Low | Fast | 2M | ⭐⭐⭐⭐⭐ |
+
+**Recommendation for SambungChat:**
+
+Based on the current implementation and analysis:
+
+1. **Primary Provider:** **Google Gemini** (gemini-2.5-flash)
+   - Excellent cost-performance ratio
+   - Already implemented
+   - Fast inference with 2M token context
+
+2. **Secondary Options:**
+   - **OpenAI** (gpt-4o-mini) - For general-purpose use
+   - **Groq** (llama-3.3-70b) - For ultra-low latency
+   - **Anthropic** (claude-3-5-sonnet) - For complex reasoning
+
+3. **Local Development:**
+   - **Ollama** (llama3.2) - For offline testing and development
+
+---
+
 ## Next Sections
 
-> **Next:** [5. Provider-Specific Configurations](#5-provider-specific-configurations)
+> **Next:** [6. Environment Configuration](#6-environment-configuration)
 >
-> This section provides detailed setup instructions for specific AI providers including OpenAI, Anthropic, Groq, Ollama, and others.
+> This section covers environment variable patterns, validation strategies, and configuration templates for multiple providers.
 
 ---
 
