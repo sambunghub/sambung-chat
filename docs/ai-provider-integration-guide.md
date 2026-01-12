@@ -4205,15 +4205,1510 @@ Based on the current implementation and analysis:
 
 ---
 
-## Next Sections
+## 6. Environment Configuration
 
-> **Next:** [6. Environment Configuration](#6-environment-configuration)
+This section covers everything you need to know about configuring environment variables for AI providers in SambungChat. You'll learn about naming patterns, validation strategies, complete provider references, ready-to-use templates, and security best practices.
+
+### 6.1 Environment Variable Design Patterns
+
+#### 6.1.1 Naming Conventions
+
+AI providers follow consistent patterns for environment variable naming. Understanding these patterns helps you quickly identify and configure new providers.
+
+**Primary Pattern: `{PROVIDER}_API_KEY`**
+
+This is the most common pattern used by the majority of providers:
+
+| Provider | Variable Name | Example |
+|----------|---------------|---------|
+| OpenAI | `OPENAI_API_KEY` | `sk-proj-abc123...` |
+| Anthropic | `ANTHROPIC_API_KEY` | `sk-ant-xyz789...` |
+| Groq | `GROQ_API_KEY` | `gsk-...` |
+| Mistral | `MISTRAL_API_KEY` | `your-key-here` |
+| Cohere | `COHERE_API_KEY` | `your-key-here` |
+
+**Service-Specific Pattern: `{SERVICE}_API_KEY`**
+
+Used when the brand name differs from the service name:
+
+| Provider | Variable Name | Notes |
+|----------|---------------|-------|
+| Google | `GOOGLE_GENERATIVE_AI_API_KEY` | Also accepts `GOOGLE_API_KEY` |
+| Together AI | `TOGETHER_AI_API_KEY` | Includes underscore in brand |
+
+**Token-Based Pattern: `{PROVIDER}_API_TOKEN`**
+
+Some providers use "TOKEN" instead of "KEY":
+
+| Provider | Variable Name | Why? |
+|----------|---------------|------|
+| Replicate | `REPLICATE_API_TOKEN` | Provider convention |
+| Cloudflare | `CLOUDFLARE_API_TOKEN` | Authentication token |
+
+**Cloud Credential Pattern: `{PROVIDER}_{CREDENTIAL_TYPE}`**
+
+Cloud providers often use multiple credential variables:
+
+| Provider | Variables | Purpose |
+|----------|-----------|---------|
+| AWS (Bedrock) | `AWS_ACCESS_KEY_ID`<br>`AWS_SECRET_ACCESS_KEY`<br>`AWS_REGION` | Standard AWS credentials |
+| Azure OpenAI | `AZURE_OPENAI_API_KEY`<br>`AZURE_OPENAI_ENDPOINT` | Azure-specific |
+
+**Base URL Pattern: `{PROVIDER}_BASE_URL`**
+
+Optional custom endpoint configuration:
+
+| Provider | Variable | Default Value |
+|----------|----------|---------------|
+| OpenAI | `OPENAI_BASE_URL` | `https://api.openai.com/v1` |
+| Anthropic | `ANTHROPIC_BASE_URL` | `https://api.anthropic.com` |
+| Groq | `GROQ_BASE_URL` | `https://api.groq.com` |
+
+**Best Practices Summary:**
+
+> ✅ **DO:**
+> - Use UPPERCASE with underscores
+> - Prefix with provider name
+> - Use `_API_KEY` suffix (or `_API_TOKEN` where applicable)
+> - Include descriptive comments in `.env` files
 >
-> This section covers environment variable patterns, validation strategies, and configuration templates for multiple providers.
+> ❌ **DON'T:**
+> - Use lowercase or hyphens
+> - Use generic names like `API_KEY`
+> - Include actual values in `.env.example`
+> - Commit `.env` files to version control
 
 ---
 
-**Document Status:** 🚧 In Progress - Phase 3, Task 4 (Section 5 Complete)
+#### 6.1.2 Validation Strategies
+
+When implementing environment configuration, you need to decide how strictly to validate API keys. Here are three proven strategies, each with different trade-offs.
+
+---
+
+**Option 1: All Optional (Maximum Flexibility)**
+
+**Best for:** Multi-provider applications, dynamic provider switching, development environments
+
+**Implementation:**
+
+```typescript
+// File: packages/env/src/server.ts
+import { z } from "zod";
+
+const envSchema = z.object({
+  // All provider keys are optional - maximum flexibility
+  OPENAI_API_KEY: z.string().min(1).optional(),
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1).optional(),
+  GROQ_API_KEY: z.string().min(1).optional(),
+
+  // Optional configuration variables
+  OPENAI_BASE_URL: z.string().url().optional(),
+  ANTHROPIC_BASE_URL: z.string().url().optional(),
+  GOOGLE_API_BASE_URL: z.string().url().optional(),
+  GROQ_BASE_URL: z.string().url().optional(),
+});
+
+export const env = envSchema.parse(process.env);
+```
+
+**Usage in Server Code:**
+
+```typescript
+// File: apps/server/src/index.ts
+import { openai } from "@ai-sdk/openai";
+import { google } from "@ai-sdk/google";
+import { env } from "@sambungchat/env";
+
+// Check which provider is configured
+const provider = env.GOOGLE_GENERATIVE_AI_API_KEY ? "google" :
+                env.OPENAI_API_KEY ? "openai" :
+                env.ANTHROPIC_API_KEY ? "anthropic" :
+                env.GROQ_API_KEY ? "groq" : null;
+
+if (!provider) {
+  throw new Error("No AI provider configured. Please set at least one API key.");
+}
+
+// Use the configured provider
+const providers = {
+  google: () => google("gemini-2.5-flash"),
+  openai: () => openai("gpt-4o-mini"),
+  anthropic: () => anthropic("claude-3-5-sonnet-20241022"),
+  groq: () => groq("llama-3.3-70b-versatile"),
+};
+
+const model = wrapLanguageModel({
+  model: providers[provider](),
+  middleware: devToolsMiddleware(),
+});
+```
+
+**Pros:**
+- ✅ Maximum flexibility for developers
+- ✅ Easy to add new providers
+- ✅ Supports dynamic provider switching
+- ✅ No validation errors during development
+
+**Cons:**
+- ❌ No built-in validation (must check manually)
+- ❌ Possible runtime errors if no provider is configured
+- ❌ Requires defensive programming in server code
+
+---
+
+**Option 2: At Least One Required** (Recommended for Production)
+
+**Best for:** Production applications, preventing misconfiguration, clear error messages
+
+**Implementation:**
+
+```typescript
+// File: packages/env/src/server.ts
+import { z } from "zod";
+
+const envSchema = z.object({
+  // All provider keys are individually optional
+  OPENAI_API_KEY: z.string().min(1).optional(),
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1).optional(),
+  GROQ_API_KEY: z.string().min(1).optional(),
+
+  // Optional configuration
+  OPENAI_BASE_URL: z.string().url().optional(),
+  ANTHROPIC_BASE_URL: z.string().url().optional(),
+  GOOGLE_API_BASE_URL: z.string().url().optional(),
+  GROQ_BASE_URL: z.string().url().optional(),
+}).refine(
+  (data) => {
+    return !!(
+      data.OPENAI_API_KEY ||
+      data.ANTHROPIC_API_KEY ||
+      data.GOOGLE_GENERATIVE_AI_API_KEY ||
+      data.GROQ_API_KEY
+    );
+  },
+  {
+    message: "At least one AI provider API key is required. Please configure OPENAI_API_KEY, ANTHROPIC_API_KEY, GOOGLE_GENERATIVE_AI_API_KEY, or GROQ_API_KEY in your environment.",
+  }
+);
+
+export const env = envSchema.parse(process.env);
+```
+
+**Error Output (if no keys configured):**
+
+```bash
+> bun run dev
+
+❌ Invalid environment configuration:
+: At least one AI provider API key is required. Please configure OPENAI_API_KEY,
+ANTHROPIC_API_KEY, GOOGLE_GENERATIVE_AI_API_KEY, or GROQ_API_KEY in your environment.
+
+💡 Check your .env file and ensure at least one provider is configured.
+```
+
+**Pros:**
+- ✅ Prevents application startup without configuration
+- ✅ Clear, actionable error messages
+- ✅ Production-ready validation
+- ✅ Flexible provider choice
+
+**Cons:**
+- ❌ Requires at least one provider (no "providerless" mode)
+- ❌ Doesn't validate provider-key matching
+
+---
+
+**Option 3: Provider Selection with Validation**
+
+**Best for:** Applications with a primary provider concept, runtime configuration, enforcing provider-key matching
+
+**Implementation:**
+
+```typescript
+// File: packages/env/src/server.ts
+import { z } from "zod";
+
+const envSchema = z.object({
+  // Primary provider selection
+  AI_PROVIDER: z.enum(["openai", "anthropic", "google", "groq"]).default("google"),
+
+  // Provider keys
+  OPENAI_API_KEY: z.string().min(1).optional(),
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1).optional(),
+  GROQ_API_KEY: z.string().min(1).optional(),
+
+  // Optional configuration
+  OPENAI_BASE_URL: z.string().url().optional(),
+  ANTHROPIC_BASE_URL: z.string().url().optional(),
+  GOOGLE_API_BASE_URL: z.string().url().optional(),
+  GROQ_BASE_URL: z.string().url().optional(),
+}).refine(
+  (data) => {
+    // Validate that the selected provider has its API key configured
+    switch (data.AI_PROVIDER) {
+      case "openai":
+        return !!data.OPENAI_API_KEY;
+      case "anthropic":
+        return !!data.ANTHROPIC_API_KEY;
+      case "google":
+        return !!data.GOOGLE_GENERATIVE_AI_API_KEY;
+      case "groq":
+        return !!data.GROQ_API_KEY;
+      default:
+        return false;
+    }
+  },
+  {
+    message: (data) => `API key required for selected provider '${data.AI_PROVIDER}'. Please set ${data.AI_PROVIDER === "google" ? "GOOGLE_GENERATIVE_AI_API_KEY" : data.AI_PROVIDER.toUpperCase() + "_API_KEY"} in your environment.`,
+  }
+);
+
+export const env = envSchema.parse(process.env);
+```
+
+**Usage in Server Code:**
+
+```typescript
+// File: apps/server/src/index.ts
+import { openai } from "@ai-sdk/openai";
+import { anthropic } from "@ai-sdk/anthropic";
+import { google } from "@ai-sdk/google";
+import { groq } from "@ai-sdk/groq";
+import { env } from "@sambungchat/env";
+
+// Select provider based on environment
+const provider = env.AI_PROVIDER || "google";
+
+const providers = {
+  openai: () => openai("gpt-4o-mini"),
+  anthropic: () => anthropic("claude-3-5-sonnet-20241022"),
+  google: () => google("gemini-2.5-flash"),
+  groq: () => groq("llama-3.3-70b-versatile"),
+};
+
+const model = wrapLanguageModel({
+  model: providers[provider](),
+  middleware: devToolsMiddleware(),
+});
+```
+
+**Error Output (if selected provider key missing):**
+
+```bash
+> AI_PROVIDER=openai bun run dev
+
+❌ Invalid environment configuration:
+: API key required for selected provider 'openai'. Please set OPENAI_API_KEY in your environment.
+
+💡 Either set OPENAI_API_KEY or change AI_PROVIDER to a configured provider.
+```
+
+**Pros:**
+- ✅ Explicit provider selection
+- ✅ Validates provider-key matching
+- ✅ Runtime configurability
+- ✅ Clear error messages
+
+**Cons:**
+- ❌ More complex configuration
+- ❌ Requires `AI_PROVIDER` variable
+- ❌ Less flexible than "all optional" approach
+
+---
+
+**Comparison Summary:**
+
+| Strategy | Flexibility | Validation | Best For | Complexity |
+|----------|-------------|------------|----------|------------|
+| All Optional | ⭐⭐⭐⭐⭐ | ⭐⭐ | Development, multi-provider | Low |
+| At Least One Required | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | Production, general use | Medium |
+| Provider Selection | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | Enterprise, strict control | High |
+
+**Recommendation for SambungChat:**
+
+Start with **Option 2 (At Least One Required)** for the best balance of flexibility and production readiness. This prevents misconfiguration while allowing developers to choose their preferred provider.
+
+---
+
+#### 6.1.3 Multi-Provider Configuration Patterns
+
+For advanced use cases, you may want to implement sophisticated multi-provider patterns beyond simple selection.
+
+---
+
+**Pattern 1: Fallback Chain**
+
+**Purpose:** Automatically try alternative providers if the primary one fails
+
+**Environment Configuration:**
+
+```bash
+# Provider priority order (comma-separated, highest priority first)
+AI_PROVIDER_PRIORITY=google,openai,anthropic,groq
+
+# All provider keys
+GOOGLE_GENERATIVE_AI_API_KEY=your-google-key
+OPENAI_API_KEY=your-openai-key
+ANTHROPIC_API_KEY=your-anthropic-key
+GROQ_API_KEY=your-groq-key
+```
+
+**Implementation:**
+
+```typescript
+// File: packages/env/src/server.ts
+import { z } from "zod";
+
+const envSchema = z.object({
+  AI_PROVIDER_PRIORITY: z.string().default("google,openai,anthropic,groq"),
+  OPENAI_API_KEY: z.string().min(1).optional(),
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1).optional(),
+  GROQ_API_KEY: z.string().min(1).optional(),
+});
+
+export const env = envSchema.parse(process.env);
+
+// Parse provider priority
+export const providerPriority = env.AI_PROVIDER_PRIORITY.split(",").map(p => p.trim());
+
+// Get first available provider
+export function getAvailableProvider(): string | null {
+  for (const provider of providerPriority) {
+    if (provider === "google" && env.GOOGLE_GENERATIVE_AI_API_KEY) {
+      return "google";
+    }
+    const key = `${provider.toUpperCase()}_API_KEY`;
+    if ((env as any)[key]) {
+      return provider;
+    }
+  }
+  return null;
+}
+```
+
+**Usage with Retry:**
+
+```typescript
+// File: apps/server/src/index.ts
+import { getAvailableProvider, providerPriority } from "@sambungchat/env";
+import { openai } from "@ai-sdk/openai";
+import { anthropic } from "@ai-sdk/anthropic";
+import { google } from "@ai-sdk/google";
+import { groq } from "@ai-sdk/groq";
+
+const providers = {
+  google: () => google("gemini-2.5-flash"),
+  openai: () => openai("gpt-4o-mini"),
+  anthropic: () => anthropic("claude-3-5-sonnet-20241022"),
+  groq: () => groq("llama-3.3-70b-versatile"),
+};
+
+async function streamWithFallback(messages: any[]) {
+  // Try each provider in priority order
+  for (const providerName of providerPriority) {
+    try {
+      const key = providerName === "google" ? "GOOGLE_GENERATIVE_AI_API_KEY" : `${providerName.toUpperCase()}_API_KEY`;
+
+      if (!(process.env as any)[key]) {
+        continue; // Skip if not configured
+      }
+
+      const model = wrapLanguageModel({
+        model: providers[providerName as keyof typeof providers](),
+        middleware: devToolsMiddleware(),
+      });
+
+      const result = await streamText({
+        model,
+        messages: await convertToModelMessages(messages),
+      });
+
+      return result; // Success!
+    } catch (error) {
+      console.warn(`❌ Provider ${providerName} failed, trying next...`, error);
+      continue; // Try next provider
+    }
+  }
+
+  throw new Error("All AI providers failed. Please check your configuration.");
+}
+```
+
+**Use Cases:**
+- High availability requirements
+- Handling provider outages
+- Graceful degradation
+- Testing new providers alongside production
+
+---
+
+**Pattern 2: Load Balancing**
+
+**Purpose:** Distribute requests across multiple providers based on weights
+
+**Implementation:**
+
+```typescript
+// File: apps/server/src/index.ts
+import { openai } from "@ai-sdk/openai";
+import { anthropic } from "@ai-sdk/anthropic";
+import { google } from "@ai-sdk/google";
+import { env } from "@sambungchat/env";
+
+interface ProviderConfig {
+  name: string;
+  weight: number; // For weighted load balancing
+  model: () => any;
+}
+
+const providers: ProviderConfig[] = [
+  { name: "google", weight: 50, model: () => google("gemini-2.5-flash") },
+  { name: "openai", weight: 30, model: () => openai("gpt-4o-mini") },
+  { name: "anthropic", weight: 20, model: () => anthropic("claude-3-5-sonnet-20241022") },
+];
+
+// Simple load balancing based on weights
+function selectProvider(): ProviderConfig {
+  const totalWeight = providers.reduce((sum, p) => sum + p.weight, 0);
+  let random = Math.random() * totalWeight;
+
+  for (const provider of providers) {
+    random -= provider.weight;
+    if (random <= 0) {
+      return provider;
+    }
+  }
+
+  return providers[0]; // Fallback
+}
+
+// Select provider for each request
+const selectedProvider = selectProvider();
+const model = wrapLanguageModel({
+  model: selectedProvider.model(),
+  middleware: devToolsMiddleware(),
+});
+
+console.log(`🎯 Using provider: ${selectedProvider.name}`);
+```
+
+**Use Cases:**
+- Distributing load across providers
+- Cost optimization (mix expensive and cheap providers)
+- A/B testing different models
+- Avoiding rate limits
+
+---
+
+**Pattern 3: Cost-Based Routing**
+
+**Purpose:** Automatically select the cheapest available provider
+
+**Provider Costs (per 1M input tokens):**
+
+```typescript
+// Provider cost per 1M input tokens (approximate January 2026)
+const providerCosts = {
+  google: 0.075,   // $0.075 per 1M tokens
+  groq: 0.59,      // $0.59 per 1M tokens
+  openai: 0.15,    // $0.15 per 1M tokens
+  anthropic: 3.0,  // $3.0 per 1M tokens
+};
+```
+
+**Implementation:**
+
+```typescript
+// File: apps/server/src/index.ts
+import { openai } from "@ai-sdk/openai";
+import { anthropic } from "@ai-sdk/anthropic";
+import { google } from "@ai-sdk/google";
+import { groq } from "@ai-sdk/groq";
+import { env } from "@sambungchat/env";
+
+// Provider costs (input tokens per 1M)
+const providerCosts: Record<string, number> = {
+  google: 0.075,
+  groq: 0.59,
+  openai: 0.15,
+  anthropic: 3.0,
+};
+
+const providerModels = {
+  google: () => google("gemini-2.5-flash"),
+  groq: () => groq("llama-3.3-70b-versatile"),
+  openai: () => openai("gpt-4o-mini"),
+  anthropic: () => anthropic("claude-3-5-sonnet-20241022"),
+};
+
+function selectCheapestProvider(): string {
+  // Filter to only available providers
+  const availableProviders = Object.keys(providerCosts).filter(provider => {
+    if (provider === "google") {
+      return !!env.GOOGLE_GENERATIVE_AI_API_KEY;
+    }
+    const key = `${provider.toUpperCase()}_API_KEY`;
+    return !!(env as any)[key];
+  });
+
+  if (availableProviders.length === 0) {
+    throw new Error("No AI provider configured");
+  }
+
+  // Sort by cost (ascending) and return cheapest
+  availableProviders.sort((a, b) => providerCosts[a] - providerCosts[b]);
+
+  return availableProviders[0];
+}
+
+// Use cheapest provider
+const cheapestProvider = selectCheapestProvider();
+console.log(`💰 Using cheapest provider: ${cheapestProvider} ($${providerCosts[cheapestProvider]}/1M tokens)`);
+
+const model = wrapLanguageModel({
+  model: providerModels[cheapestProvider as keyof typeof providerModels](),
+  middleware: devToolsMiddleware(),
+});
+```
+
+**Use Cases:**
+- Cost-sensitive applications
+- Budget optimization
+- Non-critical workloads
+- Batch processing
+
+**Note:** These advanced patterns are optional. Most applications will use a single provider or simple provider selection (Options 1-3 above).
+
+---
+
+### 6.2 Complete Environment Variable Reference
+
+This section provides a comprehensive reference of all environment variables for AI SDK-supported providers.
+
+#### 6.2.1 Official Providers
+
+| Provider | Package | API Key Variable | Base URL Variable | Additional Variables | Notes |
+|----------|---------|------------------|-------------------|----------------------|-------|
+| **OpenAI** | `@ai-sdk/openai` | `OPENAI_API_KEY` | `OPENAI_BASE_URL` | `OPENAI_ORGANIZATION` | Most popular, wide model variety |
+| **Anthropic** | `@ai-sdk/anthropic` | `ANTHROPIC_API_KEY` | `ANTHROPIC_BASE_URL` | `ANTHROPIC_DANGEROUS_DIRECT_BROWSER_ACCESS` | Claude models, 200K context |
+| **Google** | `@ai-sdk/google` | `GOOGLE_GENERATIVE_AI_API_KEY` or `GOOGLE_API_KEY` | `GOOGLE_API_BASE_URL` | None | SambungChat's current provider |
+| **Groq** | `@ai-sdk/groq` | `GROQ_API_KEY` | `GROQ_BASE_URL` | None | Ultra-low latency (LPUs) |
+| **Azure OpenAI** | `@ai-sdk/azure` | `AZURE_OPENAI_API_KEY` | `AZURE_OPENAI_ENDPOINT` | `AZURE_OPENAI_API_VERSION`, `AZURE_OPENAI_RESOURCE_NAME` | Enterprise, data residency |
+| **Mistral AI** | `@ai-sdk/mistral` | `MISTRAL_API_KEY` | `MISTRAL_BASE_URL` | None | European provider, multilingual |
+| **Cohere** | `@ai-sdk/cohere` | `COHERE_API_KEY` | `COHERE_BASE_URL` | None | Command R models, RAG-focused |
+| **Together AI** | `@ai-sdk/togetherai` | `TOGETHER_AI_API_KEY` | `TOGETHER_AI_BASE_URL` | None | 100+ open-source models |
+| **Fireworks** | `@ai-sdk/fireworks` | `FIREWORKS_API_KEY` | `FIREWORKS_BASE_URL` | None | Fast inference |
+| **DeepSeek** | `@ai-sdk/deepseek` | `DEEPSEEK_API_KEY` | `DEEPSEEK_BASE_URL` | None | DeepSeek Chat/Coder models |
+| **Perplexity** | `@ai-sdk/perplexity` | `PERPLEXITY_API_KEY` | `PERPLEXITY_BASE_URL` | None | Web search integrated |
+| **xAI** | `@ai-sdk/xai` | `XAI_API_KEY` | `XAI_BASE_URL` | None | Grok models |
+| **Replicate** | `@ai-sdk/replicate` | `REPLICATE_API_TOKEN` (uses TOKEN) | `REPLICATE_API_BASE_URL` | None | Thousands of models |
+| **Amazon Bedrock** | `@ai-sdk/amazon-bedrock` | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | None | `AWS_REGION` (required) | AWS-based, multiple models |
+
+**Special Cases:**
+
+**Google Gemini - Two Variable Names:**
+```bash
+# Both variables work - GOOGLE_GENERATIVE_AI_API_KEY takes priority
+GOOGLE_GENERATIVE_AI_API_KEY=your-key-here  # Preferred (more specific)
+GOOGLE_API_KEY=your-key-here                # Also accepted
+```
+
+**Azure OpenAI - Multi-Variable Configuration:**
+```bash
+AZURE_OPENAI_API_KEY=your-api-key
+AZURE_OPENAI_ENDPOINT=https://your-resource-name.openai.azure.com
+AZURE_OPENAI_API_VERSION=2024-02-01
+AZURE_OPENAI_RESOURCE_NAME=your-resource-name
+```
+
+**Amazon Bedrock - AWS Credentials:**
+```bash
+AWS_ACCESS_KEY_ID=your-access-key-id
+AWS_SECRET_ACCESS_KEY=your-secret-access-key
+AWS_REGION=us-east-1  # Required
+```
+
+#### 6.2.2 Community Providers
+
+| Provider | Package | API Key Variable | Base URL Variable | Additional Variables | Notes |
+|----------|---------|------------------|-------------------|----------------------|-------|
+| **Ollama** | `ollama-ai-provider` | None (local) | `OLLAMA_BASE_URL` | None | Defaults to `localhost:11434` |
+| **OpenRouter** | `@openrouter/ai-sdk-provider` | `OPENROUTER_API_KEY` | `OPENROUTER_BASE_URL` | None | 100+ models, single API |
+| **Letta** | `@letta-ai/vercel-ai-sdk-provider` | `LETTA_API_KEY` | `LETTA_BASE_URL` | None | Memory-enhanced agents |
+| **Portkey** | `@portkey-ai/vercel-provider` | `PORTKEY_API_KEY` | `PORTKEY_BASE_URL` | None | Multi-provider gateway |
+
+**Ollama Configuration:**
+```bash
+# Ollama doesn't require an API key for local usage
+OLLAMA_BASE_URL=http://localhost:11434  # Optional, default if not specified
+```
+
+#### 6.2.3 OpenAI-Compatible Providers
+
+For custom or self-hosted providers using OpenAI-compatible APIs:
+
+| Provider | API Key Variable | Base URL Variable | Notes |
+|----------|------------------|-------------------|-------|
+| **LM Studio** | `LM_STUDIO_API_KEY` (optional) | `LM_STUDIO_BASE_URL` | Local development, defaults to `http://localhost:1234/v1` |
+| **LocalAI** | `LOCALAI_API_KEY` (optional) | `LOCALAI_BASE_URL` | Self-hosted, OpenAI alternative |
+| **vLLM** | `VLLM_API_KEY` (optional) | `VLLM_BASE_URL` | High-performance serving |
+| **Custom Endpoint** | `CUSTOM_OPENAI_API_KEY` | `CUSTOM_OPENAI_BASE_URL` | Your custom provider |
+
+**Usage with OpenAI-Compatible Provider:**
+
+```typescript
+import { createOpenAI } from "@ai-sdk/openai";
+
+// For LM Studio
+const lmstudio = createOpenAI({
+  baseURL: process.env.LM_STUDIO_BASE_URL || "http://localhost:1234/v1",
+  apiKey: process.env.LM_STUDIO_API_KEY || "not-used", // LM Studio doesn't require a key
+});
+
+const model = lmstudio("your-model-name");
+```
+
+**For Ollama (OpenAI-Compatible Mode):**
+
+```typescript
+import { createOpenAI } from "@ai-sdk/openai";
+
+const ollamaOpenAI = createOpenAI({
+  baseURL: process.env.OLLAMA_BASE_URL || "http://localhost:11434/v1",
+  apiKey: "ollama", // Required by API but not used
+});
+
+const model = ollamaOpenAI("llama3.2");
+```
+
+> **💡 Tip:** The OpenAI-compatible approach is recommended over the community provider for Ollama, as it's more actively maintained.
+
+---
+
+### 6.3 Environment File Templates
+
+This section provides ready-to-use environment file templates for different scenarios.
+
+#### 6.3.1 Complete .env.example
+
+**Purpose:** Comprehensive template showing all providers with documentation
+
+```bash
+# =============================================================================
+# AI Provider Configuration for SambungChat
+# =============================================================================
+# Configure at least one provider below for the application to work.
+# Uncomment and fill in the credentials for the providers you want to use.
+
+# ------------------------------------------------------------------------------
+# OpenAI (https://platform.openai.com)
+# ------------------------------------------------------------------------------
+# Models: gpt-4o, gpt-4o-mini, o1-preview, o1-mini
+# Pricing: ~$0.15-$15 per 1M input tokens
+# Best for: General-purpose, most popular, wide model variety
+
+# OPENAI_API_KEY=sk-your-openai-api-key-here
+# OPENAI_BASE_URL=https://api.openai.com/v1  # Optional: Custom endpoint
+# OPENAI_ORGANIZATION=org-your-org-id  # Optional: Organization ID
+
+# ------------------------------------------------------------------------------
+# Anthropic (https://console.anthropic.com)
+# ------------------------------------------------------------------------------
+# Models: claude-3-5-sonnet, claude-3-opus, claude-3-haiku
+# Pricing: ~$3-$15 per 1M input tokens
+# Best for: Complex reasoning, long context (200K), careful responses
+
+# ANTHROPIC_API_KEY=sk-ant-your-anthropic-api-key-here
+# ANTHROPIC_BASE_URL=https://api.anthropic.com  # Optional: Custom endpoint
+
+# ------------------------------------------------------------------------------
+# Google Gemini (https://makersuite.google.com)
+# ------------------------------------------------------------------------------
+# Models: gemini-2.5-flash, gemini-2.5-pro
+# Pricing: ~$0.075 per 1M input tokens (very cost-effective)
+# Best for: Cost-performance balance, fast inference, multimodal
+# Note: SambungChat currently uses this provider
+
+# GOOGLE_GENERATIVE_AI_API_KEY=your-google-api-key-here
+# Alternative: GOOGLE_API_KEY=your-google-api-key-here
+# GOOGLE_API_BASE_URL=https://generativelanguage.googleapis.com  # Optional
+
+# ------------------------------------------------------------------------------
+# Groq (https://console.groq.com)
+# ------------------------------------------------------------------------------
+# Models: llama-3.3-70b, mixtral-8x7b, gemma-7b
+# Pricing: ~$0.59 per 1M input tokens
+# Best for: Ultra-low latency (LPUs), real-time applications
+
+# GROQ_API_KEY=gsk-your-groq-api-key-here
+# GROQ_BASE_URL=https://api.groq.com  # Optional: Custom endpoint
+
+# ------------------------------------------------------------------------------
+# Azure OpenAI (https://portal.azure.com)
+# ------------------------------------------------------------------------------
+# Models: Same as OpenAI but hosted on Azure
+# Best for: Enterprise, data residency, compliance
+
+# AZURE_OPENAI_API_KEY=your-azure-openai-api-key
+# AZURE_OPENAI_ENDPOINT=https://your-resource-name.openai.azure.com
+# AZURE_OPENAI_API_VERSION=2024-02-01  # API version
+# AZURE_OPENAI_RESOURCE_NAME=your-resource-name  # Your Azure resource
+
+# ------------------------------------------------------------------------------
+# Mistral AI (https://console.mistral.ai)
+# ------------------------------------------------------------------------------
+# Models: mistral-large, mistral-small, mistral-mini, codestral
+# Pricing: ~$2-$4 per 1M input tokens
+# Best for: European data residency, multilingual, code
+
+# MISTRAL_API_KEY=your-mistral-api-key-here
+# MISTRAL_BASE_URL=https://api.mistral.ai  # Optional
+
+# ------------------------------------------------------------------------------
+# Cohere (https://dashboard.cohere.com)
+# ------------------------------------------------------------------------------
+# Models: command-r, command-r-plus
+# Pricing: ~$0.50-$3 per 1M input tokens
+# Best for: RAG, enterprise search, document analysis
+
+# COHERE_API_KEY=your-cohere-api-key-here
+# COHERE_BASE_URL=https://api.cohere.ai  # Optional
+
+# ------------------------------------------------------------------------------
+# Together AI (https://api.together.xyz)
+# ------------------------------------------------------------------------------
+# Models: 100+ open-source models (Llama, Mixtral, Qwen, etc.)
+# Pricing: ~$0.50-$2 per 1M input tokens
+# Best for: Wide model selection, open-source, cost-effective
+
+# TOGETHER_AI_API_KEY=your-together-ai-api-key-here
+# TOGETHER_AI_BASE_URL=https://api.together.xyz  # Optional
+
+# ------------------------------------------------------------------------------
+# Ollama (https://ollama.com) - Local/Community Provider
+# ------------------------------------------------------------------------------
+# Models: llama3.2, mistral, codellama, and many more
+# Pricing: Free (uses your own hardware)
+# Best for: Local development, offline usage, privacy
+# Note: Requires Ollama to be installed and running locally
+
+# OLLAMA_BASE_URL=http://localhost:11434  # Optional: Default if not specified
+# No API key required for local Ollama
+
+# ------------------------------------------------------------------------------
+# OpenRouter (https://openrouter.ai)
+# ------------------------------------------------------------------------------
+# Models: 100+ models from multiple providers via single API
+# Pricing: Varies by model
+# Best for: Access to many models without multiple API keys
+
+# OPENROUTER_API_KEY=sk-or-your-openrouter-api-key-here
+# OPENROUTER_BASE_URL=https://openrouter.ai/api  # Optional
+
+# ------------------------------------------------------------------------------
+# Replicate (https://replicate.com)
+# ------------------------------------------------------------------------------
+# Models: Thousands of models hosted on Replicate
+# Pricing: Pay-per-use, varies by model
+# Best for: Specialized models, custom models, wide variety
+
+# REPLICATE_API_TOKEN=your-replicate-api-token-here  # Note: Uses TOKEN, not KEY
+# REPLICATE_API_BASE_URL=https://api.replicate.com  # Optional
+
+# ------------------------------------------------------------------------------
+# Amazon Bedrock (https://aws.amazon.com/bedrock)
+# ------------------------------------------------------------------------------
+# Models: Titan, Claude, Llama, and more via AWS
+# Best for: AWS users, enterprise, compliance
+
+# AWS_ACCESS_KEY_ID=your-aws-access-key-id
+# AWS_SECRET_ACCESS_KEY=your-aws-secret-access-key
+# AWS_REGION=us-east-1  # Required: Your AWS region
+
+# ------------------------------------------------------------------------------
+# Multi-Provider Configuration (Optional)
+# ------------------------------------------------------------------------------
+# Uncomment the variables below to enable multi-provider features
+
+# Primary provider selection
+# AI_PROVIDER=openai  # Options: openai, anthropic, google, groq
+
+# Provider priority for fallback (comma-separated, highest priority first)
+# AI_PROVIDER_PRIORITY=google,openai,anthropic,groq
+
+# Enable cost-based routing (selects cheapest available provider)
+# AI_ENABLE_COST_ROUTING=false  # Set to 'true' to enable
+```
+
+**Usage:**
+
+1. Copy this file to `.env` in your project root
+2. Uncomment the provider(s) you want to use
+3. Replace placeholder values with actual API keys
+4. Add `.env` to `.gitignore` (never commit API keys)
+
+---
+
+#### 6.3.2 Minimal .env.example
+
+**Purpose:** Simplified template for quick setup with 4 major providers
+
+```bash
+# AI Provider Configuration for SambungChat
+# Configure at least one provider below
+
+# Option 1: OpenAI (Recommended for general use)
+# Models: gpt-4o-mini, gpt-4o, o1-mini
+# Pricing: ~$0.15-$15 per 1M tokens
+# OPENAI_API_KEY=sk-your-openai-api-key-here
+
+# Option 2: Anthropic (Recommended for complex reasoning)
+# Models: claude-3-5-sonnet, claude-3-opus, claude-3-haiku
+# Pricing: ~$3-$15 per 1M tokens
+# ANTHROPIC_API_KEY=sk-ant-your-anthropic-api-key-here
+
+# Option 3: Google Gemini (Current SambungChat default)
+# Models: gemini-2.5-flash, gemini-2.5-pro
+# Pricing: ~$0.075 per 1M tokens (very cost-effective)
+# GOOGLE_GENERATIVE_AI_API_KEY=your-google-api-key-here
+
+# Option 4: Groq (Recommended for low latency)
+# Models: llama-3.3-70b, mixtral-8x7b, gemma-7b
+# Pricing: ~$0.59 per 1M tokens
+# GROQ_API_KEY=gsk-your-groq-api-key-here
+
+# Optional: Specify primary provider
+# AI_PROVIDER=google  # Options: openai, anthropic, google, groq
+```
+
+**Usage:**
+
+Perfect for quickstarts and minimal configurations. Uncomment just one provider to get started.
+
+---
+
+#### 6.3.3 Development .env.local Template
+
+**Purpose:** Template for local development environment with cost-saving defaults
+
+```bash
+# =============================================================================
+# Development Environment Configuration for SambungChat
+# =============================================================================
+# This file is for local development only
+# DO NOT commit this file to version control
+# Add .env.local to .gitignore
+
+# ------------------------------------------------------------------------------
+# Environment
+# ------------------------------------------------------------------------------
+NODE_ENV=development
+LOG_LEVEL=debug
+
+# ------------------------------------------------------------------------------
+# AI Provider (for local development)
+# ------------------------------------------------------------------------------
+# Use free/low-cost providers for development to save costs
+
+# Option 1: Ollama (Free, requires local installation)
+# Install from https://ollama.com, then run: ollama pull llama3.2
+# OLLAMA_BASE_URL=http://localhost:11434
+
+# Option 2: Google Gemini (Low cost, ~$0.075/M tokens)
+GOOGLE_GENERATIVE_AI_API_KEY=your-dev-google-api-key-here
+
+# Option 3: Groq (Low cost, very fast)
+# GROQ_API_KEY=your-dev-groq-api-key-here
+
+# ------------------------------------------------------------------------------
+# Development Settings
+# ------------------------------------------------------------------------------
+# Enable AI SDK dev tools (request/response logging in browser)
+AI_ENABLE_DEV_TOOLS=true
+
+# Enable verbose error messages
+AI_VERBOSE_ERRORS=true
+
+# Rate limiting for development (requests per minute)
+AI_RATE_LIMIT=10
+```
+
+**Best Practices for Development:**
+
+- ✅ Use Google Gemini or Groq for low-cost development
+- ✅ Use Ollama for offline development (free)
+- ✅ Enable dev tools for debugging
+- ✅ Set lower rate limits
+- ❌ Don't use expensive providers (Anthropic Claude Opus) in development
+
+---
+
+#### 6.3.4 Production .env.production Template
+
+**Purpose:** Template for production deployment with security best practices
+
+```bash
+# =============================================================================
+# Production Environment Configuration for SambungChat
+# =============================================================================
+# This file is for production deployment
+# Use strong, unique API keys and secure configuration
+
+# ------------------------------------------------------------------------------
+# Environment
+# ------------------------------------------------------------------------------
+NODE_ENV=production
+LOG_LEVEL=warn  # Only warnings and errors in production
+
+# ------------------------------------------------------------------------------
+# AI Provider (Production)
+# ------------------------------------------------------------------------------
+# Use enterprise-grade providers for production
+
+# Option 1: Anthropic Claude (Best for production quality)
+# Models: claude-3-5-sonnet (recommended)
+# ANTHROPIC_API_KEY=your-production-anthropic-api-key-here
+
+# Option 2: OpenAI (Most popular, enterprise-ready)
+# Models: gpt-4o-mini (recommended)
+# OPENAI_API_KEY=your-production-openai-api-key-here
+
+# Option 3: Google Gemini (Cost-effective, production-ready)
+# Models: gemini-2.5-flash (current default)
+GOOGLE_GENERATIVE_AI_API_KEY=your-production-google-api-key-here
+
+# ------------------------------------------------------------------------------
+# Production Settings
+# ------------------------------------------------------------------------------
+# Disable AI SDK dev tools in production
+AI_ENABLE_DEV_TOOLS=false
+
+# Disable verbose errors in production (security)
+AI_VERBOSE_ERRORS=false
+
+# Production rate limiting (adjust based on your plan)
+AI_RATE_LIMIT=60
+
+# ------------------------------------------------------------------------------
+# Monitoring and Observability (Optional but Recommended)
+# ------------------------------------------------------------------------------
+# Enable error tracking
+# SENTRY_DSN=your-sentry-dsn-here
+
+# Enable metrics collection
+# AI_ENABLE_METRICS=true
+# AI_METRICS_ENDPOINT=https://your-metrics-endpoint.com
+
+# Enable distributed tracing
+# ENABLE_TRACING=true
+```
+
+**Production Best Practices:**
+
+- ✅ Use production-grade API keys (not dev keys)
+- ✅ Disable dev tools and verbose errors
+- ✅ Implement rate limiting
+- ✅ Set up monitoring and alerting
+- ✅ Use secrets management (AWS Secrets Manager, etc.)
+- ✅ Rotate keys regularly (every 90 days)
+- ✅ Implement budget alerts
+- ❌ Never commit production `.env` files
+
+---
+
+### 6.4 Updating Environment Schema
+
+This section shows how to update the SambungChat environment schema to support multiple AI providers.
+
+#### 6.4.1 Current Schema Review
+
+**Current State (January 2026):**
+
+The `packages/env/src/server.ts` file currently has:
+- Minimal AI provider configuration
+- Google Gemini variables may or may not be present
+- No validation for AI provider keys
+
+**Action Required:**
+
+Update the schema to support multiple providers with proper validation.
+
+---
+
+#### 6.4.2 Schema Update Steps
+
+Follow these steps to update the environment schema:
+
+**Step 1: Choose Your Validation Strategy**
+
+Refer to Section 6.1.2 and choose one of the three options:
+- **Option 1:** All Optional (Maximum Flexibility)
+- **Option 2:** At Least One Required (Recommended for Production)
+- **Option 3:** Provider Selection with Validation
+
+**Step 2: Update packages/env/src/server.ts**
+
+Open `packages/env/src/server.ts` and add AI provider variables to the schema:
+
+```typescript
+// File: packages/env/src/server.ts
+import { z } from "zod";
+
+// Add AI provider variables to the existing schema
+const envSchema = z.object({
+  // ... existing variables (PORT, DATABASE_URL, etc.) ...
+
+  // AI Provider Configuration
+  AI_PROVIDER: z.enum(["openai", "anthropic", "google", "groq"]).default("google").optional(),
+
+  // Provider API Keys
+  OPENAI_API_KEY: z.string().min(1).optional(),
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1).optional(),
+  GROQ_API_KEY: z.string().min(1).optional(),
+
+  // Optional: Provider-specific configuration
+  OPENAI_BASE_URL: z.string().url().optional(),
+  OPENAI_ORGANIZATION: z.string().optional(),
+  ANTHROPIC_BASE_URL: z.string().url().optional(),
+  GOOGLE_API_BASE_URL: z.string().url().optional(),
+  GROQ_BASE_URL: z.string().url().optional(),
+});
+
+export const env = envSchema.parse(process.env);
+```
+
+**Step 3: Export Typed Environment**
+
+```typescript
+// Export for use in server code
+export type Env = z.infer<typeof envSchema>;
+
+// Re-export for convenience
+export { env };
+```
+
+**Step 4: Update Import in Server Code**
+
+```typescript
+// File: apps/server/src/index.ts
+import { openai } from "@ai-sdk/openai";
+import { anthropic } from "@ai-sdk/anthropic";
+import { google } from "@ai-sdk/google";
+import { groq } from "@ai-sdk/groq";
+import { env } from "@sambungchat/env";
+
+// Access provider configuration
+const provider = env.AI_PROVIDER || "google";
+
+// Use environment variables
+if (provider === "openai" && env.OPENAI_API_KEY) {
+  const model = openai("gpt-4o-mini");
+  // ...
+} else if (provider === "google" && env.GOOGLE_GENERATIVE_AI_API_KEY) {
+  const model = google("gemini-2.5-flash");
+  // ...
+}
+```
+
+---
+
+#### 6.4.3 Validation Implementation
+
+**Complete Example with Validation (Option 2: At Least One Required):**
+
+```typescript
+// File: packages/env/src/server.ts
+import { z } from "zod";
+
+const envSchema = z.object({
+  // ... existing variables ...
+
+  // AI Provider Configuration
+  AI_PROVIDER: z.enum(["openai", "anthropic", "google", "groq"]).default("google"),
+
+  // Provider API Keys
+  OPENAI_API_KEY: z.string().min(1).optional(),
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1).optional(),
+  GROQ_API_KEY: z.string().min(1).optional(),
+
+  // Optional configuration
+  OPENAI_BASE_URL: z.string().url().optional(),
+  ANTHROPIC_BASE_URL: z.string().url().optional(),
+  GOOGLE_API_BASE_URL: z.string().url().optional(),
+  GROQ_BASE_URL: z.string().url().optional(),
+}).refine(
+  (data) => {
+    // At least one provider must be configured
+    return !!(
+      data.OPENAI_API_KEY ||
+      data.ANTHROPIC_API_KEY ||
+      data.GOOGLE_GENERATIVE_AI_API_KEY ||
+      data.GROQ_API_KEY
+    );
+  },
+  {
+    message: "At least one AI provider API key is required. Please configure OPENAI_API_KEY, ANTHROPIC_API_KEY, GOOGLE_GENERATIVE_AI_API_KEY, or GROQ_API_KEY in your environment.",
+  }
+).refine(
+  (data) => {
+    // Validate that the selected provider has its API key configured
+    const providerKeyMap = {
+      openai: "OPENAI_API_KEY",
+      anthropic: "ANTHROPIC_API_KEY",
+      google: "GOOGLE_GENERATIVE_AI_API_KEY",
+      groq: "GROQ_API_KEY",
+    };
+
+    const requiredKey = providerKeyMap[data.AI_PROVIDER];
+    return !!(data as any)[requiredKey];
+  },
+  {
+    message: (data) => `API key required for selected provider '${data.AI_PROVIDER}'. Please set ${data.AI_PROVIDER === "google" ? "GOOGLE_GENERATIVE_AI_API_KEY" : data.AI_PROVIDER.toUpperCase() + "_API_KEY"} in your environment.`,
+  }
+);
+
+try {
+  export const env = envSchema.parse(process.env);
+} catch (error) {
+  if (error instanceof z.ZodError) {
+    const errorMessages = error.errors.map((e) => `${e.path.join(".")}: ${e.message}`).join("\n");
+    console.error("❌ Invalid environment configuration:\n", errorMessages);
+    console.error("\n💡 Please check your .env file and ensure all required variables are set.");
+    process.exit(1);
+  }
+  throw error;
+}
+
+export type Env = z.infer<typeof envSchema>;
+```
+
+**Testing the Schema:**
+
+```bash
+# Test 1: Missing all API keys (should fail)
+> bun run dev
+❌ Invalid environment configuration:
+: At least one AI provider API key is required. Please configure OPENAI_API_KEY,
+ANTHROPIC_API_KEY, GOOGLE_GENERATIVE_AI_API_KEY, or GROQ_API_KEY in your environment.
+
+💡 Please check your .env file and ensure all required variables are set.
+
+# Test 2: Selected provider missing API key (should fail)
+> AI_PROVIDER=openai GOOGLE_GENERATIVE_AI_API_KEY=abc bun run dev
+❌ Invalid environment configuration:
+: API key required for selected provider 'openai'. Please set OPENAI_API_KEY in your environment.
+
+💡 Either set OPENAI_API_KEY or change AI_PROVIDER to a configured provider.
+
+# Test 3: Valid configuration (should succeed)
+> GOOGLE_GENERATIVE_AI_API_KEY=abc bun run dev
+✅ Server started successfully on port 3000
+```
+
+---
+
+### 6.5 Security Best Practices
+
+This section covers essential security practices for managing AI provider API keys.
+
+#### 6.5.1 API Key Management Principles
+
+**1. Never Commit API Keys to Version Control**
+
+Always use `.env` files (never commit these). Add `.env` to `.gitignore`. Commit `.env.example` with placeholder values.
+
+**Example .gitignore:**
+
+```gitignore
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+.env.development
+
+# But keep .env.example
+# .env.example ✓ (commit this)
+```
+
+**Example .env.example (Good):**
+
+```bash
+# Good: Placeholder values (not real keys)
+OPENAI_API_KEY=sk-your-openai-api-key-here
+GOOGLE_GENERATIVE_AI_API_KEY=your-google-api-key-here
+```
+
+**Example .env (Bad - Never Commit):**
+
+```bash
+# Bad: Never commit actual keys
+# OPENAI_API_KEY=sk-abc123realkey...  ✗ Don't do this
+```
+
+**2. Use Environment-Specific Keys**
+
+- **Development:** Use test/restricted keys with low limits
+- **Staging:** Use staging keys if available
+- **Production:** Use production keys with strict limits
+
+**3. Implement Key Rotation**
+
+- Rotate keys regularly (e.g., every 90 days)
+- Document rotation procedures
+- Use secrets management services for automatic rotation
+
+**4. Monitor API Key Usage**
+
+- Set up usage alerts
+- Monitor for unusual activity
+- Implement rate limiting per application
+
+---
+
+#### 6.5.2 Environment-Specific Configuration
+
+**Development Environment:**
+
+```bash
+# .env.development
+AI_PROVIDER=google  # Use cost-effective provider for dev
+GOOGLE_GENERATIVE_AI_API_KEY=dev-key-with-limits
+AI_ENABLE_DEV_TOOLS=true
+AI_RATE_LIMIT=10  # Low limit for dev
+```
+
+**Staging Environment:**
+
+```bash
+# .env.staging
+AI_PROVIDER=anthropic  # Use production-like provider
+ANTHROPIC_API_KEY=staging-key
+AI_ENABLE_DEV_TOOLS=false
+AI_RATE_LIMIT=30
+```
+
+**Production Environment:**
+
+```bash
+# .env.production
+AI_PROVIDER=anthropic  # Best quality for production
+ANTHROPIC_API_KEY=prod-key-with-strict-limits
+AI_ENABLE_DEV_TOOLS=false
+AI_RATE_LIMIT=60
+AI_ENABLE_METRICS=true
+```
+
+**Deployment Script Example:**
+
+```typescript
+// File: scripts/load-env.ts
+import { dotenv } from "dotenv";
+import { resolve } from "path";
+
+const env = process.env.NODE_ENV || "development";
+const envFile = `.env.${env}`;
+
+// Load environment-specific file
+dotenv({ path: resolve(process.cwd(), envFile) });
+
+console.log(`✅ Loaded ${env} environment from ${envFile}`);
+```
+
+---
+
+#### 6.5.3 Secret Rotation Strategies
+
+**Strategy 1: Versioned Keys**
+
+```bash
+# Support multiple key versions for zero-downtime rotation
+OPENAI_API_KEY_V1=sk-old-key
+OPENAI_API_KEY_V2=sk-new-key
+OPENAI_API_KEY_VERSION=2  # Use V2
+```
+
+```typescript
+// Application code
+const apiKeyVersion = env.OPENAI_API_KEY_VERSION || "1";
+const apiKey = env[`OPENAI_API_KEY_V${apiKeyVersion}`];
+```
+
+**Strategy 2: Secrets Management Service**
+
+```typescript
+// Using AWS Secrets Manager
+import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
+
+const client = new SecretsManagerClient({});
+
+async function getApiKey() {
+  const response = await client.send(
+    new GetSecretValueCommand({ SecretId: "sambungchat/ai-providers" })
+  );
+
+  const secret = JSON.parse(response.SecretString || "{}");
+  return secret.OPENAI_API_KEY;
+}
+```
+
+**Strategy 3: Rotation Schedule**
+
+- **Development:** Rotate every 30 days
+- **Staging:** Rotate every 60 days
+- **Production:** Rotate every 90 days
+
+**Rotation Checklist:**
+
+1. Generate new API key in provider dashboard
+2. Add new key to environment (keep old key)
+3. Deploy with new key
+4. Test application functionality
+5. Remove old key from provider dashboard (after 24-48 hours)
+6. Remove old key from environment
+7. Document rotation
+
+---
+
+#### 6.5.4 Access Control and Permissions
+
+**1. Principle of Least Privilege**
+
+Only grant necessary permissions. Use scoped API keys when available. Set usage limits and quotas.
+
+**2. API Key Scoping (Provider-Specific)**
+
+**OpenAI:**
+
+```bash
+# Create scoped keys with limited permissions
+# https://platform.openai.com/api-keys
+OPENAI_API_KEY=sk-proj-...  # Project-scoped key
+```
+
+**Anthropic:**
+
+```bash
+# Create keys with budget limits
+# https://console.anthropic.com/settings/keys
+ANTHROPIC_API_KEY=sk-ant-...  # Can set monthly budget limits
+```
+
+**Google:**
+
+```bash
+# Restrict key to specific APIs
+# https://console.cloud.google.com/apis/credentials
+GOOGLE_GENERATIVE_AI_API_KEY=AIza...  # Restrict to Generative Language API
+```
+
+**3. Rate Limiting by Application**
+
+```typescript
+// Implement rate limiting per user/session
+import { Ratelimit } from "@unkey/ratelimit";
+
+const ratelimit = new Ratelimit({
+  namespace: "sambungchat-ai",
+  limit: 10, // 10 requests
+  duration: "60s", // per minute
+  async identifier(userId) {
+    return userId; // Rate limit per user
+  },
+});
+
+// Usage
+const { success } = await ratelimit.limit(userId);
+if (!success) {
+  throw new Error("Rate limit exceeded. Please try again later.");
+}
+```
+
+**4. IP Whitelisting (if supported)**
+
+Some providers allow IP whitelisting. Configure in provider dashboard:
+- Only allow requests from your server IPs
+- Block requests from unknown IPs
+
+**5. Audit Logging**
+
+```typescript
+// Log API key usage for security auditing
+import { logger } from "./logger";
+
+function auditLog(provider: string, model: string, userId: string) {
+  logger.info({
+    event: "ai_api_call",
+    provider,
+    model,
+    userId,
+    timestamp: new Date().toISOString(),
+    // Don't log sensitive data
+  });
+}
+
+// Usage
+auditLog("openai", "gpt-4o-mini", userId);
+```
+
+---
+
+## Summary
+
+In this section, you learned:
+
+✅ **Environment Variable Design Patterns**
+- Standard naming conventions ({PROVIDER}_API_KEY)
+- Multiple patterns for different providers
+- Base URL and configuration variables
+
+✅ **Validation Strategies**
+- Three options: all optional, at least one required, provider selection
+- Trade-offs and use cases for each approach
+- Complete code examples with error handling
+
+✅ **Complete Provider Reference**
+- 14 official providers with environment variables
+- Community providers (Ollama, OpenRouter, Letta, Portkey)
+- OpenAI-compatible providers for custom endpoints
+
+✅ **Ready-to-Use Templates**
+- Complete .env.example (all providers documented)
+- Minimal .env.example (quick start)
+- Development .env.local (cost-saving)
+- Production .env.production (security-focused)
+
+✅ **Schema Updates**
+- Step-by-step guide to update packages/env/src/server.ts
+- Complete validation implementation
+- Testing procedures
+
+✅ **Security Best Practices**
+- API key management principles
+- Environment-specific configuration
+- Secret rotation strategies
+- Access control and permissions
+- Rate limiting and audit logging
+
+---
+
+**Next Steps:**
+
+> **Next:** [7. Testing and Validation](#7-testing-and-validation)
+>
+> Learn how to test your AI provider integration, validate environment configuration, and ensure production readiness.
+
+---
+
+**Document Status:** 🚧 In Progress - Phase 3, Task 5 (Section 6 Complete)
 
 **Last Updated:** 2025-01-12
 **Contributors:** SambungChat Development Team
