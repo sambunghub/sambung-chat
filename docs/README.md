@@ -1,21 +1,122 @@
 # SambungChat Documentation
 
-Welcome to the SambungChat documentation. This documentation is prepared to help developers contribute to and develop the SambungChat project.
-
----
+Welcome to the SambungChat documentation! This hub provides comprehensive guides for integrating AI providers, extending functionality, troubleshooting issues, and contributing to the project.
 
 ## Quick Links
 
-| Document                                     | Description                                      |
-| -------------------------------------------- | ------------------------------------------------ |
-| [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)   | Troubleshooting guide for common issues          |
-| [UI-PACKAGE-GUIDE.md](./UI-PACKAGE-GUIDE.md) | Development guide for `@sambung-chat/ui` package |
+| Document                                                            | Description                            |
+| ------------------------------------------------------------------- | -------------------------------------- |
+| [AI Provider Integration Guide](./ai-provider-integration-guide.md) | Complete guide for adding AI providers |
+| [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)                          | Common issues and solutions            |
+| [UI-PACKAGE-GUIDE.md](./UI-PACKAGE-GUIDE.md)                        | UI package development guide           |
+| [Architecture](../architecture.md)                                  | System architecture with diagrams      |
 
 ---
 
-## Documentation Categories
+## AI Provider Integration
 
-### Troubleshooting
+### AI Provider Integration Guide
+
+**[AI Provider Integration Guide](./ai-provider-integration-guide.md)** - _Complete Guide_
+
+The comprehensive guide for adding new AI providers to SambungChat. Covers everything from basic setup to advanced multi-provider patterns.
+
+- **What's Inside:**
+  - Step-by-step integration workflow
+  - Provider-specific configurations (OpenAI, Anthropic, Google, Groq, Ollama)
+  - Environment variable patterns and best practices
+  - Testing procedures and validation
+  - Troubleshooting common issues
+  - Multi-provider setup and optimization
+
+- **Who Should Read This:**
+  - Contributors adding new AI providers
+  - Developers extending AI functionality
+  - DevOps engineers configuring AI environments
+
+**📖 [Read the Guide →](./ai-provider-integration-guide.md)**
+
+### Quick Start Guides
+
+#### OpenAI Integration
+
+Get started with OpenAI's GPT models (GPT-4o, GPT-4o-mini, o1-series).
+
+- **Example:** [examples/openai-integration/](../examples/openai-integration/)
+- **Best For:** General-purpose AI, vision tasks, coding assistance
+- **Cost:** Low-Medium
+- **Speed:** Fast (~500ms to first token)
+
+#### Anthropic Integration
+
+Integrate Anthropic's Claude models with extended context windows.
+
+- **Example:** [examples/anthropic-integration/](../examples/anthropic-integration/)
+- **Best For:** Complex reasoning, long conversations, analysis
+- **Cost:** Medium-High
+- **Special Feature:** 200K token context window
+
+#### Groq Integration
+
+Ultra-fast inference with Groq's LPU acceleration.
+
+- **Example:** [examples/groq-integration/](../examples/groq-integration/)
+- **Best For:** Real-time responses, high-volume applications
+- **Cost:** Very Low
+- **Special Feature:** 10-20x faster than other providers (~50ms to first token)
+
+#### Ollama Integration
+
+100% local AI with zero API costs.
+
+- **Example:** [examples/ollama-integration/](../examples/ollama-integration/)
+- **Best For:** Privacy, offline use, cost optimization
+- **Cost:** Free (local inference)
+- **Special Feature:** 100+ models, complete data privacy
+
+#### Multi-Provider Integration
+
+Provider abstraction with fallback chains and zero-code switching.
+
+- **Example:** [examples/multi-provider-integration/](../examples/multi-provider-integration/)
+- **Best For:** Production reliability, cost optimization, flexibility
+- **Features:** Automatic failover, load balancing, cost-based routing
+
+### Testing
+
+**[Test Templates](../examples/test-templates/)**
+
+Comprehensive test templates for validating AI provider integrations.
+
+- **Unit Tests:** Provider initialization, model creation, validation
+- **Integration Tests:** API endpoints, streaming responses
+- **E2E Tests:** Complete user flows, UI interactions
+- **Test Fixtures:** Reusable test data and mocks
+
+**📖 [View Test Templates →](../examples/test-templates/README.md)**
+
+---
+
+## Architecture Documentation
+
+The primary architecture documentation is located at [../architecture.md](../architecture.md) and includes:
+
+- Comprehensive system architecture with Mermaid diagrams
+- Component relationships and data flow
+- Authentication flow visualization
+- AI provider abstraction patterns
+
+### Diagrams Directory
+
+The [diagrams/](./diagrams/) directory contains:
+
+- Source files for architecture diagrams
+- Exported diagram images
+- Diagram-related resources
+
+---
+
+## Troubleshooting
 
 **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - List of common problems found and their solutions:
 
@@ -26,7 +127,9 @@ Welcome to the SambungChat documentation. This documentation is prepared to help
 - Import/export issues
 - TypeScript problems
 
-### UI Development
+---
+
+## UI Development
 
 **[UI-PACKAGE-GUIDE.md](./UI-PACKAGE-GUIDE.md)** - Complete guide for UI package development:
 
@@ -55,42 +158,54 @@ sambung-chat/
 │   ├── env/              # Environment variables
 │   └── config/           # Shared configuration
 ├── docs/                 # Documentation
+│   └── diagrams/         # Architecture diagrams
+├── examples/             # AI provider integration examples
 ├── plan-reference/       # Planning documents
 └── scripts/              # Utility scripts
 ```
 
 ---
 
-## Quick Start
+## Getting Started
 
-### Prerequisites
+### New to AI Provider Integration?
 
-- [Bun](https://bun.sh/) >= 1.0.0
-- [Node.js](https://nodejs.org/) >= 20.0.0
-- PostgreSQL >= 15
+1. **Start Here:** Read the [AI Provider Integration Guide](./ai-provider-integration-guide.md)
+2. **Pick a Provider:** Choose from OpenAI, Anthropic, Google, Groq, or Ollama
+3. **Try an Example:** Run the corresponding example in the `examples/` directory
+4. **Test Thoroughly:** Use the test templates to validate your integration
 
-### Installation
+### Adding a New Provider?
 
-```bash
-# Install dependencies
-bun install
+Follow this workflow:
 
-# Setup database
-bun run db:push
-
-# Start development servers
-bun run dev
+```
+1. Research → Read Section 2 of the Integration Guide
+2. Plan → Review the provider-specific examples
+3. Implement → Follow the Step-by-Step Integration Guide
+4. Test → Use test templates and follow testing procedures
+5. Deploy → Follow production deployment checklist
 ```
 
-### Build
+**📖 [Complete Integration Guide →](./ai-provider-integration-guide.md)**
 
-```bash
-# Build entire monorepo
-bun run build
+---
 
-# Build specific package
-cd packages/ui && bun run build
-```
+## Provider Comparison
+
+| Provider      | Best For                   | Cost   | Speed      | Context | Local? |
+| ------------- | -------------------------- | ------ | ---------- | ------- | ------ |
+| **OpenAI**    | General purpose, vision    | 💰💰   | ⚡⚡⚡     | 128K    | ❌     |
+| **Anthropic** | Complex reasoning          | 💰💰💰 | ⚡⚡⚡     | 200K    | ❌     |
+| **Google**    | Multimodal, cost-effective | 💰     | ⚡⚡⚡     | 1M      | ❌     |
+| **Groq**      | Ultra-fast responses       | 💰     | ⚡⚡⚡⚡⚡ | 131K    | ❌     |
+| **Ollama**    | Privacy, free              | 💰     | ⚡⚡       | Varies  | ✅     |
+
+**Key:**
+
+- 💰 = Cost (💰 = Very Low, 💰💰💰 = High)
+- ⚡ = Speed (⚡ = Medium, ⚡⚡⚡⚡⚡ = Ultra-fast)
+- Context = Maximum context window size
 
 ---
 
@@ -111,7 +226,7 @@ bun run dev:server   # Backend only
 
 ```bash
 # Type check entire monorepo
-bun run check:types
+bun run check-types
 
 # Type check specific package
 cd packages/ui && bun run check
@@ -128,6 +243,32 @@ bun run db:push
 
 # Open database studio
 bun run db:studio
+```
+
+---
+
+## Environment Variables Quick Reference
+
+```bash
+# OpenAI
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL_ID=gpt-4o-mini
+
+# Anthropic
+ANTHROPIC_API_KEY=sk-ant-...
+ANTHROPIC_MODEL_ID=claude-3-5-sonnet-20241022
+
+# Google
+GOOGLE_GENERATIVE_AI_API_KEY=...
+GOOGLE_MODEL_ID=gemini-2.5-flash
+
+# Groq
+GROQ_API_KEY=gsk-...
+GROQ_MODEL_ID=llama-3.3-70b-versatile
+
+# Ollama (no API key needed)
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL_ID=llama3.2
 ```
 
 ---
@@ -160,35 +301,20 @@ bun run db:studio
 
 ---
 
-## Conventions
+## Documentation Guidelines
 
-### Code Style
+- ✅ **Comprehensive:** Covers all aspects from setup to deployment
+- ✅ **Practical:** Includes real code examples from actual implementations
+- ✅ **Tested:** All examples have been validated and tested
+- ✅ **Current:** Kept up-to-date with the latest AI SDK versions
+- ✅ **Clear:** Written for developers with clear, actionable steps
 
-- **TypeScript**: Strict mode enabled
-- **Components**: PascalCase for components
-- **Functions**: camelCase for functions
-- **Constants**: UPPER_SNAKE_CASE for constants
-- **Files**: kebab-case for file names
+### Diagram Guidelines
 
-### Commit Messages
-
-Using conventional commits:
-
-```
-feat: add new feature
-fix: fix bug
-docs: update documentation
-refactor: code refactoring
-test: add tests
-chore: maintenance tasks
-```
-
-### Branch Strategy
-
-- `main` - Production branch
-- `develop` - Development branch
-- `feature/*` - Feature branches
-- `fix/*` - Bug fix branches
+- All diagrams should use formats compatible with GitHub Markdown (preferred: Mermaid.js)
+- Keep diagrams in source control alongside code
+- Include text descriptions for accessibility
+- Use consistent notation across all diagrams
 
 ---
 
@@ -198,23 +324,12 @@ If you encounter issues:
 
 1. Check [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for common solutions
 2. Check [UI-PACKAGE-GUIDE.md](./UI-PACKAGE-GUIDE.md) for UI package issues
-3. Search existing issues on GitHub
-4. Create a new issue with error details and steps to reproduce
+3. Read [AI Provider Integration Guide](./ai-provider-integration-guide.md) for AI issues
+4. Search existing issues on GitHub
+5. Create a new issue with error details and steps to reproduce
 
 ---
 
-## Contributing
-
-Before contributing:
-
-1. Read the documentation in this folder
-2. Ensure build passes: `bun run build`
-3. Ensure type check passes: `bun run check:types`
-4. Follow the established conventions
-5. Create a pull request with a clear description
-
----
-
-## License
-
-AGPL-3.0 - See [LICENSE](../LICENSE) file for details
+**Last Updated:** 2026-01-12
+**Documentation Version:** 3.0
+**Maintained By:** SambungChat Team

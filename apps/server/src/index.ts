@@ -77,15 +77,15 @@ app.use('/*', async (c, next) => {
 // Create OpenAI-compatible client
 const openai = createOpenAICompatible({
   name: 'openai-compatible',
-  baseURL: env.OPENAI_BASE_URL,
-  apiKey: env.OPENAI_API_KEY,
+  baseURL: env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1',
+  apiKey: env.OPENAI_API_KEY ?? '',
 });
 
 app.post('/ai', async (c) => {
   const body = await c.req.json();
   const uiMessages = body.messages || [];
   const model = wrapLanguageModel({
-    model: openai(env.OPENAI_MODEL),
+    model: openai(env.OPENAI_MODEL ?? 'gpt-4o-mini'),
     middleware: devToolsMiddleware(),
   });
   const result = streamText({

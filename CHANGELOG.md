@@ -9,56 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **License**
-  - Add AGPL-3.0 license for open-source compliance
+- **AI Provider Integration**
+  - Add comprehensive multi-provider AI support (OpenAI, Anthropic, Google, Groq, Ollama)
+  - Add AI Provider Integration Guide ([docs/ai-provider-integration-guide.md](docs/ai-provider-integration-guide.md))
+  - Add provider validation with automatic fallback chains
+  - Add support for custom base URLs and provider-specific configurations
 
-- **Code Quality & Developer Experience**
-  - Setup ESLint with TypeScript and Svelte support
-  - Setup Prettier with Svelte plugin for consistent formatting
-  - Setup Husky pre-commit hooks with lint-staged
-  - Add lint and format scripts to package.json
-  - Configure automated code formatting on commit
+- **Architecture Documentation**
+  - Add comprehensive architecture documentation with 35+ Mermaid diagrams ([architecture.md](architecture.md))
+  - Add diagrams directory for architecture visualization assets
+  - Document authentication flow, AI provider abstraction, and component relationships
 
-- **Documentation**
-  - Add comprehensive troubleshooting guide (TROUBLESHOOTING.md)
-  - Add UI package development guide (UI-PACKAGE-GUIDE.md)
-  - Create hierarchical AGENTS.md files for AI agents
-    - Root AGENTS.md with JIT index and quick commands
-    - packages/ui/AGENTS.md with UI-specific patterns
-    - apps/web/AGENTS.md with SvelteKit patterns
-    - apps/server/AGENTS.md with Hono patterns
-    - packages/api/AGENTS.md with ORPC patterns
-    - packages/db/AGENTS.md with Drizzle patterns
-
-- **Status Tracking**
-  - Implement file-based progress tracking system
-  - Add STATUS.md with auto-generated progress from .status/config.json
-  - Create scripts for status management (update, pending, blocked)
-  - Track 59 tasks across 12 weeks of development
-
-### Fixed
-
-- **Build Errors**
-  - Fix lucide-svelte import to use @lucide/svelte package
-  - Fix Svelte 5 runes issues (use let instead of const with $state)
-  - Replace @apply directives with CSS variables for Tailwind v4 compatibility
-  - Fix auth component export path resolution
-  - Move auth components to src/lib/components/auth for proper build scope
-  - Add tw-animate-css plugin to Tailwind config
-
-### Changed
-
-- **Documentation Structure**
-  - plan-reference/ established as source of truth for project planning
-  - docs/ for public-facing documentation
-  - Implement sync mechanism between plan-reference and docs
-
-- **Developer Workflow**
-  - Pre-commit hooks now mandatory - code must pass linting before commit
-  - TypeScript check required before build (bun run check + npx svelte-check)
-  - Auto-formatting applied to all committed files
-
-### Added
+- **CI/CD Improvements**
+  - Add helpful PR title validation with English error examples
+  - Consolidate duplicate CI workflows (pr.yml merged into ci.yml)
+  - Add sequential job dependencies (type-check → lint → build)
 
 - **UI Package with shadcn-svelte Integration**
   - Integrate shadcn-svelte component library into monorepo
@@ -128,7 +93,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add important notices and development guidelines
   - ORPC implementation reference guide
 
+- **Documentation**
+  - Add comprehensive troubleshooting guide (TROUBLESHOOTING.md)
+  - Add UI package development guide (UI-PACKAGE-GUIDE.md)
+  - Create hierarchical AGENTS.md files for AI agents
+    - Root AGENTS.md with JIT index and quick commands
+    - packages/ui/AGENTS.md with UI-specific patterns
+    - apps/web/AGENTS.md with SvelteKit patterns
+    - apps/server/AGENTS.md with Hono patterns
+    - packages/api/AGENTS.md with ORPC patterns
+    - packages/db/AGENTS.md with Drizzle patterns
+
+- **Status Tracking**
+  - Implement file-based progress tracking system
+  - Add STATUS.md with auto-generated progress from .status/config.json
+  - Create scripts for status management (update, pending, blocked)
+  - Track 59 tasks across 12 weeks of development
+
+- **Code Quality & Developer Experience**
+  - Set up ESLint with TypeScript and Svelte support
+  - Set up Prettier with Svelte plugin for consistent formatting
+  - Set up Husky pre-commit hooks with lint-staged
+  - Add lint and format scripts to package.json
+  - Configure automated code formatting on commit
+
+- **License**
+  - Add AGPL-3.0 license for open-source compliance
+
 ### Changed
+
+- **Environment Variables**
+  - Replace $env/dynamic/public with $env/static/public for better build optimization
+  - Add PUBLIC_SERVER_URL to CI build environment variables
+
+- **Documentation Structure**
+  - plan-reference/ established as source of truth for project planning
+  - docs/ for public-facing documentation
+  - Implement sync mechanism between plan-reference and docs
+
+- **Developer Workflow**
+  - Pre-commit hooks now mandatory - code must pass linting before commit
+  - TypeScript check required before build (bun run check + npx svelte-check)
+  - Auto-formatting applied to all committed files
 
 - **Monorepo Configuration**
   - Update apps/web/vite.config.ts to consume pre-built UI package from dist
@@ -145,6 +151,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Centralize component management in UI package
 
 ### Fixed
+
+- **Husky Pre-commit Hook**
+  - Remove deprecated shebang and source lines for Husky v9+ compatibility
+  - Fix lint-staged formatting warning for `*.{svelte}` pattern
+
+- **Code Quality**
+  - Add ESLint ignores for examples/, test scripts, and report files
+  - Add .prettierignore for examples/ directory
+  - Fix ESLint no-case-declarations errors in provider-factory.ts
+
+- **Build Errors**
+  - Fix lucide-svelte import to use @lucide/svelte package
+  - Fix Svelte 5 runes issues (use let instead of const with $state)
+  - Replace @apply directives with CSS variables for Tailwind v4 compatibility
+  - Fix auth component export path resolution
+  - Move auth components to src/lib/components/auth for proper build scope
+  - Add tw-animate-css plugin to Tailwind config
 
 - **Module Resolution in Monorepo**
   - Resolve $lib/utils import error during SSR by using svelte-package pre-build approach
