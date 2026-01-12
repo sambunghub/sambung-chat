@@ -13,6 +13,7 @@ export default [
       '**/node_modules/**',
       '**/*.d.ts',
       '.turbo/**',
+      '.auto-claude/**',
     ],
   },
   js.configs.recommended,

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { PUBLIC_SERVER_URL } from '$env/dynamic/public';
+  import { PUBLIC_SERVER_URL } from '$env/static/public';
   import { Chat } from '@ai-sdk/svelte';
   import { DefaultChatTransport } from 'ai';
 
