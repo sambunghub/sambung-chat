@@ -96,6 +96,24 @@ jobs:
             config
             env
           requireScope: false
+          # Custom error message with examples
+          error: |
+            PR title format is invalid. Please use conventional commit format.
+
+            Examples of valid PR titles:
+            - fix: resolve build error
+            - feat: add user authentication
+            - docs: update API documentation
+            - refactor: optimize database queries
+            - feat(web): add responsive layout
+            - fix(api): handle edge case in login
+
+            Format: <type>: <description>
+            - Use lowercase type (fix, not Fix)
+            - Use colon : after type (not /)
+            - Optional scope in parentheses: <type>(<scope>): <description>
+
+            For more info: https://www.conventionalcommits.org/
 
   # Test job - optional for now (no tests configured yet)
   # Uncomment when tests are properly set up
