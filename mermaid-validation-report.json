@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-01-12T11:27:16.650Z",
+  "totalDiagrams": 35,
+  "criticalIssues": 0,
+  "warnings": [
+    "Diagram #3 (line 246): Class diagram with no classes",
+    "Diagram #4 (line 276): Sequence diagram with no participants",
+    "Diagram #5 (line 303): Sequence diagram with no participants",
+    "Diagram #11 (line 1064): Very large (151 lines) - May render slowly or timeout",
+    "Diagram #12 (line 1515): Many special characters (60) - Ensure UTF-8 encoding",
+    "Diagram #12 (line 1515): Class diagram with no classes",
+    "Diagram #13 (line 1640): Class diagram with no classes",
+    "Diagram #14 (line 1782): Class diagram with no classes",
+    "Diagram #15 (line 2098): Sequence diagram with no participants",
+    "Diagram #16 (line 2160): Has 1 very long lines (>200 chars) - May overflow horizontally",
+    "Diagram #16 (line 2160): Sequence diagram with no participants",
+    "Diagram #17 (line 2309): Sequence diagram with no participants",
+    "Diagram #20 (line 2805): Sequence diagram with no participants",
+    "Diagram #22 (line 2895): Sequence diagram with no participants",
+    "Diagram #23 (line 2980): Sequence diagram with no participants",
+    "Diagram #24 (line 3164): Sequence diagram with no participants",
+    "Diagram #25 (line 3245): Sequence diagram with no participants",
+    "Diagram #26 (line 3311): Sequence diagram with no participants",
+    "Diagram #27 (line 3390): Sequence diagram with no participants",
+    "Diagram #28 (line 3515): Very large (132 lines) - May render slowly or timeout",
+    "Diagram #28 (line 3515): Sequence diagram with no participants",
+    "Diagram #31 (line 4852): Sequence diagram with no participants",
+    "Diagram #34 (line 5649): Many special characters (105) - Ensure UTF-8 encoding"
+  ],
+  "diagramTypes": {
+    "flowchart": 15,
+    "classDiagram": 4,
+    "sequenceDiagram": 14,
+    "stateDiagram": 2
+  },
+  "issues": []
+}

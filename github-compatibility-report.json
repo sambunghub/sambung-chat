@@ -1,0 +1,75 @@
+{
+  "timestamp": "2026-01-12T11:28:04.150Z",
+  "totalDiagrams": 35,
+  "githubCompatible": false,
+  "errors": 8,
+  "warnings": 2,
+  "diagramTypes": {
+    "flowchart": 15,
+    "classDiagram": 4,
+    "sequenceDiagram": 14,
+    "stateDiagram": 2
+  },
+  "issues": [
+    {
+      "diagram": 12,
+      "line": 1515,
+      "issue": "Contains 21 emojis - GitHub supports emojis but rendering may vary",
+      "severity": "info"
+    },
+    {
+      "diagram": 34,
+      "line": 5649,
+      "issue": "Contains 37 emojis - GitHub supports emojis but rendering may vary",
+      "severity": "info"
+    },
+    {
+      "diagram": 6,
+      "line": 349,
+      "issue": "Unclosed subgraph: 2 subgraphs, 0 end statements",
+      "severity": "error"
+    },
+    {
+      "diagram": 8,
+      "line": 706,
+      "issue": "Unclosed subgraph: 4 subgraphs, 0 end statements",
+      "severity": "error"
+    },
+    {
+      "diagram": 9,
+      "line": 899,
+      "issue": "Unclosed subgraph: 4 subgraphs, 0 end statements",
+      "severity": "error"
+    },
+    {
+      "diagram": 10,
+      "line": 990,
+      "issue": "Unclosed subgraph: 6 subgraphs, 0 end statements",
+      "severity": "error"
+    },
+    {
+      "diagram": 11,
+      "line": 1064,
+      "issue": "Unclosed subgraph: 8 subgraphs, 0 end statements",
+      "severity": "error"
+    },
+    {
+      "diagram": 18,
+      "line": 2561,
+      "issue": "Unclosed subgraph: 3 subgraphs, 0 end statements",
+      "severity": "error"
+    },
+    {
+      "diagram": 29,
+      "line": 3948,
+      "issue": "Unclosed subgraph: 4 subgraphs, 0 end statements",
+      "severity": "error"
+    },
+    {
+      "diagram": 30,
+      "line": 4126,
+      "issue": "Unclosed subgraph: 5 subgraphs, 0 end statements",
+      "severity": "error"
+    }
+  ]
+}
