@@ -1,0 +1,11 @@
+# This directory will contain architecture diagrams
+
+Diagrams will be added in subsequent subtasks including:
+- Monorepo structure diagrams
+- Component interaction flows
+- Database ERD diagrams
+- Authentication sequence diagrams
+- API request flow diagrams
+- Data flow diagrams
+
+All diagrams will use Mermaid.js for GitHub Markdown compatibility.

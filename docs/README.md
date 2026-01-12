@@ -9,7 +9,7 @@ Welcome to the SambungChat documentation! This hub provides comprehensive guides
 | [AI Provider Integration Guide](./ai-provider-integration-guide.md) | Complete guide for adding AI providers |
 | [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)                          | Common issues and solutions            |
 | [UI-PACKAGE-GUIDE.md](./UI-PACKAGE-GUIDE.md)                        | UI package development guide           |
-| [Architecture](./architecture.md)                                   | System architecture with diagrams      |
+| [Architecture](../architecture.md)                                  | System architecture with diagrams      |
 
 ---
 
@@ -97,6 +97,25 @@ Comprehensive test templates for validating AI provider integrations.
 
 ---
 
+## Architecture Documentation
+
+The primary architecture documentation is located at [../architecture.md](../architecture.md) and includes:
+
+- Comprehensive system architecture with Mermaid diagrams
+- Component relationships and data flow
+- Authentication flow visualization
+- AI provider abstraction patterns
+
+### Diagrams Directory
+
+The [diagrams/](./diagrams/) directory contains:
+
+- Source files for architecture diagrams
+- Exported diagram images
+- Diagram-related resources
+
+---
+
 ## Troubleshooting
 
 **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - List of common problems found and their solutions:
@@ -139,6 +158,7 @@ sambung-chat/
 │   ├── env/              # Environment variables
 │   └── config/           # Shared configuration
 ├── docs/                 # Documentation
+│   └── diagrams/         # Architecture diagrams
 ├── examples/             # AI provider integration examples
 ├── plan-reference/       # Planning documents
 └── scripts/              # Utility scripts
@@ -281,6 +301,23 @@ OLLAMA_MODEL_ID=llama3.2
 
 ---
 
+## Documentation Guidelines
+
+- ✅ **Comprehensive:** Covers all aspects from setup to deployment
+- ✅ **Practical:** Includes real code examples from actual implementations
+- ✅ **Tested:** All examples have been validated and tested
+- ✅ **Current:** Kept up-to-date with the latest AI SDK versions
+- ✅ **Clear:** Written for developers with clear, actionable steps
+
+### Diagram Guidelines
+
+- All diagrams should use formats compatible with GitHub Markdown (preferred: Mermaid.js)
+- Keep diagrams in source control alongside code
+- Include text descriptions for accessibility
+- Use consistent notation across all diagrams
+
+---
+
 ## Getting Help
 
 If you encounter issues:
@@ -293,18 +330,6 @@ If you encounter issues:
 
 ---
 
-## Documentation Standards
-
-Our documentation follows these principles:
-
-- ✅ **Comprehensive:** Covers all aspects from setup to deployment
-- ✅ **Practical:** Includes real code examples from actual implementations
-- ✅ **Tested:** All examples have been validated and tested
-- ✅ **Current:** Kept up-to-date with the latest AI SDK versions
-- ✅ **Clear:** Written for developers with clear, actionable steps
-
----
-
 **Last Updated:** 2026-01-12
-**Documentation Version:** 2.0
+**Documentation Version:** 3.0
 **Maintained By:** SambungChat Team
