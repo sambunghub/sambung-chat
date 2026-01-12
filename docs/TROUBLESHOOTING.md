@@ -1,6 +1,6 @@
 # Troubleshooting Guide - SambungChat
 
-Dokumentasi ini berisi masalah-masalah umum yang ditemukan selama pengembangan dan cara penyelesaiannya.
+This documentation contains common problems encountered during development and their solutions.
 
 ---
 
@@ -26,10 +26,10 @@ Cannot apply unknown utility class `text-muted-foreground`. Are you using CSS mo
 ```
 
 **Cause:**
-Menggunakan `@apply` directive dengan custom color classes di dalam `<style>` block pada Tailwind CSS v4.
+Using `@apply` directive with custom color classes inside `<style>` blocks in Tailwind CSS v4.
 
 **Solution:**
-Gunakan CSS variables secara langsung:
+Use CSS variables directly:
 
 ```svelte
 <!-- DON'T -->
@@ -60,10 +60,10 @@ Rollup failed to resolve import "lucide-svelte" from ".../packages/ui/dist/compo
 ```
 
 **Cause:**
-Package dependency menggunakan `@lucide/svelte` tapi import statement menggunakan `lucide-svelte` (package lama).
+Package dependency uses `@lucide/svelte` but import statement uses `lucide-svelte` (old package).
 
 **Solution:**
-Selalu gunakan package name yang sesuai dengan `package.json`:
+Always use the package name that matches `package.json`:
 
 ```typescript
 // DON'T
@@ -73,7 +73,7 @@ import { Icon } from 'lucide-svelte';
 import { Icon } from '@lucide/svelte';
 ```
 
-**Reference:** `packages/ui/package.json:21` (gunakan dependency yang terdaftar)
+**Reference:** `packages/ui/package.json:21` (use registered dependency)
 
 ---
 
@@ -87,7 +87,7 @@ at isTablet = window.innerWidth >= 768
 ```
 
 **Cause:**
-Menggunakan `const` dengan `$state` di Svelte 5 runes. Variable yang menggunakan `$state` harus bisa di-reassign.
+Using `const` with `$state` in Svelte 5 runes. Variables using `$state` must be reassignable.
 
 **Solution:**
 
@@ -109,7 +109,7 @@ Menggunakan `const` dengan `$state` di Svelte 5 runes. Variable yang menggunakan
 
 ### $state Variables Must Use `let`
 
-Semua reactive variables yang menggunakan `$state()` harus dideklarasikan dengan `let` bukan `const`.
+All reactive variables using `$state()` must be declared with `let` not `const`.
 
 ```svelte
 <script lang="ts">
@@ -128,7 +128,7 @@ Semua reactive variables yang menggunakan `$state()` harus dideklarasikan dengan
 
 ### Component Props with $props
 
-Gunakan `$props()` untuk component props:
+Use `$props()` for component props:
 
 ```svelte
 <script lang="ts">
@@ -143,10 +143,10 @@ Gunakan `$props()` untuk component props:
 
 ### Derived State with $derived
 
-Gunakan `$derived` untuk computed values:
+Use `$derived` for computed values:
 
 ```svelte
-<script lang="ts>
+<script lang="ts">
   let count = $state(0);
   let doubled = $derived(count * 2);
 
@@ -163,7 +163,7 @@ Gunakan `$derived` untuk computed values:
 
 ### Custom Colors in <style> Blocks
 
-Tailwind CSS v4 tidak mendukung `@apply` dengan custom color utilities di dalam `<style>` blocks. Gunakan CSS variables:
+Tailwind CSS v4 does not support `@apply` with custom color utilities in `<style>` blocks. Use CSS variables:
 
 **Available CSS Variables:**
 
@@ -210,13 +210,13 @@ border-radius: calc(var(--radius) - 4px); /* sm */
 
 ### Animation Classes
 
-Untuk animasi, pastikan plugin `tw-animate-css` terinstall di `package.json`:
+For animations, ensure `tw-animate-css` plugin is installed in `package.json`:
 
 ```bash
 bun add -D tw-animate-css
 ```
 
-Tambahkan ke `tailwind.config.js`:
+Add to `tailwind.config.js`:
 
 ```javascript
 export default {
@@ -232,7 +232,7 @@ export default {
 
 ### svelte-package Build Scope
 
-`svelte-package` **hanya membuild** folder `src/lib/` secara default. File di luar `src/lib/` tidak akan dimasukkan ke dalam `dist/`.
+`svelte-package` **only builds** the `src/lib/` folder by default. Files outside `src/lib/` will not be included in `dist/`.
 
 **Structure:**
 
@@ -251,7 +251,7 @@ packages/ui/
 ```
 
 **Solution:**
-Selalu letakkan component/library code di dalam `src/lib/`:
+Always place component/library code inside `src/lib/`:
 
 ```bash
 # DON'T - outside lib
@@ -267,7 +267,7 @@ packages/ui/src/lib/components/auth/
 
 ### Export Paths in lib/index.ts
 
-Export paths di `lib/index.ts` harus relative terhadap lokasi file tersebut:
+Export paths in `lib/index.ts` must be relative to that file's location:
 
 ```typescript
 // packages/ui/src/lib/index.ts
@@ -284,7 +284,7 @@ export * from '../../components/auth/index';
 
 ### Package Dependencies
 
-Selalu cek `package.json` untuk memastikan package dependency terdaftar:
+Always check `package.json` to ensure package dependencies are registered:
 
 ```bash
 # Check package dependencies
@@ -317,10 +317,10 @@ SyntaxError: The requested module contains conflicting star exports for name 'He
 ```
 
 **Cause:**
-Dua component dengan nama export yang sama.
+Two components with the same export name.
 
 **Solution:**
-Gunakan alias untuk salah satu export:
+Use an alias for one of the exports:
 
 ```typescript
 // packages/ui/src/lib/components/layout/index.ts
@@ -336,7 +336,7 @@ import { LayoutHeader } from '@sambung-chat/ui';
 
 ### Re-exports from Barrels
 
-Gunakan barrel exports (`index.ts`) untuk group exports:
+Use barrel exports (`index.ts`) to group exports:
 
 ```typescript
 // packages/ui/src/lib/components/auth/index.ts
@@ -355,7 +355,7 @@ export * from './components/ui/index';
 
 ### Type Imports for Svelte Components
 
-Gunakan `type` keyword untuk type-only imports:
+Use `type` keyword for type-only imports:
 
 ```typescript
 import type { Snippet } from 'svelte';
@@ -399,15 +399,15 @@ cat packages/ui/package.json | grep -A 10 "exports"
 
 ## Pre-PR Checklist
 
-Sebelum membuat PR, pastikan:
+Before creating a PR, ensure:
 
 - [ ] Build passes: `bun run build`
 - [ ] Type check passes: `bun run check:types`
-- [ ] No `@apply` dengan custom colors di `<style>` blocks
-- [ ] Semua imports menggunakan package name yang benar
-- [ ] `$state` variables menggunakan `let` bukan `const`
-- [ ] Component exports di `src/lib/` untuk svelte-package
-- [ ] Tidak ada named export conflicts
+- [ ] No `@apply` with custom colors in `<style>` blocks
+- [ ] All imports use correct package names
+- [ ] `$state` variables use `let` not `const`
+- [ ] Component exports are in `src/lib/` for svelte-package
+- [ ] No named export conflicts
 
 ---
 

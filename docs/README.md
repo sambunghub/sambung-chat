@@ -1,23 +1,23 @@
 # SambungChat Documentation
 
-Selamat datang di dokumentasi SambungChat. Dokumentasi ini disusun untuk membantu developer berkontribusi dan mengembangkan project SambungChat.
+Welcome to the SambungChat documentation. This documentation is prepared to help developers contribute to and develop the SambungChat project.
 
 ---
 
 ## Quick Links
 
-| Dokumen                                      | Deskripsi                                       |
-| -------------------------------------------- | ----------------------------------------------- |
-| [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)   | Panduan troubleshooting masalah umum            |
-| [UI-PACKAGE-GUIDE.md](./UI-PACKAGE-GUIDE.md) | Panduan pengembangan `@sambung-chat/ui` package |
+| Document                                     | Description                                      |
+| -------------------------------------------- | ------------------------------------------------ |
+| [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)   | Troubleshooting guide for common issues          |
+| [UI-PACKAGE-GUIDE.md](./UI-PACKAGE-GUIDE.md) | Development guide for `@sambung-chat/ui` package |
 
 ---
 
-## Kategori Dokumentasi
+## Documentation Categories
 
-### 🚨 Troubleshooting
+### Troubleshooting
 
-**[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - Daftar masalah umum yang ditemukan dan cara penyelesaiannya:
+**[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - List of common problems found and their solutions:
 
 - Build errors
 - Svelte 5 runes issues
@@ -26,13 +26,13 @@ Selamat datang di dokumentasi SambungChat. Dokumentasi ini disusun untuk membant
 - Import/export issues
 - TypeScript problems
 
-### 🎨 UI Development
+### UI Development
 
-**[UI-PACKAGE-GUIDE.md](./UI-PACKAGE-GUIDE.md)** - Panduan lengkap pengembangan UI package:
+**[UI-PACKAGE-GUIDE.md](./UI-PACKAGE-GUIDE.md)** - Complete guide for UI package development:
 
-- Package structure dan golden rules
+- Package structure and golden rules
 - Creating new components
-- Working with styles dan CSS variables
+- Working with styles and CSS variables
 - Common patterns
 - Export best practices
 - Testing locally
@@ -136,7 +136,7 @@ bun run db:studio
 
 ### Frontend
 
-- **Framework**: SvelteKit 5 dengan Svelte 5 Runes
+- **Framework**: SvelteKit 5 with Svelte 5 Runes
 - **Styling**: TailwindCSS v4
 - **UI Components**: shadcn-svelte, Bits UI
 - **Icons**: Lucide Svelte
@@ -165,14 +165,14 @@ bun run db:studio
 ### Code Style
 
 - **TypeScript**: Strict mode enabled
-- **Components**: PascalCase untuk components
-- **Functions**: camelCase untuk functions
-- **Constants**: UPPER_SNAKE_CASE untuk constants
-- **Files**: kebab-case untuk file names
+- **Components**: PascalCase for components
+- **Functions**: camelCase for functions
+- **Constants**: UPPER_SNAKE_CASE for constants
+- **Files**: kebab-case for file names
 
 ### Commit Messages
 
-Menggunakan conventional commits:
+Using conventional commits:
 
 ```
 feat: add new feature
@@ -194,24 +194,24 @@ chore: maintenance tasks
 
 ## Getting Help
 
-Jika mengalami masalah:
+If you encounter issues:
 
-1. Cek [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) untuk solusi umum
-2. Cek [UI-PACKAGE-GUIDE.md](./UI-PACKAGE-GUIDE.md) untuk masalah UI package
-3. Search existing issues di GitHub
-4. Buat issue baru dengan detail error dan steps to reproduce
+1. Check [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for common solutions
+2. Check [UI-PACKAGE-GUIDE.md](./UI-PACKAGE-GUIDE.md) for UI package issues
+3. Search existing issues on GitHub
+4. Create a new issue with error details and steps to reproduce
 
 ---
 
 ## Contributing
 
-Sebelum berkontribusi:
+Before contributing:
 
-1. Bacalah dokumentasi di folder ini
-2. Pastikan build passes: `bun run build`
-3. Pastikan type check passes: `bun run check:types`
-4. Ikuti conventions yang sudah ditetapkan
-5. Buat pull request dengan description yang jelas
+1. Read the documentation in this folder
+2. Ensure build passes: `bun run build`
+3. Ensure type check passes: `bun run check:types`
+4. Follow the established conventions
+5. Create a pull request with a clear description
 
 ---
 
