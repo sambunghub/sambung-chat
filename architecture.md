@@ -43,6 +43,13 @@ This document provides comprehensive architecture documentation for the SambungC
      - [Delete Todo Operation](#delete-todo-operation)
    - [Error Handling Flow](#error-handling-flow)
 8. [Data Flow](#data-flow)
+   - [System-Level Data Flow Overview](#system-level-data-flow-overview)
+   - [Data Flow Layers Explained](#data-flow-layers-explained)
+   - [Bidirectional Data Flow Summary](#bidirectional-data-flow-summary)
+   - [Data Flow Characteristics](#data-flow-characteristics)
+   - [Data Flow Examples](#data-flow-examples)
+   - [Data Integrity Layers](#data-integrity-layers)
+   - [Data Flow Best Practices](#data-flow-best-practices)
 9. [Development Workflow](#development-workflow)
 10. [Design Decisions](#design-decisions)
 11. [Contributor Onboarding](#contributor-onboarding)
@@ -3163,86 +3170,344 @@ if (error) {
 
 ## Data Flow
 
-### System-Level Data Flow
+### System-Level Data Flow Overview
+
+The following diagram provides a high-level view of how data flows through the SambungChat application, showing the bidirectional movement of data between frontend, API, authentication, and database layers.
 
 ```mermaid
 flowchart TB
-    subgraph Input["User Input"]
+    subgraph Frontend ["🌐 Frontend Layer (SvelteKit)"]
+        direction TB
         UI[User Interface]
-        Form[Form Submission]
+        State[Client State<br/>Svelte Stores]
+        Validation[Client Validation<br/>Zod Schemas]
+        ORPCClient[ORPC Client<br/>Type-Safe RPC]
     end
 
-    subgraph Frontend["Frontend Processing"]
-        Validation[Client Validation]
-        ORPCClient[ORPC Client]
+    subgraph Network ["📡 Network Layer"]
+        HTTPS[HTTPS<br/>Encrypted Transport]
+        Cookies[Session Cookies<br/>HttpOnly, Secure]
     end
 
-    subgraph Transport["Network Layer"]
-        HTTP[HTTP/HTTPS]
+    subgraph Backend ["⚡ Backend Layer (Hono + ORPC)"]
+        direction TB
+        HonoServer[Hono Server<br/>Middleware Chain]
+        CORS[CORS Middleware]
+        AuthMiddleware[Auth Middleware<br/>requireAuth]
+        ORPCRouter[ORPC Router<br/>Route Matching]
+        Procedures[API Procedures<br/>Business Logic]
     end
 
-    subgraph Backend["Backend Processing"]
-        HonoServer[Hono Server]
-        AuthMW[Auth Middleware]
-        Procedure[API Procedure]
+    subgraph Auth ["🔐 Authentication Layer"]
+        direction TB
+        BetterAuth[Better-Auth Handler<br/>/api/auth/*]
+        SessionMgmt[Session Management<br/>Token Generation]
+        UserValidation[User Validation<br/>Password Verification]
     end
 
-    subgraph Business["Business Logic"]
-        AuthService[Auth Service]
-        AppService[App Service]
+    subgraph Database ["💾 Data Layer (PostgreSQL)"]
+        direction TB
+        Drizzle[Drizzle ORM<br/>Type-Safe Queries]
+        AuthSchema[(Auth Schema<br/>user, session, account)]
+        AppSchema[(App Schema<br/>todo, etc.)]
+        SQL[SQL Engine<br/>ACID Transactions]
     end
 
-    subgraph Data["Data Access"]
-        DrizzleORM[Drizzle ORM]
-        SQL[SQL Query]
-        PostgreSQL[(Database)]
-    end
-
-    subgraph Output["Response Processing"]
-        Response[Response Formatting]
-        UIUpdate[UI Update]
-    end
-
+    %% Request Flow (Left to Right)
     UI --> Validation
-    Form --> Validation
     Validation --> ORPCClient
-    ORPCClient -->|Request| HTTP
-    HTTP --> HonoServer
-    HonoServer --> AuthMW
-    AuthMW --> Procedure
-    Procedure --> AuthService
-    Procedure --> AppService
-    AuthService --> DrizzleORM
-    AppService --> DrizzleORM
-    DrizzleORM --> SQL
-    SQL --> PostgreSQL
-    PostgreSQL -->|Result| SQL
-    SQL --> DrizzleORM
-    DrizzleORM --> AuthService
-    DrizzleORM --> AppService
-    AuthService --> Procedure
-    AppService --> Procedure
-    Procedure --> Response
-    Response --> HTTP
-    HTTP --> ORPCClient
-    ORPCClient --> UIUpdate
-    UIUpdate --> UI
+    ORPCClient -->|POST /rpc/*| HTTPS
+    HTTPS --> HonoServer
+    HonoServer --> CORS
+    CORS --> AuthMiddleware
+    AuthMiddleware -->|Session Check| BetterAuth
+    BetterAuth -->|Session Token| SessionMgmt
+    SessionMgmt -->|Read Session| Drizzle
+    Drizzle -->|SELECT token| AuthSchema
+    AuthSchema -->|Session Data| SQL
+    SQL --> Drizzle
 
-    classDef input fill:#3b82f6,stroke:#1d4ed8,color:#fff
-    classDef frontend fill:#8b5cf6,stroke:#6d28d9,color:#fff
-    classDef transport fill:#6b7280,stroke:#374151,color:#fff
-    classDef backend fill:#f59e0b,stroke:#d97706,color:#fff
-    classDef business fill:#10b981,stroke:#059669,color:#fff
-    classDef data fill:#ef4444,stroke:#dc2626,color:#fff
-    classDef output fill:#ec4899,stroke:#be185d,color:#fff
+    %% Response Flow (Right to Left) - Return paths
+    SQL --> AuthSchema
+    AuthSchema --> Drizzle
+    Drizzle --> SessionMgmt
+    SessionMgmt --> BetterAuth
+    BetterAuth -->|User Data| AuthMiddleware
+    AuthMiddleware --> ORPCRouter
+    ORPCRouter --> Procedures
+    Procedures -->|Business Logic| Drizzle
+    Drizzle -->|CRUD Operations| SQL
+    SQL -->|Query Results| Drizzle
+    Drizzle --> Procedures
+    Procedures --> ORPCRouter
+    ORPCRouter --> HonoServer
+    HonoServer -->|JSON Response| HTTPS
+    HTTPS --> ORPCClient
+    ORPCClient --> State
+    State --> UI
 
-    class UI,Form input
-    class Validation,ORPCClient frontend
-    class HTTP transport
-    class HonoServer,AuthMW,Procedure backend
-    class AuthService,AppService business
-    class DrizzleORM,SQL,PostgreSQL data
-    class Response,UIUpdate output
+    %% Direct Auth Flow (Login/Logout)
+    UI -.->|Sign In/Sign Out| BetterAuth
+    BetterAuth -.->|Validate Credentials| UserValidation
+    UserValidation -.->|Verify Password| Drizzle
+    Drizzle -.->|SELECT user| AuthSchema
+    AuthSchema -.-> SQL
+
+    %% Styling
+    classDef frontendStyle fill:#3b82f6,stroke:#1d4ed8,color:#fff,stroke-width:2px
+    classDef networkStyle fill:#6b7280,stroke:#374151,color:#fff,stroke-width:2px
+    classDef backendStyle fill:#f59e0b,stroke:#d97706,color:#fff,stroke-width:2px
+    classDef authStyle fill:#8b5cf6,stroke:#6d28d9,color:#fff,stroke-width:2px
+    classDef databaseStyle fill:#10b981,stroke:#059669,color:#fff,stroke-width:2px
+
+    class UI,State,Validation,ORPCClient frontendStyle
+    class HTTPS,Cookies networkStyle
+    class HonoServer,CORS,AuthMiddleware,ORPCRouter,Procedures backendStyle
+    class BetterAuth,SessionMgmt,UserValidation authStyle
+    class Drizzle,AuthSchema,AppSchema,SQL databaseStyle
+```
+
+### Data Flow Layers Explained
+
+#### 1. Frontend Layer (🌐 SvelteKit)
+
+**Purpose:** User interface and client-side state management
+
+**Data Flow:**
+- **Input:** User actions (clicks, form submissions, navigation)
+- **Processing:**
+  - Client-side validation using Zod schemas
+  - State management with Svelte stores
+  - Type-safe API calls via ORPC client
+- **Output:** HTTP requests to backend
+
+**Key Technologies:**
+- SvelteKit for reactive UI
+- ORPC client for type-safe RPC calls
+- Zod for runtime validation
+- Svelte stores for state management
+
+**Data Types:**
+- User input (forms, clicks)
+- Client state (session, UI state)
+- Validated requests (type-safe payloads)
+
+#### 2. Network Layer (📡 HTTPS)
+
+**Purpose:** Secure data transport between frontend and backend
+
+**Data Flow:**
+- **Request:** Encrypted HTTPS with JSON payloads
+- **Session Management:** HTTP-only, Secure cookies
+- **Response:** JSON responses with HTTP status codes
+
+**Security Features:**
+- TLS/SSL encryption
+- CORS configuration
+- HttpOnly cookies (prevent XSS)
+- Secure flag (HTTPS only)
+- SameSite protection (prevent CSRF)
+
+**Protocols:**
+- HTTPS for encrypted transport
+- HTTP/1.1 or HTTP/2
+- JSON for request/response bodies
+
+#### 3. Backend Layer (⚡ Hono + ORPC)
+
+**Purpose:** Request processing, routing, and business logic coordination
+
+**Data Flow:**
+- **Inbound:** HTTP requests from frontend
+- **Middleware Chain:**
+  1. Logger middleware
+  2. CORS middleware
+  3. Context creation (Better-Auth session extraction)
+  4. Auth middleware (requireAuth)
+  5. ORPC route matching
+  6. Zod input validation
+- **Business Logic:** Procedure handlers execute with type-safe context
+- **Outbound:** JSON responses to frontend
+
+**Key Components:**
+- **Hono Server:** Fast, lightweight web framework
+- **ORPC Router:** Type-safe RPC routing
+- **Middleware Chain:** Request processing pipeline
+- **Procedures:** Business logic handlers
+
+**Data Transformations:**
+- HTTP request → ORPC context
+- JSON payload → Zod-validated input
+- Business logic → Drizzle ORM queries
+- Query results → JSON response
+
+#### 4. Authentication Layer (🔐 Better-Auth)
+
+**Purpose:** User authentication and session management
+
+**Data Flow:**
+- **Sign In:**
+  1. Receive credentials (email, password)
+  2. Validate user exists in database
+  3. Verify password hash (bcrypt)
+  4. Generate session token
+  5. Store session in database
+  6. Set HttpOnly cookie
+  7. Return user data
+
+- **Session Validation (on every protected request):**
+  1. Extract token from cookie
+  2. Query session table
+  3. Check expiration
+  4. Join with user table
+  5. Return session with user data (or null if invalid)
+
+- **Sign Out:**
+  1. Delete session from database
+  2. Clear session cookie
+  3. Clear client-side state
+
+**Security Features:**
+- Bcrypt password hashing (10 rounds)
+- Cryptographically random session tokens
+- 30-day session expiration
+- IP address and user agent tracking
+- Cascade delete on user deletion
+
+**Tables Involved:**
+- `user` (user accounts)
+- `session` (active sessions)
+- `account` (OAuth credentials)
+
+#### 5. Data Layer (💾 PostgreSQL + Drizzle)
+
+**Purpose:** Persistent data storage with ACID guarantees
+
+**Data Flow:**
+- **Request Processing:**
+  1. Receive Drizzle ORM query
+  2. Convert to SQL
+  3. Execute in PostgreSQL
+  4. Return typed results
+
+- **Query Types:**
+  - SELECT (read data)
+  - INSERT (create records)
+  - UPDATE (modify records)
+  - DELETE (remove records)
+
+- **Transaction Management:**
+  - ACID guarantees
+  - Automatic rollback on error
+  - Cascade deletes for referential integrity
+
+**Performance Optimizations:**
+- Indexes on foreign keys (userId, tokenId)
+- Indexes on unique fields (email, token)
+- Connection pooling
+- Query plan caching
+
+**Data Integrity:**
+- Primary keys (UUID or serial)
+- Foreign keys with cascade deletes
+- Unique constraints (email, token)
+- Not null constraints (required fields)
+- Check constraints (data validation)
+
+### Bidirectional Data Flow Summary
+
+| Layer | Request Flow (→) | Response Flow (←) |
+|-------|-----------------|-------------------|
+| **Frontend** | User action → Validation → ORPC call | State update → UI re-render |
+| **Network** | HTTPS POST with JSON | HTTPS response with status code |
+| **Backend** | Middleware → Router → Validation → Handler | Handler → Router → JSON response |
+| **Auth** | Token extraction → Session validation | User data injection into context |
+| **Database** | Drizzle query → SQL execution | Typed results → ORM mapping |
+
+### Data Flow Characteristics
+
+**1. Unidirectional Request Flow:**
+- User action → Frontend → Network → Backend → Database
+- Each layer processes and passes data to the next
+
+**2. Unidirectional Response Flow:**
+- Database → Backend → Network → Frontend → User
+- Data flows back through the same layers
+
+**3. Type Safety Throughout:**
+- Frontend: TypeScript types from ORPC
+- Backend: Zod runtime validation
+- Database: Drizzle type-safe queries
+- End-to-end: Same types from client to database
+
+**4. Security Layers:**
+- Client: Input validation
+- Network: HTTPS + HttpOnly cookies
+- Backend: Auth middleware
+- Database: Row-level security (user filtering)
+
+**5. Error Propagation:**
+- Database errors → 500 Internal Server Error
+- Validation errors → 400 Bad Request
+- Auth errors → 401 Unauthorized
+- Route errors → 404 Not Found
+
+### Data Flow Examples
+
+#### Example 1: User Login Flow
+
+```
+1. User enters email/password → SignInForm
+2. Client validation → Zod schema check
+3. ORPC call → POST /rpc/auth.sign-in
+4. HTTPS transport → Encrypted request
+5. Hono receives request → Middleware chain
+6. Better-Auth validates → Queries user table
+7. Drizzle executes → SELECT * FROM user WHERE email = ?
+8. PostgreSQL returns → User record
+9. Password verification → Bcrypt compare
+10. Session creation → INSERT INTO session (token, userId, expiresAt)
+11. Cookie setting → Set-Cookie: session_token=...; HttpOnly; Secure
+12. Response → { success: true, user: {...} }
+13. Client receives → State update (session store)
+14. UI updates → Redirect to dashboard
+```
+
+#### Example 2: Create Todo Flow
+
+```
+1. User submits todo form → TodoForm
+2. Client validation → Zod: text must be min 1 char
+3. ORPC call → POST /rpc/todos.create
+4. HTTPS transport → JSON: { text: "Buy groceries" }
+5. Hono receives → Route to todos.create procedure
+6. Context creation → Extract session (optional for public)
+7. Zod validation → Check input schema
+8. Handler execution → db.insert(todo).values({ text })
+9. Drizzle generates → INSERT INTO todo (text, completed) VALUES (?, false)
+10. PostgreSQL executes → Returns new todo with id
+11. Response → { id: 1, text: "Buy groceries", completed: false }
+12. Client receives → Update todos store
+13. UI updates → Show new todo in list
+```
+
+#### Example 3: Protected API Request Flow
+
+```
+1. User navigates to /dashboard → SvelteKit load function
+2. Client checks session → authClient.useSession()
+3. Session exists → Include cookie in request
+4. ORPC call → POST /rpc/privateData.get
+5. HTTPS transport → Cookie header sent automatically
+6. Hono receives → Context creation
+7. Better-Auth getSession → Extract token from cookie
+8. Session validation → SELECT * FROM session WHERE token = ?
+9. User lookup → SELECT * FROM user WHERE id = ?
+10. requireAuth middleware → Check context.session?.user
+11. Handler executes → Safe access to context.session.user
+12. Business logic → Query user's private data
+13. Response → { data: "private user data" }
+14. Client receives → Update UI
 ```
 
 ### Data Integrity Layers
@@ -3252,8 +3517,34 @@ flowchart TB
 3. **Schema Validation**: Runtime validation with Zod
 4. **Database Constraints**: Enforced data integrity with PostgreSQL
 5. **Transaction Safety**: ACID guarantees for complex operations
+6. **Session Security**: HTTP-only, Secure, SameSite cookies
+7. **Password Security**: Bcrypt hashing with salt rounds
 
-Detailed data flow diagrams will be added in Phase 6.
+### Data Flow Best Practices
+
+**For Frontend:**
+- ✅ Always validate user input before sending
+- ✅ Use type-safe ORPC client for API calls
+- ✅ Handle loading states and errors gracefully
+- ✅ Update UI reactively based on state changes
+
+**For Backend:**
+- ✅ Validate all inputs with Zod schemas
+- ✅ Use procedures for business logic
+- ✅ Implement proper error handling
+- ✅ Return appropriate HTTP status codes
+
+**For Authentication:**
+- ✅ Never expose session tokens in client-side JavaScript
+- ✅ Always use HTTPS for transport
+- ✅ Implement proper session expiration
+- ✅ Log session creation/deletion for security monitoring
+
+**For Database:**
+- ✅ Use indexes for frequently queried columns
+- ✅ Implement cascade deletes for referential integrity
+- ✅ Use transactions for multi-step operations
+- ✅ Log slow queries for performance optimization
 
 ---
 
