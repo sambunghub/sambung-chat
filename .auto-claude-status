@@ -3,23 +3,23 @@
   "spec": "001-create-ai-provider-integration-guide-for-adding-ne",
   "state": "building",
   "subtasks": {
-    "completed": 6,
+    "completed": 12,
     "total": 29,
     "in_progress": 1,
     "failed": 0
   },
   "phase": {
-    "current": "Guide Structure and Content Planning",
+    "current": "Create Examples and Templates",
     "id": null,
-    "total": 3
+    "total": 5
   },
   "workers": {
     "active": 0,
     "max": 1
   },
   "session": {
-    "number": 4,
-    "started_at": "2026-01-11T22:33:28.221882"
+    "number": 3,
+    "started_at": "2026-01-12T17:44:31.010957"
   },
-  "last_update": "2026-01-11T22:48:24.093330"
+  "last_update": "2026-01-12T18:01:19.896339"
 }
