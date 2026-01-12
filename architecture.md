@@ -50,6 +50,7 @@ This document provides comprehensive architecture documentation for the SambungC
    - [Data Flow Examples](#data-flow-examples)
    - [Data Integrity Layers](#data-integrity-layers)
    - [Data Flow Best Practices](#data-flow-best-practices)
+   - [Type Safety Flow](#type-safety-flow)
 9. [Development Workflow](#development-workflow)
 10. [Design Decisions](#design-decisions)
 11. [Contributor Onboarding](#contributor-onboarding)
@@ -3727,6 +3728,449 @@ flowchart TB
 - ✅ Implement cascade deletes for referential integrity
 - ✅ Use transactions for multi-step operations
 - ✅ Log slow queries for performance optimization
+
+### Type Safety Flow
+
+This section demonstrates how TypeScript types flow from Zod schemas through ORPC to provide end-to-end type safety across the entire stack. This type safety is one of SambungChat's key architectural advantages, ensuring data integrity and developer productivity.
+
+#### Type Safety Sequence Diagram
+
+The following sequence diagram shows the complete type flow from schema definition to client-side type inference:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Dev as 👨‍💻 Developer
+    participant Zod as ✅ Zod Schema
+    participant ORPCBackend as 🔌 ORPC Backend
+    participant TS as 🔷 TypeScript Types
+    participant Handler as ⚙️ Procedure Handler
+    participant ORPCClient as 🌐 ORPC Client
+    participant Frontend as 🎨 Frontend Code
+
+    Note over Dev,Frontend: Type Safety Flow - Single Source of Truth
+
+    Dev->>Zod: 1. Define schema<br/>z.object({ text: z.string().min(1) })
+    activate Zod
+    Note over Zod: Runtime validation schema<br/>compile-time type inference
+    Zod-->>Dev: Schema object
+    deactivate Zod
+
+    Dev->>ORPCBackend: 2. Create procedure<br/>.input(schema).handler(...)
+    activate ORPCBackend
+    Note over ORPCBackend: ORPC infers input type<br/>from Zod schema
+    ORPCBackend->>TS: 3. Infer TypeScript type<br/>Input: { text: string }
+    activate TS
+    TS-->>ORPCBackend: Inferred type
+    deactivate TS
+
+    ORPCBackend->>Handler: 4. Handler receives typed input
+    activate Handler
+    Note over Handler: input.text is type: string<br/>TypeScript validates at compile time
+    Handler->>Handler: 5. Business logic<br/>with type-safe input
+    Handler->>Handler: 6. Return typed response<br/>Response: { id, text, completed }
+    Handler-->>ORPCBackend: Typed return value
+    deactivate Handler
+
+    ORPCBackend->>TS: 7. Infer procedure type<br/>Input + Output
+    activate TS
+    Note over TS: Procedure:<br/>  Input: { text: string }<br/>  Output: { id, text, completed }
+    TS-->>ORPCBackend: Procedure signature
+    deactivate TS
+
+    ORPCBackend->>TS: 8. Export appRouter type<br/>export type AppRouter
+    activate TS
+    Note over TS: Router contains all procedures<br/>with their types
+    TS-->>ORPCBackend: AppRouter type
+    deactivate TS
+    ORPCBackend-->>Dev: Backend API defined
+    deactivate ORPCBackend
+
+    Dev->>TS: 9. Generate client type<br/>RouterClient<AppRouter>
+    activate TS
+    Note over TS: Create client-side types<br/>matching backend exactly
+    TS-->>Dev: AppRouterClient type
+    deactivate TS
+
+    Dev->>ORPCClient: 10. Create typed client<br/>client: AppRouterClient
+    activate ORPCClient
+    Note over ORPCClient: Client has all procedures<br/>with full type information
+    ORPCClient-->>Dev: Type-safe API client
+    deactivate ORPCClient
+
+    Dev->>Frontend: 11. Use in frontend code
+    activate Frontend
+    Frontend->>ORPCClient: 12. Call procedure<br/>client.todo.create({ text: "Buy milk" })
+    Note over ORPCClient: TypeScript validates:<br/>- Method exists (todo.create)<br/>- Input shape: { text: string }<br/>- Output type: { id, text, completed }
+    ORPCClient-->>Frontend: Full autocomplete<br/>and type checking
+    deactivate ORPCClient
+
+    Frontend->>Frontend: 13. Use typed response<br/>response.text is string
+    Frontend-->>Dev: Compile-time errors<br/>if types don't match
+    deactivate Frontend
+
+    Note over Dev,Frontend: ✅ End-to-End Type Safety Achieved
+```
+
+#### Type Flow Stages Explained
+
+**1. Schema Definition (Backend)**
+- Developer defines Zod schemas in procedure definitions
+- Zod provides both runtime validation and TypeScript type inference
+- Example: `z.object({ text: z.string().min(1) })` creates a schema for todo creation
+
+**2. Type Inference (Backend)**
+- ORPC automatically infers TypeScript types from Zod schemas
+- Input types are derived from `.input()` method
+- Output types are derived from handler return values
+- Context types are derived from middleware
+
+**3. Procedure Registration (Backend)**
+- Procedures are registered with their type signatures
+- Router aggregates all procedures into a single type
+- Example: `appRouter.todo.create` has known input and output types
+
+**4. Type Export (Backend)**
+- `export type AppRouter = typeof appRouter` exports the complete router type
+- This type includes all procedures with their signatures
+- Shared with frontend through workspace dependency
+
+**5. Client Type Generation (Frontend)**
+- `export type AppRouterClient = RouterClient<typeof appRouter>` creates client types
+- ORPC generates client-side types matching backend exactly
+- Methods are renamed for idiomatic client usage (camelCase)
+
+**6. Typed Client Creation (Frontend)**
+- Client is instantiated with explicit type: `client: AppRouterClient`
+- This provides full TypeScript support for all API calls
+- Autocomplete works for all procedures and their parameters
+
+**7. Type-Safe Usage (Frontend)**
+- Developer calls API methods with full type safety
+- TypeScript validates method names, input shapes, and handles output types
+- Compile-time errors prevent sending invalid data
+- Response data is properly typed for use in components
+
+#### Code Examples
+
+**Backend Procedure with Type Inference:**
+
+```typescript
+// packages/api/src/routers/todo.ts
+import { db } from "@sambung-chat/db";
+import { todo } from "@sambung-chat/db/schema/todo";
+import { publicProcedure } from "../index";
+import z from "zod";
+
+export const todoRouter = {
+  // Zod schema defines both runtime validation and TypeScript type
+  create: publicProcedure
+    .input(z.object({
+      text: z.string().min(1)  // Input type: { text: string }
+    }))
+    .handler(async ({ input }) => {
+      // input.text is automatically typed as: string
+      const result = await db.insert(todo).values({
+        text: input.text,  // TypeScript knows this is string
+      });
+
+      // Return type is inferred: { id: number, text: string, completed: boolean }
+      return {
+        id: result[0].insertId,
+        text: input.text,
+        completed: false,
+      };
+    }),
+
+  toggle: publicProcedure
+    .input(z.object({
+      id: z.number(),           // Input type: { id: number }
+      completed: z.boolean()    // Input type: { completed: boolean }
+    }))
+    .handler(async ({ input }) => {
+      // input.id: number, input.completed: boolean
+      await db.update(todo)
+        .set({ completed: input.completed })
+        .where(eq(todo.id, input.id));
+
+      return { success: true };  // Return type: { success: boolean }
+    }),
+};
+
+// Router type is automatically inferred
+export const appRouter = {
+  todo: todoRouter,
+};
+
+// Export type for frontend to use
+export type AppRouter = typeof appRouter;
+```
+
+**Frontend Usage with Type Safety:**
+
+```typescript
+// apps/web/src/lib/orpc.ts
+import type { AppRouterClient } from "@sambung-chat/api/routers/index";
+import { createORPCClient } from "@orpc/client";
+
+// Client is explicitly typed
+export const client: AppRouterClient = createORPCClient(link);
+
+// TypeScript now knows:
+// - client.todo.create exists
+// - It requires input: { text: string }
+// - It returns: { id: number, text: string, completed: boolean }
+```
+
+```typescript
+// apps/web/src/routes/todos/+page.svelte
+<script lang="ts">
+  import { client } from "$lib/orpc";
+
+  // ✅ TypeScript validates this call
+  async function createTodo(text: string) {
+    // Autocomplete shows: client.todo.create
+    // Type error if input shape is wrong
+    const result = await client.todo.create({ text });
+
+    // result is typed as: { id: number, text: string, completed: boolean }
+    console.log(result.id);      // ✅ TypeScript knows id is number
+    console.log(result.text);    // ✅ TypeScript knows text is string
+    console.log(result.completed); // ✅ TypeScript knows completed is boolean
+    console.log(result.unknown); // ❌ TypeScript error: Property 'unknown' does not exist
+  }
+
+  // ❌ TypeScript catches this error at compile time
+  async function badCreateTodo() {
+    // Error: Argument of type '{ text: number }' is not assignable to parameter of type '{ text: string }'
+    await client.todo.create({ text: 123 });
+  }
+
+  // ❌ TypeScript catches this error at compile time
+  async function missingField() {
+    // Error: Property 'text' is missing in type '{}' but required in type '{ text: string }'
+    await client.todo.create({});
+  }
+
+  // ❌ TypeScript catches this error at compile time
+  async function typoInMethod() {
+    // Error: Property 'cretae' does not exist on type '{ ... }'. Did you mean 'create'?
+    await client.todo.creaet({ text: "Hello" });
+  }
+</script>
+```
+
+#### Type Safety Benefits Table
+
+| Layer | Type Safety Mechanism | Benefit |
+|-------|----------------------|---------|
+| **Schema Definition** | Zod schemas with type inference | Single source of truth for data shapes |
+| **Backend Handler** | Inferred input/output types | No manual type definitions, compile-time validation |
+| **API Contract** | Auto-generated router types | No need for separate API contract files |
+| **Frontend Client** | Typed ORPC client | Full autocomplete, method discovery |
+| **API Call** | Type-checked parameters | Catch errors before runtime |
+| **Response Handling** | Typed response data | Safe property access without type guards |
+
+#### Type Inference Chain
+
+```
+Zod Schema (Runtime + Type Info)
+    ↓
+TypeScript Type Inference
+    ↓
+Procedure Type Signature
+    ↓ (aggregated into)
+Router Type (AppRouter)
+    ↓ (transformed into)
+Client Type (AppRouterClient)
+    ↓
+Typed API Calls (Full Autocomplete)
+```
+
+#### Type Safety Layers
+
+**1. Schema Layer (Zod)**
+- Defines data structure and validation rules
+- Provides runtime validation for incoming requests
+- Enables TypeScript type inference via `z.infer<>`
+
+**2. Backend Layer (ORPC)**
+- Infers procedure types from schemas
+- Generates router type with all procedures
+- Ensures handler implementations match signatures
+
+**3. Transport Layer (TypeScript)**
+- Types are shared through workspace dependency
+- No runtime overhead for type checking
+- Compile-time verification of data flow
+
+**4. Frontend Layer (ORPC Client)**
+- Client inherits types from backend router
+- Provides autocomplete for all API methods
+- Validates request/response shapes at compile time
+
+#### Type Safety vs. Traditional APIs
+
+**Traditional REST API (No Type Safety):**
+
+```typescript
+// Backend: No type information shared
+app.post("/todos", (req, res) => {
+  const { text } = req.body;  // Type: any
+  // No validation, no type safety
+  res.json({ id, text, completed });
+});
+
+// Frontend: Manual typing required
+interface CreateTodoResponse {
+  id: number;
+  text: string;
+  completed: boolean;
+}
+
+async function createTodo(text: string): Promise<CreateTodoResponse> {
+  const response = await fetch("/todos", {
+    method: "POST",
+    body: JSON.stringify({ text }),
+  });
+  // Could be anything - no guarantee of type
+  return response.json();
+}
+
+// ❌ Problems:
+// - Types can get out of sync
+// - No validation by default
+// - Manual type definitions duplicated
+// - No autocomplete for API structure
+// - Runtime errors for type mismatches
+```
+
+**ORPC Type-Safe API:**
+
+```typescript
+// Backend: Types inferred from schema
+export const todoRouter = {
+  create: publicProcedure
+    .input(z.object({ text: z.string().min(1) }))
+    .handler(async ({ input }) => {
+      // input.text is type: string ✅
+      return db.insert(todo).values(input);
+    }),
+};
+
+// Frontend: Types automatically available
+const result = await client.todo.create({ text: "Buy milk" });
+// result.text is type: string ✅
+// Full autocomplete ✅
+// Compile-time validation ✅
+
+// ✅ Benefits:
+// - Types always in sync
+// - Automatic validation with Zod
+// - Single source of truth
+// - Full autocomplete
+// - Compile-time error detection
+```
+
+#### Type Safety Guarantees
+
+**Compile-Time Guarantees:**
+- ✅ Method existence checked (no typos in API calls)
+- ✅ Parameter types validated (correct shapes, required fields)
+- ✅ Return types known (safe property access)
+- ✅ Refactoring safety (changes propagate to frontend)
+
+**Runtime Guarantees:**
+- ✅ Input validation (Zod schemas validate all requests)
+- ✅ Type coercion (strings to numbers, etc.)
+- ✅ Error messages (detailed validation feedback)
+- ✅ Data integrity (no invalid data reaches handlers)
+
+**Developer Experience:**
+- ✅ No manual type definitions needed
+- ✅ Full IDE autocomplete and IntelliSense
+- ✅ Instant feedback on type errors
+- ✅ Self-documenting API (types as documentation)
+
+#### Type Safety Best Practices
+
+**For Backend Developers:**
+- ✅ Always define Zod schemas for procedure inputs
+- ✅ Use specific types (e.g., `z.string().min(1)` not `z.any()`)
+- ✅ Export router types for frontend to use
+- ✅ Leverage inferred types, avoid manual interfaces
+- ✅ Use middleware to add typed context (e.g., session.user)
+
+**For Frontend Developers:**
+- ✅ Always import typed client, don't use `any`
+- ✅ Trust TypeScript errors, fix before committing
+- ✅ Use autocomplete to discover API methods
+- ✅ Don't type API responses manually, use inferred types
+- ✅ Enable strict TypeScript mode in tsconfig.json
+
+**For Schema Design:**
+- ✅ Make types as specific as possible
+- ✅ Use validation rules (`.min()`, `.max()`, `.email()`)
+- ✅ Document complex schemas with comments
+- ✅ Reuse schemas with `z.lazy()` for recursive types
+- ✅ Create reusable schema parts for common patterns
+
+#### Type Safety and Validation Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    TYPE SAFETY FLOW                          │
+├─────────────────────────────────────────────────────────────┤
+│                                                               │
+│  1. SCHEMA DEFINITION                                        │
+│     ↓                                                         │
+│     z.object({ text: z.string().min(1) })                   │
+│     • Runtime validation rules                              │
+│     • TypeScript type inference                             │
+│                                                               │
+│  2. PROCEDURE TYPE                                          │
+│     ↓                                                         │
+│     Input: { text: string }                                 │
+│     Output: { id, text, completed }                         │
+│     • Types inferred from schema and handler                │
+│                                                               │
+│  3. ROUTER TYPE                                             │
+│     ↓                                                         │
+│     AppRouter = { todo: { create, toggle, delete } }       │
+│     • Aggregates all procedures                             │
+│                                                               │
+│  4. CLIENT TYPE                                             │
+│     ↓                                                         │
+│     AppRouterClient = RouterClient<AppRouter>              │
+│     • Frontend-friendly type                                │
+│                                                               │
+│  5. TYPE-SAFE CALLS                                         │
+│     ↓                                                         │
+│     client.todo.create({ text: "Buy milk" })               │
+│     • Compile-time checking                                 │
+│     • Full autocomplete                                     │
+│                                                               │
+│  6. RUNTIME VALIDATION                                      │
+│     ↓                                                         │
+│     Zod validates input at runtime                          │
+│     • Ensures data integrity                                │
+│     • Returns detailed errors                               │
+│                                                               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Summary
+
+The type safety flow in SambungChat ensures that data is validated and correctly typed from the frontend all the way to the database and back. This is achieved through:
+
+1. **Zod Schemas**: Define validation rules and enable type inference
+2. **ORPC Type Inference**: Automatically generates TypeScript types from schemas
+3. **Shared Types**: Backend router types are used to type the frontend client
+4. **Compile-Time Safety**: TypeScript catches errors before runtime
+5. **Runtime Validation**: Zod ensures data integrity at runtime
+6. **Developer Experience**: Full autocomplete and instant feedback
+
+This end-to-end type safety eliminates entire classes of bugs, improves developer productivity, and serves as living documentation for the API surface.
 
 ---
 
