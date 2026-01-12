@@ -57,6 +57,7 @@ This document provides comprehensive architecture documentation for the SambungC
    - [Database Workflow](#database-workflow)
    - [Turborepo Build Optimization](#turborepo-build-optimization)
    - [Complete Development Workflow](#complete-development-workflow)
+   - [Package Dependency Graph](#package-dependency-graph)
 10. [Design Decisions](#design-decisions)
 11. [Contributor Onboarding](#contributor-onboarding)
 
@@ -4536,6 +4537,253 @@ flowchart TD
 - 🔍 Use Drizzle Studio (`bun run db:studio`) for database inspection
 - 📋 Check Turborepo cache with `turbo prune --dry-run`
 - ⚡ Use `bun run dev:web` or `bun run dev:server` for individual apps
+
+### Package Dependency Graph
+
+This section visualizes the workspace dependencies between all packages and apps in the SambungChat monorepo, showing how packages reference each other using the `workspace:*` protocol.
+
+#### Dependency Graph Visualization
+
+```mermaid
+flowchart TD
+    %% Define styles
+    classDef appStyle fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
+    classDef packageStyle fill:#4ecdc4,stroke:#0ca678,stroke-width:2px,color:#fff
+    classDef baseStyle fill:#95e1d3,stroke:#38d9a9,stroke-width:2px,color:#000
+    classDef dependencyStyle stroke:#1864ab,stroke-width:2px,stroke-dasharray: 5 5
+
+    %% Apps Layer
+    Web[📱 apps/web<br/>SvelteKit Frontend]:::appStyle
+    Server[🖥️ apps/server<br/>Hono Backend]:::appStyle
+
+    %% Packages Layer
+    API[📦 packages/api<br/>ORPC Routers]:::packageStyle
+    Auth[🔐 packages/auth<br/>Better-Auth Configuration]:::packageStyle
+    DB[💾 packages/db<br/>Drizzle ORM & Schema]:::packageStyle
+    Env[⚙️ packages/env<br/>Environment Variables]:::packageStyle
+    Config[📝 packages/config<br/>Shared Configuration]:::baseStyle
+
+    %% Dependencies
+    Web -->|"workspace:*| API
+    Web -->|"workspace:*| Auth
+    Web -->|"workspace:*| Env
+    Web -.->|"dev: workspace:*| Config
+
+    Server -->|"workspace:*| API
+    Server -->|"workspace:*| Auth
+    Server -->|"workspace:*| DB
+    Server -->|"workspace:*| Env
+    Server -.->|"dev: workspace:*| Config
+
+    API -->|"workspace:*| Auth
+    API -->|"workspace:*| DB
+    API -->|"workspace:*| Env
+    API -.->|"dev: workspace:*| Config
+
+    Auth -->|"workspace:*| DB
+    Auth -->|"workspace:*| Env
+    Auth -.->|"dev: workspace:*| Config
+
+    DB -->|"workspace:*| Env
+    DB -.->|"dev: workspace:*| Config
+
+    Env -.->|"dev: workspace:*| Config
+```
+
+#### Dependency Hierarchy Table
+
+| Level | Package/App | Dependencies (workspace:*) | Dev Dependencies (workspace:*) |
+|-------|-------------|---------------------------|-------------------------------|
+| **0** | `packages/config` | None | None |
+| **1** | `packages/env` | None | `@sambung-chat/config` |
+| **2** | `packages/db` | `@sambung-chat/env` | `@sambung-chat/config` |
+| **3** | `packages/auth` | `@sambung-chat/db`, `@sambung-chat/env` | `@sambung-chat/config` |
+| **4** | `packages/api` | `@sambung-chat/auth`, `@sambung-chat/db`, `@sambung-chat/env` | `@sambung-chat/config` |
+| **5** | `apps/server` | `@sambung-chat/api`, `@sambung-chat/auth`, `@sambung-chat/db`, `@sambung-chat/env` | `@sambung-chat/config` |
+| **5** | `apps/web` | `@sambung-chat/api`, `@sambung-chat/auth`, `@sambung-chat/env` | `@sambung-chat/config` |
+
+#### Dependency Details
+
+**Base Infrastructure Packages**
+
+1. **`@sambung-chat/config`** (Level 0)
+   - **Purpose**: Shared TypeScript, ESLint, and build configurations
+   - **Dependents**: All other packages (dev dependency)
+   - **No runtime dependencies** - provides configuration only
+
+2. **`@sambung-chat/env`** (Level 1)
+   - **Purpose**: Environment variable validation with Zod
+   - **Exports**: `./server`, `./web`
+   - **Dependents**: `db`, `auth`, `api`, `web`, `server`
+   - **Dependencies**: None at runtime
+
+**Data Layer Packages**
+
+3. **`@sambung-chat/db`** (Level 2)
+   - **Purpose**: Drizzle ORM schema, migrations, and database client
+   - **Exports**: Schema exports, migration utilities, Drizzle client
+   - **Dependents**: `auth`, `api`, `server`
+   - **Dependencies**: `@sambung-chat/env` (for DATABASE_URL)
+
+**Authentication Layer**
+
+4. **`@sambung-chat/auth`** (Level 3)
+   - **Purpose**: Better-Auth configuration and authentication utilities
+   - **Exports**: Auth instance, middleware, server/client utilities
+   - **Dependents**: `api`, `web`, `server`
+   - **Dependencies**:
+     - `@sambung-chat/db` (auth schema, user/session tables)
+     - `@sambung-chat/env` (auth environment variables)
+
+**API Layer**
+
+5. **`@sambung-chat/api`** (Level 4)
+   - **Purpose**: ORPC router definitions and procedures
+   - **Exports**: ORPC router, typed client
+   - **Dependents**: `web`, `server`
+   - **Dependencies**:
+     - `@sambung-chat/auth` (authentication middleware)
+     - `@sambung-chat/db` (database operations)
+     - `@sambung-chat/env` (API environment variables)
+
+**Application Layer**
+
+6. **`apps/server`** (Level 5)
+   - **Purpose**: Hono backend server with ORPC integration
+   - **Dependencies**:
+     - `@sambung-chat/api` (ORPC router)
+     - `@sambung-chat/auth` (Better-Auth instance)
+     - `@sambung-chat/db` (database client)
+     - `@sambung-chat/env` (server environment)
+
+7. **`apps/web`** (Level 5)
+   - **Purpose**: SvelteKit frontend application
+   - **Dependencies**:
+     - `@sambung-chat/api` (ORPC client)
+     - `@sambung-chat/auth` (Better-Auth client)
+     - `@sambung-chat/env` (web environment)
+
+#### Workspace Protocol Benefits
+
+**What is `workspace:*`?**
+
+The `workspace:*` protocol is a Bun/Berry Workspaces feature that:
+- Automatically links local packages during development
+- Resolves to the actual package version during publishing
+- Enables monorepo-wide type checking and IntelliSense
+- Eliminates need for `npm link` or manual path aliases
+
+**Example:**
+
+```json
+// In apps/web/package.json
+{
+  "dependencies": {
+    "@sambung-chat/api": "workspace:*"  // Links to packages/api
+  }
+}
+```
+
+During development, this resolves to the local `packages/api` directory. When published, it resolves to the actual version number (e.g., `0.0.1`).
+
+**Benefits:**
+
+1. **Instant Updates**: Changes to packages are immediately available across the monorepo
+2. **Type Safety**: Full TypeScript type checking across package boundaries
+3. **No Publishing**: No need to publish packages to test changes
+4. **Atomic Commits**: Modify multiple packages in a single commit
+5. **Simplified Testing**: Test local changes before publishing
+
+#### Dependency Build Order
+
+When running `bun run build`, Turborepo builds packages in this order:
+
+1. `packages/config` (no dependencies)
+2. `packages/env` (depends on config)
+3. `packages/db` (depends on env)
+4. `packages/auth` (depends on db, env)
+5. `packages/api` (depends on auth, db, env)
+6. `apps/server` (depends on api, auth, db, env) ← **parallel with web**
+7. `apps/web` (depends on api, auth, env) ← **parallel with server**
+
+Turborepo automatically:
+- Builds dependencies before dependents
+- Runs independent packages in parallel
+- Caches build outputs for faster rebuilds
+- Only rebuilds changed packages (incremental builds)
+
+#### Adding New Workspace Dependencies
+
+**To add a new workspace dependency:**
+
+```bash
+# Example: Add packages/ui as a dependency to apps/web
+cd apps/web
+bun add @sambung-chat/ui
+```
+
+Bun automatically detects workspace packages and uses `workspace:*` protocol.
+
+**Manual configuration (if needed):**
+
+```json
+// In package.json
+{
+  "dependencies": {
+    "@sambung-chat/ui": "workspace:*"
+  }
+}
+```
+
+**Verification:**
+
+```bash
+# Verify workspace dependencies are linked
+bun install
+# Check node_modules - should see symlinks to workspace packages
+ls -la node_modules/@sambung-chat/
+```
+
+#### Circular Dependency Prevention
+
+**Current Status**: ✅ No circular dependencies
+
+The dependency graph is a **Directed Acyclic Graph (DAG)**, which means:
+- No package depends on itself (directly or indirectly)
+- Clear hierarchy from base → app layer
+- Safe for builds and testing
+
+**To prevent circular dependencies:**
+
+1. **Follow Layer Hierarchy**: Lower levels depend on higher levels only
+2. **Extract Shared Code**: Create shared packages for common utilities
+3. **Use Dependency Inversion**: Depend on abstractions, not implementations
+
+**Example of what to avoid:**
+
+```json
+// ❌ BAD: Circular dependency
+// packages/api depends on packages/ui
+// packages/ui depends on packages/api
+
+// ✅ GOOD: Extract to shared package
+// packages/api depends on packages/utils
+// packages/ui depends on packages/utils
+```
+
+#### External Dependencies Summary
+
+| Package | Key External Dependencies |
+|---------|--------------------------|
+| **config** | None |
+| **env** | `@t3-oss/env-core`, `zod` |
+| **db** | `drizzle-orm`, `pg` |
+| **auth** | `better-auth`, `zod` |
+| **api** | `@orpc/server`, `@orpc/zod`, `drizzle-orm`, `zod` |
+| **server** | `hono`, `@orpc/server`, `ai` |
+| **web** | `@sveltejs/kit`, `@orpc/client`, `@tanstack/svelte-query`, `svelte` |
+
+All external dependencies use the **catalog:** protocol for version management (defined in root `package.json`).
 
 ---
 
