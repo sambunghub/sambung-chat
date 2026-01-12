@@ -1,90 +1,90 @@
 # @sambung-chat/ui - AI Agent Reference
 
-Documentation untuk AI agents yang bekerja pada package UI ini.
+Documentation for AI agents working on this UI package.
 
 ## 🚨 MANDATORY PRE-BUILD CHECKLIST
 
-**SEBELUM melakukan build apapun, WAJIB lakukan ini dulu:**
+**BEFORE doing any build, YOU MUST do this first:**
 
 ```bash
-# Step 1: Type check dengan bun
+# Step 1: Type check with bun
 bun run check
 
-# Step 2: Type check dengan svelte-check untuk detail error
+# Step 2: Type check with svelte-check for detailed errors
 npx svelte-check --tsconfig ./tsconfig.json
 
-# Step 3: Jika ada error, BACA dan PERBAIKI error tersebut
-# Contoh untuk melihat error spesifik:
+# Step 3: If there are errors, READ and FIX those errors
+# Example to see specific errors:
 npx svelte-check --tsconfig ./tsconfig.json 2>&1 | grep -A 2 "NavigationRail"
 
-# Step 4: HANYA setelah type check bersih, baru boleh build
+# Step 4: ONLY after type check is clean, you may build
 bun run build
 ```
 
-**RULE: Jika type check gagal, JANGAN lanjut ke build!**
+**RULE: If type check fails, DO NOT proceed to build!**
 
-Error TypeScript yang paling umum:
+Most common TypeScript errors:
 
-- `const` dengan `$state` → Ganti ke `let`
-- Import `lucide-svelte` → Ganti ke `@lucide/svelte`
-- Type tidak dikenali → Tambahkan type annotation
-- Props tidak benar → Cek interface Props
+- `const` with `$state` → Change to `let`
+- Import `lucide-svelte` → Change to `@lucide/svelte`
+- Type not recognized → Add type annotation
+- Props incorrect → Check interface Props
 
-## 🤖 Kontrak untuk AI Agents
+## 🤖 Contract for AI Agents
 
-### ⛔ CRITICAL: JANGAN EDIT `src/lib/components/ui/`
+### ⛔ CRITICAL: DO NOT EDIT `src/lib/components/ui/`
 
-**Alasan:** Folder ini adalah **generated code** dari shadcn-svelte CLI.
+**Reason:** This folder contains **generated code** from shadcn-svelte CLI.
 
-**Konsekuensi jika di-edit:**
+**Consequences if edited:**
 
-- Perubahan akan **OVERWRITTEN** saat user menjalankan `npx shadcn-svelte add [component]`
-- Akan menyebabkan merge conflict saat update komponen dari shadcn-svelte
-- Melanggar best practice shadcn-svelte workflow
+- Changes will be **OVERWRITTEN** when user runs `npx shadcn-svelte add [component]`
+- Will cause merge conflicts when updating components from shadcn-svelte
+- Violates shadcn-svelte workflow best practice
 
-**Solusi yang Benar:**
+**Correct Solution:**
 
-- Jika butuh variant/custom style → gunakan `className` prop saat memakai komponen
-- Jika butuh behavior berbeda → wrap komponen dalam komponen custom di lokasi lain
+- If you need variant/custom style → use `className` prop when using the component
+- If you need different behavior → wrap the component in a custom component elsewhere
 
-### ✅ Area yang Aman untuk Diedit
+### ✅ Safe Areas to Edit
 
 ```
 packages/ui/
 ├── src/
 │   ├── lib/
-│   │   ├── utils.ts                 # ✅ AMAN - Utility functions
-│   │   ├── index.ts                 # ✅ AMAN - Public exports
-│   │   └── components/              # ✅ AMAN - Custom components
-│   │       └── (buat komponen wrapper di sini)
-│   ├── styles/                      # ✅ AMAN - Design tokens & custom styles
+│   │   ├── utils.ts                 # ✅ SAFE - Utility functions
+│   │   ├── index.ts                 # ✅ SAFE - Public exports
+│   │   └── components/              # ✅ SAFE - Custom components
+│   │       └── (create component wrappers here)
+│   ├── styles/                      # ✅ SAFE - Design tokens & custom styles
 │   │   ├── tokens.css
 │   │   └── index.css
-│   └── components/                  # ✅ AMAN - Legacy components
-├── components.json                  # ✅ AMAN - shadcn-svelte config
-└── tailwind.config.js               # ✅ AMAN - Tailwind config
+│   └── components/                  # ✅ SAFE - Legacy components
+├── components.json                  # ✅ SAFE - shadcn-svelte config
+└── tailwind.config.js               # ✅ SAFE - Tailwind config
 ```
 
-## 🔧 Workflow Menambah Komponen Baru
+## 🔧 Workflow for Adding New Components
 
-### Jika User Minta Menambah Komponen shadcn-svelte
+### If User Requests to Add shadcn-svelte Component
 
-**DONT:**
+**DON'T:**
 
-- ❌ Copy-paste dari shadcn-svelte repo manual
-- ❌ Edit file di `src/lib/components/ui/`
-- ❌ Buat file baru di `src/lib/components/ui/`
+- ❌ Copy-paste from shadcn-svelte repo manually
+- ❌ Edit files in `src/lib/components/ui/`
+- ❌ Create new files in `src/lib/components/ui/`
 
 **DO:**
 
 ```bash
 cd packages/ui
-npx shadcn-svelte@latest add [nama-komponen]
+npx shadcn-svelte@latest add [component-name]
 ```
 
-### Contoh Implementasi Komponen Custom
+### Custom Component Implementation Example
 
-Jika butuh komponen dengan variant custom:
+If you need a component with custom variants:
 
 ```svelte
 <!-- src/lib/components/CustomButton.svelte -->
@@ -100,25 +100,25 @@ Jika butuh komponen dengan variant custom:
 </Button>
 ```
 
-## 🏗️ Struktur Internal shadcn-svelte
+## 🏗️ shadcn-svelte Internal Structure
 
-### Cara Kerja shadcn-svelte CLI
+### How shadcn-svelte CLI Works
 
-1. `components.json` berisi konfigurasi (path, style, dsb)
-2. `npx shadcn-svelte add [component]` akan:
-   - Download komponen dari shadcn-svelte templates
-   - Install dependencies jika perlu
-   - Generate file di `src/lib/components/ui/[component]/`
-   - Update exports jika diperlukan
+1. `components.json` contains configuration (paths, styles, etc.)
+2. `npx shadcn-svelte add [component]` will:
+   - Download component from shadcn-svelte templates
+   - Install dependencies if needed
+   - Generate file in `src/lib/components/ui/[component]/`
+   - Update exports if needed
 
-### Pattern Komponen shadcn-svelte
+### shadcn-svelte Component Pattern
 
-Komponen menggunakan:
+Components use:
 
 - **Svelte 5 runes** (`$state`, `$derived`, `$props`)
-- **Snippet API** untuk children rendering
-- **tailwind-variants** untuk variant management
-- **bits-ui** sebagai headless primitive foundation
+- **Snippet API** for children rendering
+- **tailwind-variants** for variant management
+- **bits-ui** as headless primitive foundation
 
 ```svelte
 <script lang="ts">
@@ -143,7 +143,7 @@ Komponen menggunakan:
 
 ### Color Format: OKLCH
 
-shadcn-svelte menggunakan **OKLCH** bukan HSL:
+shadcn-svelte uses **OKLCH** not HSL:
 
 ```css
 /* src/styles/tokens.css */
@@ -153,7 +153,7 @@ shadcn-svelte menggunakan **OKLCH** bukan HSL:
 }
 ```
 
-### Mapping OKLCH ke Tailwind
+### Mapping OKLCH to Tailwind
 
 ```javascript
 // tailwind.config.js
@@ -162,22 +162,22 @@ export default {
     extend: {
       colors: {
         primary: 'hsl(var(--color-primary))',
-        // CSS variables menggunakan HSL wrapper
+        // CSS variables use HSL wrapper
       },
     },
   },
 };
 ```
 
-Catatan: Meskipun tokens menggunakan OKLCH, Tailwind tetap menggunakan `hsl()` wrapper karena cara kerja CSS variables.
+Note: Even though tokens use OKLCH, Tailwind still uses `hsl()` wrapper due to how CSS variables work.
 
 ## 🐛 Common Issues & Solutions
 
 ### Issue: "Cannot find module '$lib/utils'"
 
-**Cause:** TypeScript tidak mengenali path alias
+**Cause:** TypeScript doesn't recognize path alias
 
-**Fix:** Pastikan `tsconfig.json` memiliki:
+**Fix:** Ensure `tsconfig.json` has:
 
 ```json
 {
@@ -190,22 +190,22 @@ Catatan: Meskipun tokens menggunakan OKLCH, Tailwind tetap menggunakan `hsl()` w
 }
 ```
 
-### Issue: Komponen tidak muncul setelah add
+### Issue: Component doesn't appear after add
 
 **Checklist:**
 
-1. ✅ Komponen sudah ada di `src/lib/components/ui/`
-2. ✅ Export di `src/lib/components/ui/[component]/index.ts`
-3. ✅ Re-export di `src/lib/index.ts` (jika perlu)
-4. ✅ Run `bun run check` untuk verify
+1. ✅ Component exists in `src/lib/components/ui/`
+2. ✅ Export in `src/lib/components/ui/[component]/index.ts`
+3. ✅ Re-export in `src/lib/index.ts` (if needed)
+4. ✅ Run `bun run check` to verify
 
-### Issue: Styles tidak apply
+### Issue: Styles not applying
 
 **Checklist:**
 
-1. ✅ `@sambung-chat/ui/styles.css` sudah di-import
-2. ✅ `tailwind.config.js` content path mencakup `./src/**/*.{html,js,svelte,ts}`
-3. ✅ `components.json` css path benar
+1. ✅ `@sambung-chat/ui/styles.css` is imported
+2. ✅ `tailwind.config.js` content path includes `./src/**/*.{html,js,svelte,ts}`
+3. ✅ `components.json` css path is correct
 
 ## 📝 Script Reference
 
@@ -213,31 +213,31 @@ Catatan: Meskipun tokens menggunakan OKLCH, Tailwind tetap menggunakan `hsl()` w
 # Type checking
 bun run check
 
-# Build package untuk distribusi
+# Build package for distribution
 bun run build
 
-# Menambah komponen dari shadcn-svelte
+# Add components from shadcn-svelte
 npx shadcn-svelte@latest add [component]
 ```
 
 ## 🔍 Debugging
 
-### Melihat Generated Types
+### View Generated Types
 
 ```bash
-# Build package untuk generate .d.ts files
+# Build package to generate .d.ts files
 bun run build
 
-# Cek dist folder
+# Check dist folder
 ls -la dist/
 ```
 
 ### Verify Component Exports
 
 ```typescript
-// Test import di apps/web atau tempat lain
+// Test import in apps/web or elsewhere
 import { Button } from '@sambung-chat/ui';
-console.log(Button); // Harus tidak undefined
+console.log(Button); // Should not be undefined
 ```
 
 ## 📚 External References

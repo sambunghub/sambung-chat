@@ -1,6 +1,6 @@
 # UI Package Development Guide - @sambung-chat/ui
 
-Panduan khusus untuk pengembangan package `@sambung-chat/ui` agar menghindari masalah build yang umum terjadi.
+A dedicated guide for developing the `@sambung-chat/ui` package to avoid common build issues.
 
 ---
 
@@ -9,7 +9,7 @@ Panduan khusus untuk pengembangan package `@sambung-chat/ui` agar menghindari ma
 ```
 packages/ui/
 ├── src/
-│   ├── lib/                    # ✅ SEMUA code harus di sini
+│   ├── lib/                    # ✅ ALL code MUST be here
 │   │   ├── components/
 │   │   │   ├── ui/            # shadcn-svelte components
 │   │   │   ├── layout/        # Custom layout components
@@ -34,7 +34,7 @@ packages/ui/
 
 ### 1. Code MUST be in `src/lib/`
 
-**CRITICAL:** `svelte-package` hanya membuild folder `src/lib/`. File di luar folder ini TIDAK akan dimasukkan ke distribusi.
+**CRITICAL:** `svelte-package` only builds the `src/lib/` folder. Files outside this folder will NOT be included in distribution.
 
 ```
 ❌ DON'T:
@@ -50,7 +50,7 @@ packages/ui/src/lib/hooks/
 
 ### 2. No @apply with Custom Colors in <style>
 
-Tailwind CSS v4 **tidak support** `@apply` dengan custom color utilities di `<style>` blocks:
+Tailwind CSS v4 **does not support** `@apply` with custom color utilities in `<style>` blocks:
 
 ```svelte
 <!-- ❌ DON'T - Will fail build -->
@@ -71,7 +71,7 @@ Tailwind CSS v4 **tidak support** `@apply` dengan custom color utilities di `<st
 
 ### 3. Always Use @lucide/svelte
 
-Package dependency menggunakan `@lucide/svelte` (dengan scope), BUKAN `lucide-svelte`:
+Package dependency uses `@lucide/svelte` (with scope), NOT `lucide-svelte`:
 
 ```typescript
 // ❌ DON'T
@@ -83,7 +83,7 @@ import { Search, Plus } from '@lucide/svelte';
 
 ### 4. $state Requires let
 
-Semua reactive state dengan `$state()` harus menggunakan `let`:
+All reactive state with `$state()` must use `let`:
 
 ```svelte
 <script lang="ts">
@@ -103,7 +103,7 @@ Semua reactive state dengan `$state()` harus menggunakan `let`:
 
 ### Step 1: Create Component File
 
-Letakkan di `src/lib/components/[category]/`:
+Place in `src/lib/components/[category]/`:
 
 ```bash
 # Example: New button component
@@ -241,7 +241,7 @@ bun run build
 
 ### Component-Specific Styles
 
-Untuk styles yang spesifik ke component:
+For styles specific to a component:
 
 ```svelte
 <div class="custom-class" />
@@ -323,7 +323,7 @@ Untuk styles yang spesifik ke component:
 ### Pattern 4: Reactive State
 
 ```svelte
-<script lang="ts>
+<script lang="ts">
   import type { HTMLInputElement } from 'svelte/elements';
 
   // State with $state
@@ -367,7 +367,7 @@ export default {
 
 ### Custom Tailwind Utilities
 
-Untuk custom utilities, tambahkan ke theme:
+For custom utilities, add to theme:
 
 ```javascript
 theme: {
@@ -514,14 +514,14 @@ bun run check:types
 
 ## Pre-Commit Checklist
 
-Sebelum mengubah UI package:
+Before modifying the UI package:
 
-- [ ] Component file di `src/lib/components/`
-- [ ] Export path di `src/lib/index.ts` relative dan benar
-- [ ] Tidak ada `@apply` dengan custom colors
-- [ ] Lucide imports menggunakan `@lucide/svelte`
-- [ ] `$state` variables menggunakan `let`
-- [ ] Package berhasil di-build: `bun run build`
+- [ ] Component file in `src/lib/components/`
+- [ ] Export path in `src/lib/index.ts` is relative and correct
+- [ ] No `@apply` with custom colors
+- [ ] Lucide imports use `@lucide/svelte`
+- [ ] `$state` variables use `let`
+- [ ] Package builds successfully: `bun run build`
 - [ ] Type check passes: `bun run check`
 - [ ] Web app build passes: `cd ../apps/web && bun run build`
 
@@ -529,13 +529,13 @@ Sebelum mengubah UI package:
 
 ## Quick Reference
 
-| Issue                                | Solution                              |
-| ------------------------------------ | ------------------------------------- |
-| `Cannot apply unknown utility class` | Gunakan CSS variables, bukan `@apply` |
-| `Could not resolve import`           | Cek package name di `package.json`    |
-| `Cannot assign to constant`          | Gunakan `let` dengan `$state()`       |
-| Export tidak muncul di dist          | File harus di `src/lib/`              |
-| Conflicting exports                  | Gunakan alias atau rename export      |
+| Issue                                | Solution                             |
+| ------------------------------------ | ------------------------------------ |
+| `Cannot apply unknown utility class` | Use CSS variables, not `@apply`      |
+| `Could not resolve import`           | Check package name in `package.json` |
+| `Cannot assign to constant`          | Use `let` with `$state()`            |
+| Export not in dist                   | File must be in `src/lib/`           |
+| Conflicting exports                  | Use alias or rename export           |
 
 ---
 

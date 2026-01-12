@@ -1,24 +1,24 @@
 # packages/api - API Routers & Procedures
 
-Shared API routers untuk backend menggunakan ORPC + Zod validation.
+Shared API routers for backend using ORPC + Zod validation.
 
 ---
 
 ## 🚨 MANDATORY PRE-BUILD CHECKLIST
 
-**SEBELUM melakukan build apapun, WAJIB lakukan ini dulu:**
+**BEFORE doing any build, YOU MUST do this first:**
 
 ```bash
 # Step 1: Type check
 bun run check
 
-# Step 2: Jika ada error, BACA dan PERBAIKI error tersebut
+# Step 2: If there are errors, READ and FIX those errors
 
-# Step 3: HANYA setelah type check bersih, baru boleh build
+# Step 3: ONLY after type check is clean, you may build
 bun run build
 ```
 
-**RULE: Jika type check gagal, JANGAN lanjut ke build!**
+**RULE: If type check fails, DO NOT proceed to build!**
 
 ---
 
