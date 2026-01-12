@@ -1259,6 +1259,223 @@ flowchart TB
 - TypeScript types inferred from schemas
 - Compile-time guarantees prevent type mismatches
 
+#### Concrete Code Examples
+
+**Example 1: Frontend Component Making API Request**
+
+```typescript
+// apps/web/src/routes/todos/+page.svelte
+<script lang="ts">
+  import { api } from '$lib/orpc'; // Type-safe ORPC client
+  import { onMount } from 'svelte';
+
+  let todos = $state([]);
+
+  // Type-safe API call - fully typed!
+  onMount(async () => {
+    // TypeScript knows: returns Array<{ id: number, text: string, completed: boolean }>
+    todos = await api.todos.getAll();
+  });
+
+  async function addTodo(text: string) {
+    // TypeScript validates: input must be { text: string }
+    const newTodo = await api.todos.create({ text });
+    todos.push(newTodo);
+  }
+
+  async function toggleTodo(id: number, completed: boolean) {
+    // TypeScript validates: input must be { id: number, completed: boolean }
+    await api.todos.toggle({ id, completed });
+    todos = todos.map(t => t.id === id ? { ...t, completed } : t);
+  }
+</script>
+
+<div class="todo-list">
+  <!-- UI is fully type-safe - todos is typed as Todo[] -->
+  {#each todos as todo (todo.id)}
+    <div class="todo-item">
+      <input
+        type="checkbox"
+        checked={todo.completed}
+        onchange={() => toggleTodo(todo.id, !todo.completed)}
+      />
+      <span class:text-{todo.completed ? 'muted' : 'primary'}>
+        {todo.text}
+      </span>
+    </div>
+  {/each}
+</div>
+```
+
+**Example 2: ORPC Router Definition (Backend)**
+
+```typescript
+// packages/api/src/routers/todo.ts
+import { db } from "@sambung-chat/db";
+import { todo } from "@sambung-chat/db/schema/todo";
+import { eq } from "drizzle-orm";
+import { publicProcedure } from "../index";
+import z from "zod";
+
+export const todoRouter = {
+  // Public procedure (no authentication required)
+  getAll: publicProcedure.handler(async () => {
+    // Return type is inferred: Todo[]
+    return await db.select().from(todo);
+  }),
+
+  // Input validation with Zod
+  create: publicProcedure
+    .input(z.object({
+      text: z.string().min(1),  // Runtime validation + TypeScript type
+    }))
+    .handler(async ({ input }) => {
+      // input.text is type: string (TypeScript knows this!)
+      const result = await db.insert(todo).values({
+        text: input.text,
+      }).returning();
+
+      return result[0]; // Type: { id: number, text: string, completed: boolean }
+    }),
+
+  toggle: publicProcedure
+    .input(z.object({
+      id: z.number(),
+      completed: z.boolean(),
+    }))
+    .handler(async ({ input }) => {
+      await db.update(todo)
+        .set({ completed: input.completed })
+        .where(eq(todo.id, input.id));
+      return { success: true };
+    }),
+
+  delete: publicProcedure
+    .input(z.object({
+      id: z.number(),
+    }))
+    .handler(async ({ input }) => {
+      await db.delete(todo).where(eq(todo.id, input.id));
+      return { success: true };
+    }),
+};
+```
+
+**Example 3: Protected Procedure with Authentication**
+
+```typescript
+// packages/api/src/routers/user.ts
+import { db } from "@sambung-chat/db";
+import { user } from "@sambung-chat/db/schema/user";
+import { eq } from "drizzle-orm";
+import { protectedProcedure } from "../index"; // Requires authentication!
+import z from "zod";
+
+export const userRouter = {
+  // Protected procedure - authentication required!
+  getProfile: protectedProcedure
+    .handler(async ({ context }) => {
+      // context.session.user is guaranteed to exist (protectedProcedure ensures this)
+      const userId = context.session.user.id;
+
+      // TypeScript knows userId is string
+      const userProfile = await db.select()
+        .from(user)
+        .where(eq(user.id, userId))
+        .limit(1);
+
+      return userProfile[0];
+    }),
+
+  updateProfile: protectedProcedure
+    .input(z.object({
+      name: z.string().min(1).optional(),
+      image: z.string().url().optional(),
+    }))
+    .handler(async ({ context, input }) => {
+      // context.session.user is available
+      const userId = context.session.user.id;
+
+      // Update user profile
+      await db.update(user)
+        .set(input)
+        .where(eq(user.id, userId));
+
+      return { success: true };
+    }),
+};
+```
+
+**Example 4: Hono Server Setup with ORPC**
+
+```typescript
+// apps/server/src/index.ts
+import { honoServer } from '@orpc/server/hono';
+import { createContext } from '@sambung-chat/api/context';
+import { appRouter } from '@sambung-chat/api';
+
+// Create Hono server with ORPC integration
+const app = honoServer({
+  router: appRouter,
+  context: createContext,
+  prefix: '/rpc',
+});
+
+// Hono middleware chain
+app.use('*', async (c, next) => {
+  // CORS middleware
+  c.header('Access-Control-Allow-Origin', process.env.CORS_ORIGIN);
+  c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // Logger middleware
+  console.log(`${c.req.method} ${c.req.url}`);
+
+  await next();
+});
+
+// Error handler
+app.onError((err, c) => {
+  console.error('Server error:', err);
+  return c.json({ error: 'Internal server error' }, 500);
+});
+
+// Start server
+export default app;
+```
+
+**Example 5: Context Creation with Better-Auth**
+
+```typescript
+// packages/api/src/context.ts
+import { auth } from "@sambung-chat/auth";
+import type { Context } from "./index";
+
+export async function createContext(opts: { context: any }): Promise<Context> {
+  // Extract session from Better-Auth
+  const session = await auth.api.getSession({
+    headers: opts.context.headers,
+  });
+
+  // Return context with optional session
+  return {
+    session: session ? {
+      session: session.session,
+      user: session.user,
+    } : null,
+  };
+}
+```
+
+**Key Takeaways from Code Examples:**
+
+1. **Type Safety**: All code examples show end-to-end type safety
+2. **Validation**: Zod schemas provide runtime validation and TypeScript types
+3. **Separation of Concerns**: Clear separation between frontend, backend, and database layers
+4. **Authentication**: Protected procedures automatically check authentication
+5. **Error Handling**: Consistent error handling across all layers
+6. **Developer Experience**: Full IDE autocomplete and type checking
+
 ### Request Flow Overview
 
 1. **User Interaction**: User interacts with SvelteKit frontend in browser
@@ -4188,6 +4405,8 @@ flowchart TB
 
 #### Example 1: User Login Flow
 
+**Step-by-Step Flow:**
+
 ```
 1. User enters email/password → SignInForm
 2. Client validation → Zod schema check
@@ -4205,7 +4424,105 @@ flowchart TB
 14. UI updates → Redirect to dashboard
 ```
 
+**Concrete Code Implementation:**
+
+```typescript
+// ===== FRONTEND: Login Form Component =====
+// apps/web/src/routes/auth/+page.svelte
+<script lang="ts">
+  import { authClient } from '$lib/auth-client';
+  import { goto } from '$app/navigation';
+
+  let email = $state('');
+  let password = $state('');
+  let isLoading = $state(false);
+  let error = $state('');
+
+  async function handleLogin() {
+    isLoading = true;
+    error = '';
+
+    try {
+      // Step 3: ORPC call to Better-Auth sign-in endpoint
+      const result = await authClient.signIn.email({
+        email,
+        password,
+      });
+
+      // Step 12: Response received
+      if (result.error) {
+        error = result.error.message;
+      } else {
+        // Step 13: Session store automatically updated
+        // Step 14: Redirect to dashboard
+        goto('/dashboard');
+      }
+    } catch (e) {
+      error = 'Login failed. Please try again.';
+    } finally {
+      isLoading = false;
+    }
+  }
+</script>
+
+<form onsubmit={(e) => { e.preventDefault(); handleLogin(); }}>
+  <input type="email" bind:value={email} placeholder="Email" required />
+  <input type="password" bind:value={password} placeholder="Password" required />
+  <button type="submit" disabled={isLoading}>
+    {isLoading ? 'Signing in...' : 'Sign In'}
+  </button>
+  {#if error}
+    <p class="error">{error}</p>
+  {/if}
+</form>
+```
+
+```typescript
+// ===== BACKEND: Better-Auth Configuration =====
+// packages/auth/src/index.ts
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { db } from "@sambung-chat/db";
+import * as schema from "@sambung-chat/db/schema/auth";
+
+export const auth = betterAuth({
+  database: drizzleAdapter(db, {
+    provider: "pg",
+    schema: schema,
+  }),
+  emailAndPassword: {
+    enabled: true,
+    // Step 9: Password verification with bcrypt
+    passwordHash: async (password) => {
+      // Better-Auth uses bcrypt internally
+      return await bcrypt.hash(password, 10);
+    },
+  },
+  advanced: {
+    defaultCookieAttributes: {
+      // Step 11: Cookie security settings
+      httpOnly: true,    // Prevent JavaScript access
+      secure: true,      // HTTPS only
+      sameSite: "none",  // Cross-origin support
+      path: "/",          // Available on all routes
+    },
+  },
+});
+```
+
+```sql
+-- ===== DATABASE: Query Execution =====
+-- Step 7: Better-Auth queries user by email
+SELECT * FROM user WHERE email = $1;
+
+-- Step 10: After successful authentication, create session
+INSERT INTO session (id, user_id, token, expires_at, ip_address, user_agent)
+VALUES ($1, $2, $3, NOW() + INTERVAL '30 days', $4, $5);
+```
+
 #### Example 2: Create Todo Flow
+
+**Step-by-Step Flow:**
 
 ```
 1. User submits todo form → TodoForm
@@ -4223,7 +4540,127 @@ flowchart TB
 13. UI updates → Show new todo in list
 ```
 
+**Concrete Code Implementation:**
+
+```typescript
+// ===== FRONTEND: Todo Form Component =====
+// apps/web/src/routes/todos/+page.svelte
+<script lang="ts">
+  import { api } from '$lib/orpc';
+  import { onMount } from 'svelte';
+
+  let todos = $state([]);
+  let newTodoText = $state('');
+  let isSubmitting = $state(false);
+
+  // Load existing todos on mount
+  onMount(async () => {
+    todos = await api.todos.getAll();
+  });
+
+  async function addTodo() {
+    // Step 2: Client-side validation
+    if (!newTodoText.trim()) {
+      alert('Please enter a todo');
+      return;
+    }
+
+    isSubmitting = true;
+
+    try {
+      // Step 3: ORPC call with type-safe input
+      const newTodo = await api.todos.create({
+        text: newTodoText,
+      });
+
+      // Step 12: Update local state with response
+      // Step 13: UI automatically updates (Svelte reactivity)
+      todos.push(newTodo);
+      newTodoText = '';
+    } catch (error) {
+      console.error('Failed to create todo:', error);
+      alert('Failed to create todo');
+    } finally {
+      isSubmitting = false;
+    }
+  }
+</script>
+
+<div class="todo-app">
+  <form onsubmit={(e) => { e.preventDefault(); addTodo(); }}>
+    <input
+      type="text"
+      bind:value={newTodoText}
+      placeholder="What needs to be done?"
+      disabled={isSubmitting}
+    />
+    <button type="submit" disabled={isSubmitting}>
+      {isSubmitting ? 'Adding...' : 'Add Todo'}
+    </button>
+  </form>
+
+  <ul>
+    {#each todos as todo (todo.id)}
+      <li>
+        <input type="checkbox" checked={todo.completed} />
+        <span>{todo.text}</span>
+      </li>
+    {/each}
+  </ul>
+</div>
+```
+
+```typescript
+// ===== BACKEND: Todo Router with Zod Validation =====
+// packages/api/src/routers/todo.ts
+import { db } from "@sambung-chat/db";
+import { todo } from "@sambung-chat/db/schema/todo";
+import { publicProcedure } from "../index";
+import z from "zod";
+
+export const todoRouter = {
+  // Step 7: Zod schema validation happens automatically
+  create: publicProcedure
+    .input(z.object({
+      // Step 2: Runtime validation ensures text is string and min 1 char
+      text: z.string().min(1, "Todo text must be at least 1 character"),
+    }))
+    .handler(async ({ input }) => {
+      // Step 8: Handler executes with validated input
+      const result = await db.insert(todo)
+        .values({
+          // Step 9: Drizzle generates SQL
+          text: input.text,
+          // completed defaults to false in database schema
+        })
+        .returning();
+
+      // Step 10: PostgreSQL executes and returns inserted row
+      // Step 11: Return typed response to client
+      return result[0];
+    }),
+};
+```
+
+```sql
+-- ===== DATABASE: Actual SQL Executed =====
+-- Step 9: Drizzle generates this SQL from the TypeScript code
+INSERT INTO todo (text, completed)
+VALUES ($1, false)
+RETURNING id, text, completed, created_at;
+
+-- PostgreSQL returns:
+-- {
+--   id: 1,
+--   text: "Buy groceries",
+--   completed: false,
+--   created_at: "2026-01-12T10:30:00.000Z"
+-- }
+```
+
 #### Example 3: Protected API Request Flow
+
+**Step-by-Step Flow:**
 
 ```
 1. User navigates to /dashboard → SvelteKit load function
@@ -4240,6 +4677,132 @@ flowchart TB
 12. Business logic → Query user's private data
 13. Response → { data: "private user data" }
 14. Client receives → Update UI
+```
+
+**Concrete Code Implementation:**
+
+```typescript
+// ===== FRONTEND: Protected Dashboard Page =====
+// apps/web/src/routes/dashboard/+page.svelte
+<script lang="ts">
+  import { authClient } from '$lib/auth-client';
+  import { api } from '$lib/orpc';
+  import { onMount } from 'svelte';
+
+  let session = $state(null);
+  let privateData = $state(null);
+  let isLoading = $state(true);
+
+  onMount(async () => {
+    // Step 2: Check session on client side
+    session = authClient.useSession();
+
+    if (!session) {
+      // Redirect to login if not authenticated
+      window.location.href = '/auth';
+      return;
+    }
+
+    try {
+      // Step 4: Make protected API call
+      // Step 5: Browser automatically includes session cookie
+      privateData = await api.user.getPrivateData();
+      // Step 14: Update UI with private data
+    } catch (error) {
+      console.error('Failed to load private data:', error);
+      // Redirect to login if unauthorized
+      window.location.href = '/auth';
+    } finally {
+      isLoading = false;
+    }
+  });
+</script>
+
+{#if isLoading}
+  <p>Loading...</p>
+{:else if session && privateData}
+  <h1>Welcome, {session.user.name}!</h1>
+  <p>Your private data: {privateData.message}</p>
+{:else}
+  <p>Redirecting to login...</p>
+{/if}
+```
+
+```typescript
+// ===== BACKEND: Protected Procedure with Auth =====
+// packages/api/src/routers/user.ts
+import { db } from "@sambung-chat/db";
+import { user } from "@sambung-chat/db/schema/user";
+import { eq } from "drizzle-orm";
+import { protectedProcedure } from "../index";
+
+export const userRouter = {
+  // Protected procedure - requires authentication!
+  getPrivateData: protectedProcedure
+    .handler(async ({ context }) => {
+      // Step 10: requireAuth middleware guarantees this exists
+      // No null check needed - TypeScript knows context.session.user is defined
+      const userId = context.session.user.id;
+
+      // Step 12: Business logic - query user's private data
+      const userData = await db.select()
+        .from(user)
+        .where(eq(user.id, userId))
+        .limit(1);
+
+      // Step 13: Return private data
+      return {
+        message: `Private data for user ${userData[0].name}`,
+        userId: userId,
+        createdAt: userData[0].createdAt,
+      };
+    }),
+};
+```
+
+```typescript
+// ===== BACKEND: Auth Middleware Implementation =====
+// packages/api/src/index.ts
+import { ORPCError, os } from "@orpc/server";
+import type { Context } from "./context";
+
+export const o = os.$context<Context>();
+
+export const publicProcedure = o;
+
+// Step 10: requireAuth middleware implementation
+const requireAuth = o.middleware(async ({ context, next }) => {
+  // Check if user is authenticated
+  if (!context.session?.user) {
+    // Throw UNAUTHORIZED error if not
+    throw new ORPCError("UNAUTHORIZED", {
+      message: "You must be logged in to access this resource",
+    });
+  }
+
+  // User is authenticated - proceed to handler
+  return next({
+    context: {
+      session: context.session,
+    },
+  });
+});
+
+export const protectedProcedure = publicProcedure.use(requireAuth);
+```
+
+```sql
+-- ===== DATABASE: Session Validation Queries =====
+-- Step 8: Better-Auth validates session token
+SELECT s.*, u.*
+FROM session s
+JOIN user u ON s.user_id = u.id
+WHERE s.token = $1
+  AND s.expires_at > NOW();
+
+-- Step 9: If session valid, user data is returned
+-- Step 10: Middleware checks if user exists in context
+-- If not found or expired, query returns empty set
 ```
 
 ### Data Integrity Layers
@@ -4779,6 +5342,295 @@ flowchart LR
     Review -->|Modify| Schema
     Apply --> Verify[Verify in Studio<br/>bun run db:studio]
     Verify --> Commit[Commit Schema & Migration]
+```
+
+#### Practical Development Examples
+
+**Example 1: Creating a New Database Table**
+
+```typescript
+// Step 1: Define schema in packages/db/src/schema/post.ts
+import { pgTable, serial, text, timestamp, boolean } from 'drizzle-orm/pg-core';
+
+export const post = pgTable('post', {
+  id: serial('id').primaryKey(),
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  published: boolean('published').notNull().default(false),
+  authorId: text('author_id').references(() => user.id), // Foreign key to user
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+// Step 2: Export in packages/db/src/schema/index.ts
+export * from './post';
+```
+
+```bash
+# Step 3: Generate migration
+bun run db:generate
+
+# Output:
+# ✓ Migration generated: packages/db/src/migrations/0001_create_post.sql
+```
+
+```sql
+-- Step 4: Review the generated migration
+-- File: packages/db/src/migrations/0001_create_post.sql
+CREATE TABLE IF NOT EXISTS "post" (
+  "id" serial PRIMARY KEY,
+  "title" text NOT NULL,
+  "content" text NOT NULL,
+  "published" boolean NOT NULL DEFAULT false,
+  "author_id" text,
+  "created_at" timestamp DEFAULT now() NOT NULL,
+  "updated_at" timestamp DEFAULT now() NOT NULL
+);
+
+DO $$ BEGIN
+  ALTER TABLE "post" ADD CONSTRAINT "post_author_id_fkey" FOREIGN KEY ("author_id") REFERENCES "user"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+CREATE INDEX IF NOT EXISTS "post_author_id_idx" ON "post" ("author_id");
+```
+
+```bash
+# Step 5: Apply migration to database
+bun run db:push
+
+# Output:
+# ✓ Schema pushed successfully
+```
+
+```bash
+# Step 6: Verify in Drizzle Studio (optional)
+bun run db:studio
+
+# Opens GUI at http://localhost:4983
+```
+
+**Example 2: Adding a New API Endpoint**
+
+```typescript
+// Step 1: Create router in packages/api/src/routers/post.ts
+import { db } from "@sambung-chat/db";
+import { post } from "@sambung-chat/db/schema/post";
+import { eq } from "drizzle-orm";
+import { protectedProcedure } from "../index";
+import z from "zod";
+
+export const postRouter = {
+  // Get all posts for authenticated user
+  getAll: protectedProcedure.handler(async ({ context }) => {
+    const posts = await db.select()
+      .from(post)
+      .where(eq(post.authorId, context.session.user.id));
+    return posts;
+  }),
+
+  // Create new post
+  create: protectedProcedure
+    .input(z.object({
+      title: z.string().min(1),
+      content: z.string().min(1),
+      published: z.boolean().default(false),
+    }))
+    .handler(async ({ context, input }) => {
+      const result = await db.insert(post)
+        .values({
+          ...input,
+          authorId: context.session.user.id,
+        })
+        .returning();
+      return result[0];
+    }),
+
+  // Publish post
+  publish: protectedProcedure
+    .input(z.object({
+      id: z.number(),
+    }))
+    .handler(async ({ context, input }) => {
+      await db.update(post)
+        .set({ published: true })
+        .where(eq(post.id, input.id));
+      return { success: true };
+    }),
+
+  // Delete post
+  delete: protectedProcedure
+    .input(z.object({
+      id: z.number(),
+    }))
+    .handler(async ({ input }) => {
+      await db.delete(post).where(eq(post.id, input.id));
+      return { success: true };
+    }),
+};
+```
+
+```typescript
+// Step 2: Register router in packages/api/src/routers/index.ts
+import { todoRouter } from './todo';
+import { postRouter } from './post'; // Import new router
+
+export const appRouter = {
+  todos: todoRouter,
+  posts: postRouter, // Add new router
+};
+```
+
+```typescript
+// Step 3: Use in frontend (apps/web/src/routes/posts/+page.svelte)
+<script lang="ts">
+  import { api } from '$lib/orpc';
+
+  let posts = $state([]);
+  let newTitle = $state('');
+  let newContent = $state('');
+
+  // Load posts
+  async function loadPosts() {
+    posts = await api.posts.getAll();
+  }
+
+  // Create post
+  async function createPost() {
+    await api.posts.create({
+      title: newTitle,
+      content: newContent,
+      published: false,
+    });
+    await loadPosts();
+  }
+</script>
+```
+
+**Example 3: Setting Up Development Environment**
+
+```bash
+# Clone repository
+git clone https://github.com/your-org/sambung-chat.git
+cd sambung-chat
+
+# Install dependencies
+bun install
+
+# Copy environment template
+cp .env.example .env
+
+# Edit .env file with your configuration
+#DATABASE_URL=postgresql://user:password@localhost:5432/sambungchat
+#CORS_ORIGIN=http://localhost:5173
+#BETTER_AUTH_SECRET=your-secret-key-here
+#BETTER_AUTH_URL=http://localhost:3000
+
+# Set up database
+bun run db:push
+
+# Start development servers
+bun run dev
+
+# Output:
+# • Web: http://localhost:5173
+# • API: http://localhost:3000
+# • DB Studio: http://localhost:4983 (run bun run db:studio)
+```
+
+**Example 4: Common Git Workflow**
+
+```bash
+# Create new feature branch
+git checkout -b feature/add-user-profiles
+
+# Make changes to code
+# ... edit files ...
+
+# Check what changed
+git status
+
+# Stage changes for commit
+git add .
+
+# Commit with descriptive message
+git commit -m "feat: add user profile page with avatar upload
+
+- Add user profile endpoint in packages/api/src/routers/user.ts
+- Create profile page component in apps/web/src/routes/profile/+page.svelte
+- Add avatar upload functionality with file validation
+- Update database schema to include avatar_url field
+
+Closes #123"
+
+# Push to remote
+git push origin feature/add-user-profiles
+
+# Create pull request on GitHub
+# Review and merge into main branch
+
+# Switch back to main
+git checkout main
+git pull origin main
+```
+
+**Example 5: Debugging Common Issues**
+
+```bash
+# Issue: Type errors after adding new procedure
+# Solution: Check types
+bun run check-types
+
+# Issue: Build fails with module not found
+# Solution: Clear cache and reinstall
+rm -rf node_modules
+rm -rf .turbo
+bun install
+
+# Issue: Database migration fails
+# Solution: Check migration file and logs
+cat packages/db/src/migrations/0001_xxx.sql
+bun run db:push --verbose
+
+# Issue: API returns 500 error
+# Solution: Check server logs
+# In apps/server/src/index.ts, add error logging:
+app.onError((err, c) => {
+  console.error('Error:', err);
+  console.error('Stack:', err.stack);
+  return c.json({ error: err.message }, 500);
+});
+
+# Issue: Frontend can't connect to backend
+# Solution: Check CORS settings and environment variables
+echo $CORS_ORIGIN
+echo $DATABASE_URL
+```
+
+**Example 6: Running Tests and Linting**
+
+```bash
+# Type check all packages
+bun run check-types
+
+# Lint all code
+bun run lint
+
+# Auto-fix linting issues
+bun run lint --fix
+
+# Format code with Prettier
+bun run format
+
+# Run type checking on specific package
+bunx turbo check-types --filter=@sambung-chat/api
+
+# Build for production
+bun run build
+
+# Test production build locally
+bun run start
 ```
 
 ### Turborepo Build Optimization
