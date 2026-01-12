@@ -193,6 +193,73 @@ AI_PROVIDER=openai,anthropic,groq npm run dev
 
 ---
 
+### 🧪 Test Templates (Complete)
+
+**Location:** `./test-templates/`
+
+**Status:** Production-ready ✅
+
+**Purpose:** Comprehensive test templates for testing AI provider integrations
+
+**Features:**
+- **Unit Test Templates** - Test individual functions and components (Vitest)
+- **Integration Test Templates** - Test API endpoints and server integration (Supertest)
+- **E2E Test Templates** - Test complete user flows (Playwright)
+- **Test Fixtures** - Reusable test data and mocks
+- **Test Utilities** - Helper functions and utilities
+- **Complete Configuration** - Vitest config, setup files, and package.json
+
+**Test Templates Included:**
+- Provider initialization tests
+- Model creation tests
+- Validation tests (messages, requests, environment)
+- Error handling tests (auth, rate limits, network, provider-specific)
+- API endpoint tests (health, models, chat, errors)
+- Streaming response tests
+- Multi-turn conversation tests
+- E2E chat flow tests
+- UI interaction tests
+- Accessibility tests
+
+**Quick Start:**
+```bash
+cd test-templates
+
+# Install dependencies
+npm install
+
+# Run unit tests
+npm run test:unit
+
+# Run integration tests
+npm run test:integration
+
+# Run E2E tests
+npm run test:e2e
+
+# Run all tests with coverage
+npm run test:coverage
+```
+
+**Use Test Templates When Adding New Provider:**
+1. Copy templates: `cp -r test-templates/* tests/`
+2. Replace placeholder values (PROVIDER_NAME, MODEL_ID, etc.)
+3. Customize for your provider's specific features
+4. Run tests and verify coverage
+5. Adjust tests as needed
+
+**Documentation:** [Test Templates README](./test-templates/README.md)
+
+**Why Test Templates?** 🧪
+- **Fast Setup:** Copy-paste templates, no need to write from scratch
+- **Best Practices:** Industry-standard testing patterns included
+- **Comprehensive Coverage:** Unit, integration, and E2E tests all covered
+- **Reusable Fixtures:** Common test data and utilities included
+- **Production-Ready:** CI/CD ready configuration with coverage reporting
+- **Customizable:** Easy to adapt for any provider
+
+---
+
 ## Example Structure
 
 Each provider example follows a consistent structure:
