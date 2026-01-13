@@ -22,7 +22,9 @@
       "@types/pg": "^8.15.6",
       "clsx": "^2.1.1",
       "tailwind-merge": "^3.2.5",
-      "@tanstack/svelte-form": "^1.19.2"
+      "@tanstack/svelte-form": "^1.19.2",
+      "mode-watcher": "^1.1.0",
+      "svelte-sonner": "^1.0.7"
     }
   },
   "type": "module",

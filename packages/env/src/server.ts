@@ -15,6 +15,19 @@ const envSchema = createEnv({
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 
     // ═══════════════════════════════════════════════════════════════════
+    // AUTHENTICATION METHOD CONFIGURATION
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Enable email/password authentication.
+     * Set to "false" to disable email/password login (e.g., when using SSO only).
+     *
+     * @default "true"
+     */
+    EMAIL_PASSWORD_ENABLED: z.string().optional(),
+    PUBLIC_EMAIL_PASSWORD_ENABLED: z.string().optional(),
+
+    // ═══════════════════════════════════════════════════════════════════
     // AI PROVIDER SELECTION
     // ═══════════════════════════════════════════════════════════════════
 
@@ -170,6 +183,42 @@ const envSchema = createEnv({
      * Defaults to http://localhost:11434/v1
      */
     OLLAMA_BASE_URL: z.string().url().optional(),
+
+    // ═══════════════════════════════════════════════════════════════════
+    // KEYCLOAK OIDC CONFIGURATION
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Keycloak base URL.
+     * Format: https://your-keycloak-domain
+     * Example: https://keycloak.example.com
+     */
+    KEYCLOAK_URL: z.string().url().optional(),
+
+    /**
+     * Keycloak realm name.
+     * Example: myrealm
+     */
+    KEYCLOAK_REALM: z.string().optional(),
+
+    /**
+     * Keycloak client ID for OIDC authentication.
+     * Create a client in your Keycloak realm to get this value.
+     */
+    KEYCLOAK_CLIENT_ID: z.string().optional(),
+
+    /**
+     * Keycloak client secret for OIDC authentication.
+     * Create a confidential client in Keycloak to get this value.
+     */
+    KEYCLOAK_CLIENT_SECRET: z.string().optional(),
+
+    /**
+     * Keycloak issuer URL (optional, will be constructed from KEYCLOAK_URL and KEYCLOAK_REALM if not provided).
+     * Format: https://your-keycloak-domain/realms/your-realm
+     * Example: https://keycloak.example.com/realms/myrealm
+     */
+    KEYCLOAK_ISSUER: z.string().url().optional(),
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,

@@ -12,23 +12,53 @@ import { env } from '@sambung-chat/env/server';
 import { streamText, convertToModelMessages, wrapLanguageModel } from 'ai';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { logger } from 'hono/logger';
 
 const app = new Hono();
 
-app.use(logger());
+// Test route - should be the first route registered
+app.get('/test', (c) => {
+  console.log('[TEST] Test route called!');
+  return c.json({ message: 'Test route works', timestamp: Date.now() });
+});
+
+// ============================================================================
+// CORS - Must be registered before auth handler
+// ============================================================================
 app.use(
   '/*',
   cors({
     origin: env.CORS_ORIGIN,
-    allowMethods: ['GET', 'POST', 'OPTIONS'],
+    allowMethods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE', 'PATCH'],
     allowHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   })
 );
 
-app.on(['POST', 'GET'], '/api/auth/*', (c) => auth.handler(c.req.raw));
+// ============================================================================
+// BETTER AUTH HANDLER
+// ============================================================================
+// According to Hono + Better Auth examples:
+// https://hono.dev/examples/better-auth
+// auth.handler() returns a Response directly
+// ============================================================================
+app.all('/api/auth/*', (c) => {
+  console.log('[AUTH] Handler called:', c.req.method, c.req.url);
+  try {
+    return auth.handler(c.req.raw);
+  } catch (error) {
+    console.error('[AUTH] Error:', error);
+    throw error;
+  }
+});
 
+// ============================================================================
+// RPC & API HANDLERS
+// ============================================================================
+// These handle the ORPC handlers for /rpc and /api-reference routes
+// IMPORTANT: This middleware should NOT interfere with /api/auth/* routes
+// because those are handled by the app.on() route handler above which runs
+// AFTER the middleware chain completes.
+// ============================================================================
 export const apiHandler = new OpenAPIHandler(appRouter, {
   plugins: [
     new OpenAPIReferencePlugin({
@@ -37,7 +67,7 @@ export const apiHandler = new OpenAPIHandler(appRouter, {
   ],
   interceptors: [
     onError((error) => {
-      console.error(error);
+      console.error('[API ERROR]:', error);
     }),
   ],
 });
@@ -45,36 +75,45 @@ export const apiHandler = new OpenAPIHandler(appRouter, {
 export const rpcHandler = new RPCHandler(appRouter, {
   interceptors: [
     onError((error) => {
-      console.error(error);
+      console.error('[RPC ERROR]:', error);
     }),
   ],
 });
 
-app.use('/*', async (c, next) => {
+// Only apply this middleware to non-auth routes
+app.use('/ai', async (c, next) => {
   const context = await createContext({ context: c });
+  c.set('context', context);
+  await next();
+});
 
+app.use('/rpc/*', async (c, next) => {
+  const context = await createContext({ context: c });
   const rpcResult = await rpcHandler.handle(c.req.raw, {
     prefix: '/rpc',
     context: context,
   });
-
   if (rpcResult.matched) {
     return c.newResponse(rpcResult.response.body, rpcResult.response);
   }
+  await next();
+});
 
+app.use('/api-reference/*', async (c, next) => {
+  const context = await createContext({ context: c });
   const apiResult = await apiHandler.handle(c.req.raw, {
     prefix: '/api-reference',
     context: context,
   });
-
   if (apiResult.matched) {
     return c.newResponse(apiResult.response.body, apiResult.response);
   }
-
   await next();
 });
 
-// Create OpenAI-compatible client
+// ============================================================================
+// AI ENDPOINT
+// ============================================================================
 const openai = createOpenAICompatible({
   name: 'openai-compatible',
   baseURL: env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1',
@@ -96,8 +135,30 @@ app.post('/ai', async (c) => {
   return result.toUIMessageStreamResponse();
 });
 
+// ============================================================================
+// HEALTH CHECK
+// ============================================================================
 app.get('/', (c) => {
+  console.log('[ROOT] Root endpoint called');
   return c.text('OK');
 });
 
-export default app;
+// Debug endpoint to test handler
+app.get('/debug', (c) => {
+  console.log('[DEBUG] Debug endpoint called');
+  return c.json({ message: 'Debug works', time: new Date().toISOString() });
+});
+
+// ============================================================================
+// SERVER STARTUP
+// ============================================================================
+// Bun runtime uses export default with port and fetch properties
+// ============================================================================
+const port = env.PORT || 3000;
+
+console.log(`[SERVER] Configured for port ${port}`);
+
+export default {
+  port,
+  fetch: app.fetch,
+};

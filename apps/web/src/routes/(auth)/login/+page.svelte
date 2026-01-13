@@ -4,9 +4,17 @@
   import { authClient } from '../../../lib/auth-client';
   import { goto } from '$app/navigation';
   import { toast } from 'svelte-sonner';
+  import type { PageData } from './$types';
 
   let showSignIn = $state(true);
   let isLoading = $state(false);
+
+  // Props from server load
+  interface Props {
+    showSSO: boolean;
+  }
+
+  let { data }: { data: PageData } = $props();
 
   async function handleSignIn(credentials: { email: string; password: string }) {
     isLoading = true;
@@ -31,6 +39,33 @@
       const message = err instanceof Error ? err.message : 'An unexpected error occurred';
       toast.error(message);
     } finally {
+      isLoading = false;
+    }
+  }
+
+  async function handleSSO() {
+    isLoading = true;
+
+    try {
+      const result = await authClient.signIn.oauth2({
+        providerId: 'keycloak',
+        callbackURL: '/dashboard',
+      });
+
+      if (result.error) {
+        const error = result.error;
+        const message =
+          typeof error === 'string'
+            ? error
+            : (error as any)?.message || 'Failed to sign in with SSO. Please try again.';
+
+        toast.error(message);
+        isLoading = false;
+      }
+      // Note: If successful, the redirect will happen automatically
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'An unexpected error occurred';
+      toast.error(message);
       isLoading = false;
     }
   }
@@ -80,7 +115,14 @@
         <p class="text-sm text-muted-foreground">Enter your email below to login to your account</p>
       </div>
 
-      <SignInForm onSubmit={handleSignIn} {switchToSignUp} {isLoading} />
+      <SignInForm
+        onSubmit={handleSignIn}
+        onSSO={handleSSO}
+        {switchToSignUp}
+        {isLoading}
+        showSSO={data.showSSO}
+        showEmailPassword={data.showEmailPassword}
+      />
     </div>
   </AuthLayout>
 {:else}
