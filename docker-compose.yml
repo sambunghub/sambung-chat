@@ -78,20 +78,26 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 5173
       # Server-side environment variables (required for SvelteKit SSR)
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sambungchat:sambungchat_dev@postgres:5432/sambungchat_dev}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:password@postgres:5432/sambung-chat}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-sambungchat-dev-secret-key-at-least-32-chars-long}
-      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:5173}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
       # AI Provider (required by env validation)
       AI_PROVIDER: ${AI_PROVIDER:-ollama}
-      # Use internal Docker network URL for server-to-server communication
-      PUBLIC_SERVER_URL: ${PUBLIC_SERVER_URL:-http://server:3000}
-      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://server:3000}
+      # Frontend URLs
+      PUBLIC_SERVER_URL: ${PUBLIC_SERVER_URL:-http://localhost:5173}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:3000}
       # Authentication Method Configuration (frontend)
       PUBLIC_EMAIL_PASSWORD_ENABLED: ${PUBLIC_EMAIL_PASSWORD_ENABLED:-true}
       EMAIL_PASSWORD_ENABLED: ${EMAIL_PASSWORD_ENABLED:-true}
       # Keycloak SSO (shows SSO button on login page when enabled)
       PUBLIC_KEYCLOAK_ENABLED: ${PUBLIC_KEYCLOAK_ENABLED:-false}
+      # Pass Keycloak config for web-side logging
+      KEYCLOAK_URL: ${KEYCLOAK_URL}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
     volumes:
       - .:/app
       - node_modules:/app/node_modules
