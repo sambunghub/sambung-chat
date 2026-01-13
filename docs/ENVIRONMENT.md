@@ -1,298 +1,316 @@
 # SambungChat Environment Configuration
 
-**Version:** 0.1.0
-**Last Updated:** January 11, 2026
+**Version:** 1.0.0
+**Last Updated:** January 13, 2026
 
 ---
 
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Environment Variables](#environment-variables)
-3. [Configuration Files](#configuration-files)
-4. [Setup Guide](#setup-guide)
-5. [Security Best Practices](#security-best-practices)
-6. [Troubleshooting](#troubleshooting)
+2. [Centralized Environment Setup](#centralized-environment-setup)
+3. [Environment Variables Reference](#environment-variables-reference)
+4. [AI Provider Configuration](#ai-provider-configuration)
+5. [Setup Guide](#setup-guide)
+6. [Security Best Practices](#security-best-practices)
+7. [Troubleshooting](#troubleshooting)
 
 ---
 
 ## Overview
 
-SambungChat uses environment variables for configuration across multiple applications:
+SambungChat uses a **centralized environment configuration** system:
 
 ```
 sambung-chat/
-├── apps/
-│   ├── server/
-│   │   └── .env          # Server environment
-│   └── web/
-│       └── .env          # Web client environment
+├── .env                  # Centralized environment variables (NOT in git)
+├── .env.example          # Template with all available variables
 └── packages/
-    ├── env/
-    │   ├── src/
-    │   │   ├── server.ts  # Server env validation
-    │   │   └── client.ts  # Client env validation
-    │   └── src/
-    │       └── index.ts
+    └── env/
+        └── src/
+            └── server.ts # Environment validation schema
 ```
+
+### Key Principles
+
+1. **Single Source of Truth**: One `.env` file in the project root
+2. **Shared Configuration**: Both local development and Docker use the same file
+3. **Validated Schema**: Type-safe environment variables via Zod
+4. **AI Provider Flexibility**: Support for multiple AI providers with fallback chains
 
 ---
 
-## Environment Variables
+## Centralized Environment Setup
 
-### Server Environment (`apps/server/.env`)
+### Directory Structure
 
-#### Required Variables
+```
+sambung-chat/
+├── .env                   # ⚠️ DO NOT COMMIT - Your actual secrets
+├── .env.example           # ✅ In git - Template for all variables
+├── .gitignore             # Excludes .env from version control
+├── docker-compose.yml     # Reads from .env automatically
+├── apps/
+│   ├── server/            # Uses root .env via @sambung-chat/env package
+│   └── web/               # Uses root .env via SvelteKit load function
+└── packages/
+    └── env/
+        └── src/
+            └── server.ts  # Validates and exports environment variables
+```
 
-| Variable             | Description                   | Example                               | Default                 |
-| -------------------- | ----------------------------- | ------------------------------------- | ----------------------- |
-| `DATABASE_URL`       | PostgreSQL connection string  | `postgresql://user:pass@host:5432/db` | -                       |
-| `BETTER_AUTH_SECRET` | Secret for session encryption | `random-min-32-chars`                 | -                       |
-| `BETTER_AUTH_URL`    | Base URL for auth             | `http://localhost:3000`               | `http://localhost:3000` |
-| `CORS_ORIGIN`        | Allowed CORS origins          | `http://localhost:5173`               | `*`                     |
+### How It Works
+
+1. **Local Development** (`bun run dev`):
+   - Loads variables from root `.env` via `dotenv/config`
+   - Validated by `@sambung-chat/env` package
+
+2. **Docker** (`docker compose up`):
+   - Docker Compose automatically reads root `.env`
+   - Variables passed to containers via `environment:` section
+
+3. **Environment Validation**:
+   - Schema defined in `packages/env/src/server.ts`
+   - Throws error if required variables are missing or invalid
+
+---
+
+## Environment Variables Reference
+
+### Core Application Settings
+
+| Variable         | Description                    | Example                             | Default                 |
+| ---------------- | ------------------------------ | ----------------------------------- | ----------------------- |
+| `NODE_ENV`       | Environment mode               | `development`, `production`, `test` | `development`           |
+| `SERVER_PORT`    | Server port (local dev)        | `3000`                              | `3000`                  |
+| `WEB_PORT`       | Web port (local dev)           | `5173`                              | `5173`                  |
+| `PUBLIC_API_URL` | Backend API URL (for frontend) | `http://localhost:3000`             | `http://localhost:3000` |
+
+### Database Configuration
+
+| Variable            | Description                  | Example                               | Default           |
+| ------------------- | ---------------------------- | ------------------------------------- | ----------------- |
+| `DATABASE_URL`      | PostgreSQL connection string | `postgresql://user:pass@host:5432/db` | -                 |
+| `POSTGRES_USER`     | Docker PostgreSQL username   | `sambungchat`                         | `sambungchat`     |
+| `POSTGRES_PASSWORD` | Docker PostgreSQL password   | `sambungchat_dev`                     | `sambungchat_dev` |
+| `POSTGRES_DB`       | Docker PostgreSQL database   | `sambungchat_dev`                     | `sambungchat_dev` |
+
+**Database URLs by Environment:**
 
 ```bash
-# apps/server/.env
+# Local Development (with local PostgreSQL)
+DATABASE_URL=postgresql://postgres:password@localhost:5432/sambung-chat
 
-# Database
-DATABASE_URL=postgresql://sambungchat:sambungchat@localhost:5432/sambungchat
+# Docker Development (with containerized PostgreSQL)
+DATABASE_URL=postgresql://sambungchat:sambungchat_dev@postgres:5432/sambungchat_dev
 
-# Better Auth
-BETTER_AUTH_SECRET=your-secret-key-min-32-characters-long
+# Production
+DATABASE_URL=postgresql://user:pass@prod-db.example.com:5432/sambungchat
+```
+
+### Authentication Configuration
+
+| Variable             | Description               | Example                 | Requirement       |
+| -------------------- | ------------------------- | ----------------------- | ----------------- |
+| `BETTER_AUTH_SECRET` | Session encryption secret | `random-32-chars`       | Min 32 characters |
+| `BETTER_AUTH_URL`    | Base URL for auth         | `http://localhost:3000` | Required          |
+| `CORS_ORIGIN`        | Allowed CORS origins      | `http://localhost:5173` | Required          |
+
+**BETTER_AUTH_URL by Environment:**
+
+```bash
+# Local Development (direct server access)
 BETTER_AUTH_URL=http://localhost:3000
 
-# CORS
+# Docker Development
+BETTER_AUTH_URL=http://localhost:3000
+
+# Production
+BETTER_AUTH_URL=https://api.sambungchat.com
+```
+
+**CORS_ORIGIN Examples:**
+
+```bash
+# Single origin (development)
 CORS_ORIGIN=http://localhost:5173
 
-# Port (optional)
-PORT=3000
-```
+# Single origin (production)
+CORS_ORIGIN=https://app.sambungchat.com
 
-#### Optional Variables
-
-| Variable         | Description                | Example                          | Default       |
-| ---------------- | -------------------------- | -------------------------------- | ------------- |
-| `ENCRYPTION_KEY` | Key for API key encryption | `random-32-char-hex`             | -             |
-| `NODE_ENV`       | Environment mode           | `production`                     | `development` |
-| `LOG_LEVEL`      | Logging verbosity          | `debug`, `info`, `warn`, `error` | `info`        |
-
-```bash
-# apps/server/.env (continued)
-
-# Encryption (for API keys)
-ENCRYPTION_KEY=0123456789abcdef0123456789abcdef
-
-# Environment
-NODE_ENV=development
-
-# Logging
-LOG_LEVEL=debug
-```
-
-### Client Environment (`apps/web/.env`)
-
-**Note:** Client variables must be prefixed with `PUBLIC_` to be exposed to browser.
-
-| Variable            | Description     | Example                 |
-| ------------------- | --------------- | ----------------------- |
-| `PUBLIC_SERVER_URL` | Backend API URL | `http://localhost:3000` |
-
-```bash
-# apps/web/.env
-
-PUBLIC_SERVER_URL=http://localhost:3000
+# Multiple origins
+CORS_ORIGIN=https://app.sambungchat.com,https://sambungchat.com
 ```
 
 ---
 
-## Configuration Files
+## AI Provider Configuration
 
-### Server Environment Validation
+### Supported Providers
 
-**File:** `packages/env/src/server.ts`
+| Provider  | Key Variable                   | Base URL Variable    | Model Variable    |
+| --------- | ------------------------------ | -------------------- | ----------------- |
+| OpenAI    | `OPENAI_API_KEY`               | `OPENAI_BASE_URL`    | `OPENAI_MODEL`    |
+| Anthropic | `ANTHROPIC_API_KEY`            | `ANTHROPIC_BASE_URL` | `ANTHROPIC_MODEL` |
+| Google    | `GOOGLE_GENERATIVE_AI_API_KEY` | -                    | `GOOGLE_MODEL`    |
+| Groq      | `GROQ_API_KEY`                 | `GROQ_BASE_URL`      | `GROQ_MODEL`      |
+| Ollama    | - (local)                      | `OLLAMA_BASE_URL`    | `OLLAMA_MODEL`    |
 
-```typescript
-import { z } from 'zod';
+### Provider Selection
 
-export const serverEnvSchema = z.object({
-  // Database
-  DATABASE_URL: z.string().url(),
+Set `AI_PROVIDER` to choose your primary AI provider:
 
-  // Better Auth
-  BETTER_AUTH_SECRET: z.string().min(32),
-  BETTER_AUTH_URL: z.string().url().default('http://localhost:3000'),
+```bash
+# Single provider
+AI_PROVIDER=openai
 
-  // CORS
-  CORS_ORIGIN: z.string().default('*'),
+# Fallback chain (tries in order, uses first that works)
+AI_PROVIDER=openai,anthropic,groq
 
-  // Optional
-  ENCRYPTION_KEY: z.string().length(32).optional(),
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
-
-  // Server
-  PORT: z.coerce.number().default(3000),
-});
-
-export type ServerEnv = z.infer<typeof serverEnvSchema>;
+# Local AI (no API key needed)
+AI_PROVIDER=ollama
 ```
 
-### Client Environment Validation
+### OpenAI-Compatible APIs
 
-**File:** `packages/env/src/client.ts`
+For OpenAI-compatible APIs like Z.AI:
 
-```typescript
-import { z } from 'zod';
-
-export const clientEnvSchema = z.object({
-  PUBLIC_SERVER_URL: z.string().url(),
-});
-
-export type ClientEnv = z.infer<typeof clientEnvSchema>;
+```bash
+AI_PROVIDER=openai
+OPENAI_API_KEY=your-api-key
+OPENAI_BASE_URL=https://api.z.ai/api/coding/paas/v4
+OPENAI_MODEL=glm-4.7
 ```
 
-### Environment Export
+### Default Models
 
-**File:** `packages/env/src/index.ts`
-
-```typescript
-import { serverEnvSchema } from './server';
-import { clientEnvSchema } from './client';
-
-// Validate server environment
-export const serverEnv = serverEnvSchema.parse(process.env);
-
-// Validate client environment (build-time)
-export const clientEnv = clientEnvSchema.parse({
-  PUBLIC_SERVER_URL: process.env.PUBLIC_SERVER_URL,
-});
-```
+| Provider  | Default Model                | Alternative Models                                    |
+| --------- | ---------------------------- | ----------------------------------------------------- |
+| OpenAI    | `gpt-4o-mini`                | `gpt-4o`, `o1-mini`, `o1-preview`                     |
+| Anthropic | `claude-3-5-sonnet-20241022` | `claude-3-5-haiku-20241022`, `claude-3-opus-20240229` |
+| Google    | `gemini-2.5-flash`           | `gemini-2.5-pro`                                      |
+| Groq      | `llama-3.3-70b-versatile`    | `llama-3.1-70b-versatile`, `mixtral-8x7b-32768`       |
+| Ollama    | `llama3.2`                   | `llama3.1`, `mistral`, `codellama`, `gemma2`          |
 
 ---
 
 ## Setup Guide
 
-### Step 1: Generate Secrets
+### Step 1: Create Environment File
 
 ```bash
-# Generate Better Auth secret (32+ chars)
+# Copy the example template
+cp .env.example .env
+```
+
+### Step 2: Generate Secrets
+
+```bash
+# Generate Better Auth secret (min 32 characters)
 openssl rand -base64 32
-
-# Generate encryption key (32 hex chars)
-openssl rand -hex 16
 ```
 
-### Step 2: Create Server Environment
+### Step 3: Configure Required Variables
+
+Edit `.env` with your values:
 
 ```bash
-# Copy example
-cp apps/server/.env.example apps/server/.env
-
-# Edit with your values
-nano apps/server/.env
-```
-
-**Example `.env` file:**
-
-```bash
-# apps/server/.env
+# ===========================================
+# CORE SETTINGS
+# ===========================================
+NODE_ENV=development
+SERVER_PORT=3000
+WEB_PORT=5173
+PUBLIC_API_URL=http://localhost:3000
 
 # ===========================================
 # DATABASE
 # ===========================================
-DATABASE_URL=postgresql://sambungchat:sambungchat@localhost:5432/sambungchat
+# For local development
+DATABASE_URL=postgresql://postgres:password@localhost:5432/sambung-chat
+
+# For Docker development
+# DATABASE_URL=postgresql://sambungchat:sambungchat_dev@postgres:5432/sambungchat_dev
+
+# Docker PostgreSQL config
+POSTGRES_USER=sambungchat
+POSTGRES_PASSWORD=sambungchat_dev
+POSTGRES_DB=sambungchat_dev
 
 # ===========================================
 # AUTHENTICATION
 # ===========================================
-BETTER_AUTH_SECRET=9K8jM3nB5pL7xR2tV4wY6zA8cD0eF1gH2iJ3kL4mN5oP
+BETTER_AUTH_SECRET=your-secret-key-minimum-32-characters-long
 BETTER_AUTH_URL=http://localhost:3000
-
-# ===========================================
-# CORS
-# ===========================================
 CORS_ORIGIN=http://localhost:5173
 
 # ===========================================
-# ENCRYPTION (for API keys)
+# AI PROVIDER (Choose one)
 # ===========================================
-ENCRYPTION_KEY=0123456789abcdef0123456789abcdef
 
-# ===========================================
-# SERVER
-# ===========================================
-PORT=3000
-NODE_ENV=development
-LOG_LEVEL=info
+# Option 1: Z.AI (OpenAI-compatible)
+AI_PROVIDER=openai
+OPENAI_API_KEY=your-z-ai-api-key
+OPENAI_BASE_URL=https://api.z.ai/api/coding/paas/v4
+OPENAI_MODEL=glm-4.7
+
+# Option 2: OpenAI
+# AI_PROVIDER=openai
+# OPENAI_API_KEY=sk-your-openai-api-key
+# OPENAI_MODEL=gpt-4o-mini
+
+# Option 3: Anthropic
+# AI_PROVIDER=anthropic
+# ANTHROPIC_API_KEY=sk-ant-your-key
+# ANTHROPIC_MODEL=claude-3-5-sonnet-20241022
+
+# Option 4: Ollama (local, no API key)
+# AI_PROVIDER=ollama
+# OLLAMA_BASE_URL=http://localhost:11434/v1
+# OLLAMA_MODEL=llama3.2
 ```
 
-### Step 3: Create Client Environment
+### Step 4: Start the Application
+
+**Local Development:**
 
 ```bash
-# Copy example
-cp apps/web/.env.example apps/web/.env
+# Install dependencies
+bun install
 
-# Edit with your values
-nano apps/web/.env
+# Start all services (database, server, web)
+bun run dev
+
+# Or start specific service
+bun run dev:server  # Server only
+bun run dev:web     # Web only
 ```
 
-**Example `.env` file:**
+**Docker Development:**
 
 ```bash
-# apps/web/.env
+# Start all containers
+docker compose up
 
-# ===========================================
-# API
-# ===========================================
-PUBLIC_SERVER_URL=http://localhost:3000
-```
+# Or detached mode
+docker compose up -d
 
-### Step 4: Create `.env.example` Templates
-
-**File:** `apps/server/.env.example`
-
-```bash
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/sambungchat
-
-# Better Auth (generate with: openssl rand -base64 32)
-BETTER_AUTH_SECRET=change-me-to-random-32-char-string
-BETTER_AUTH_URL=http://localhost:3000
-
-# CORS
-CORS_ORIGIN=http://localhost:5173
-
-# Encryption (generate with: openssl rand -hex 16)
-ENCRYPTION_KEY=change-me-to-32-char-hex-key
-
-# Server
-PORT=3000
-NODE_ENV=development
-LOG_LEVEL=info
-```
-
-**File:** `apps/web/.env.example`
-
-```bash
-# API
-PUBLIC_SERVER_URL=http://localhost:3000
+# View logs
+docker compose logs -f
 ```
 
 ---
 
 ## Security Best Practices
 
-### 1. Never Commit `.env` Files
+### 1. Never Commit `.env` File
 
 **File:** `.gitignore`
 
 ```gitignore
 # Environment files
 .env
-.env.local
-.env.*.local
-apps/server/.env
-apps/web/.env
+.env*.local
 ```
 
 ### 2. Use Strong Secrets
@@ -309,15 +327,11 @@ BETTER_AUTH_SECRET=password
 ### 3. Different Secrets per Environment
 
 ```bash
-# Development
+# Development (.env)
 BETTER_AUTH_SECRET=dev-secret-32-chars-minimum-length
 
-# Production
+# Production (.env.production)
 BETTER_AUTH_SECRET=prod-secret-different-from-dev-32-chars
-
-# Use separate .env files
-# .env.development
-# .env.production
 ```
 
 ### 4. Rotate Secrets Regularly
@@ -327,120 +341,29 @@ BETTER_AUTH_SECRET=prod-secret-different-from-dev-32-chars
 openssl rand -base64 32
 
 # Update .env file
-# Restart server
-
+# Restart application
 # Note: This will invalidate existing sessions
 ```
 
 ### 5. Limit CORS Origins
 
 ```bash
-# ❌ Too permissive (any origin)
+# ❌ Too permissive
 CORS_ORIGIN=*
 
 # ✅ Specific origin
 CORS_ORIGIN=http://localhost:5173
 
-# ✅ Multiple origins (comma-separated)
+# ✅ Multiple origins
 CORS_ORIGIN=https://app.sambungchat.com,https://sambungchat.com
 ```
 
----
+### 6. Protect API Keys
 
-## Environment-Specific Configs
-
-### Development
-
-**File:** `apps/server/.env.development`
-
-```bash
-DATABASE_URL=postgresql://sambungchat:sambungchat@localhost:5432/sambungchat_dev
-BETTER_AUTH_SECRET=dev-secret-key-32-chars-minimum-for-development
-BETTER_AUTH_URL=http://localhost:3000
-CORS_ORIGIN=http://localhost:5173
-PORT=3000
-NODE_ENV=development
-LOG_LEVEL=debug
-```
-
-### Production
-
-**File:** `apps/server/.env.production`
-
-```bash
-DATABASE_URL=postgresql://user:pass@prod-db.example.com:5432/sambungchat
-BETTER_AUTH_SECRET=prod-secret-key-must-be-different-from-dev-32-chars
-BETTER_AUTH_URL=https://api.sambungchat.com
-CORS_ORIGIN=https://app.sambungchat.com
-PORT=3000
-NODE_ENV=production
-LOG_LEVEL=info
-```
-
-### Testing
-
-**File:** `apps/server/.env.test`
-
-```bash
-DATABASE_URL=postgresql://sambungchat:sambungchat@localhost:5432/sambungchat_test
-BETTER_AUTH_SECRET=test-secret-key-32-chars-minimum-for-testing
-BETTER_AUTH_URL=http://localhost:3000
-CORS_ORIGIN=http://localhost:5173
-PORT=3001
-NODE_ENV=test
-LOG_LEVEL=error
-```
-
----
-
-## Docker Environment
-
-### Docker Compose
-
-**File:** `docker-compose.yml`
-
-```yaml
-version: '3.8'
-services:
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-sambungchat}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sambungchat}
-      POSTGRES_DB: ${POSTGRES_DB:-sambungchat}
-    ports:
-      - '5432:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  server:
-    build:
-      context: .
-      dockerfile: apps/server/Dockerfile
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-sambungchat}:${POSTGRES_PASSWORD:-sambungchat}@postgres:5432/${POSTGRES_DB:-sambungchat}
-      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
-      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
-      CORS_ORIGIN: ${CORS_ORIGIN}
-    ports:
-      - '3000:3000'
-    depends_on:
-      - postgres
-
-volumes:
-  postgres_data:
-```
-
-**File:** `.env` (for Docker)
-
-```bash
-POSTGRES_USER=sambungchat
-POSTGRES_PASSWORD=sambungchat
-POSTGRES_DB=sambungchat
-BETTER_AUTH_SECRET=your-secret-key-32-char-minimum
-BETTER_AUTH_URL=http://localhost:3000
-CORS_ORIGIN=http://localhost:5173
-```
+- Use environment-specific API keys
+- Rotate API keys regularly
+- Monitor usage for unusual activity
+- Use API key restrictions when available
 
 ---
 
@@ -454,28 +377,63 @@ CORS_ORIGIN=http://localhost:5173
 
 ```bash
 # Check .env file exists
-ls apps/server/.env
+ls .env
 
 # Check variable is set
-grep DATABASE_URL apps/server/.env
+grep DATABASE_URL .env
 
-# Restart server
-bun run dev:server
+# Restart application
+bun run dev  # or docker compose restart
 ```
 
-### Error: Invalid environment variables
+### Error: At least one AI provider API key is required
 
-**Problem:** Zod validation failed
+**Problem:** No AI provider configured
 
 **Solution:**
 
 ```bash
-# Check schema validation
-cat packages/env/src/server.ts
+# Configure at least one AI provider in .env
+AI_PROVIDER=openai
+OPENAI_API_KEY=your-api-key
 
-# Verify your .env matches schema
-BETTER_AUTH_SECRET must be 32+ characters
-DATABASE_URL must be valid URL
+# Or use local Ollama (no key needed)
+AI_PROVIDER=ollama
+```
+
+### Error: `BETTER_AUTH_SECRET` must be at least 32 characters
+
+**Problem:** Secret too short
+
+**Solution:**
+
+```bash
+# Generate proper secret
+openssl rand -base64 32
+
+# Update .env
+BETTER_AUTH_SECRET=<generated-secret>
+```
+
+### Docker: Environment variables not loading
+
+**Problem:** Docker Compose not reading .env
+
+**Solution:**
+
+```bash
+# Verify .env is in project root (same as docker-compose.yml)
+ls -la .env docker-compose.yml
+
+# Check variable format (no spaces around =)
+# ✅ Correct
+VARIABLE=value
+
+# ❌ Incorrect
+VARIABLE = value
+
+# Test with docker compose config
+docker compose config
 ```
 
 ### Error: CORS blocked
@@ -485,47 +443,52 @@ DATABASE_URL must be valid URL
 **Solution:**
 
 ```bash
-# Check CORS_ORIGIN in server .env
-CORS_ORIGIN=http://localhost:5173  # Must match frontend URL
+# Check CORS_ORIGIN matches frontend URL
+CORS_ORIGIN=http://localhost:5173
 
-# Check PUBLIC_SERVER_URL in web .env
-PUBLIC_SERVER_URL=http://localhost:3000  # Must match backend URL
-```
-
-### Error: Auth session invalid
-
-**Problem:** `BETTER_AUTH_SECRET` changed
-
-**Solution:**
-
-```bash
-# Clear all sessions (or use consistent secret)
-# Users will need to sign in again
+# Check PUBLIC_API_URL matches backend URL
+PUBLIC_API_URL=http://localhost:3000
 ```
 
 ---
 
 ## Quick Reference
 
+### Environment-Specific Configs
+
+**Development:**
+
+```bash
+NODE_ENV=development
+DATABASE_URL=postgresql://sambungchat:sambungchat_dev@postgres:5432/sambungchat_dev
+BETTER_AUTH_URL=http://localhost:3000
+CORS_ORIGIN=http://localhost:5173
+```
+
+**Production:**
+
+```bash
+NODE_ENV=production
+DATABASE_URL=postgresql://user:pass@prod-db.example.com:5432/sambungchat
+BETTER_AUTH_SECRET=<strong-production-secret>
+BETTER_AUTH_URL=https://api.sambungchat.com
+CORS_ORIGIN=https://app.sambungchat.com
+```
+
 ### Generate All Secrets
 
 ```bash
 # Better Auth Secret
 echo "BETTER_AUTH_SECRET=$(openssl rand -base64 32)"
-
-# Encryption Key
-echo "ENCRYPTION_KEY=$(openssl rand -hex 16)"
 ```
 
 ### Validate Environment
 
 ```bash
-# Server
-cd apps/server
-bun run env:validate
+# Check .env syntax
+cat .env
 
-# Client
-cd apps/web
+# Validate schema (if validation script exists)
 bun run env:validate
 ```
 
@@ -533,21 +496,19 @@ bun run env:validate
 
 ```typescript
 // Server
-import { serverEnv } from '@sambung-chat/env/server';
+import { env } from '@sambung-chat/env/server';
 
-console.log(serverEnv.DATABASE_URL);
-console.log(serverEnv.PORT);
-
-// Client (SvelteKit)
-import { env } from '$env/dynamic/public';
-
-console.log(env.PUBLIC_SERVER_URL);
+console.log(env.DATABASE_URL);
+console.log(env.BETTER_AUTH_SECRET);
+console.log(env.AI_PROVIDER);
+console.log(env.OPENAI_API_KEY);
 ```
 
 ---
 
 ## Related Documents
 
+- [DOCKER](./DOCKER.md) - Docker development setup
 - [DATABASE](./DATABASE.md) - Database setup
 - [Deployment](./deployment.md) - Production deployment
 - [Getting Started](./getting-started.md) - Initial setup
