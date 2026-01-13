@@ -23,7 +23,7 @@ Instead, please send an email to the project maintainers. Your report should inc
 - Potential impact of the vulnerability
 - Any suggested mitigations or fixes (if available)
 
-**Email:** [INSERT SECURITY CONTACT EMAIL]
+**Email:** security@sambunghub.com
 
 ### What to Expect
 
@@ -118,7 +118,7 @@ For more information, see the [LICENSE](../LICENSE) file.
 
 For general security questions or concerns, please contact:
 
-- **Email:** [INSERT SECURITY CONTACT EMAIL]
+- **Email:** security@sambunghub.com
 - **GitHub:** Use GitHub's private vulnerability reporting feature if available
 
 ---
