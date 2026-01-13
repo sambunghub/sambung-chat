@@ -1,0 +1,106 @@
+# Docker Compose for SambaChat Production
+# Usage: docker-compose -f docker-compose.prod.yml up -d
+
+version: '3.9'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: sambungchat-db-prod
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sambungchat}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-sambungchat}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-sambungchat} -d ${POSTGRES_DB:-sambungchat}']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - sambungchat-network
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+  # Server (Hono API)
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+      target: production
+    container_name: sambungchat-server-prod
+    restart: always
+    ports:
+      - '${SERVER_PORT:-3000}:3000'
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sambungchat}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sambungchat}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - sambungchat-network
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  # Web (SvelteKit)
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: production
+    container_name: sambungchat-web-prod
+    restart: always
+    ports:
+      - '${WEB_PORT:-3000}:3000'
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:3000}
+    depends_on:
+      - server
+    networks:
+      - sambungchat-network
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  sambungchat-network:
+    driver: bridge

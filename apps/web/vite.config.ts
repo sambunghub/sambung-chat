@@ -15,4 +15,19 @@ export default defineConfig({
     // Allow @sambung-chat/ui to be processed by Vite (pre-built dist files)
     noExternal: ['@sambung-chat/ui'],
   },
+  server: {
+    // Listen on all interfaces for Docker compatibility
+    host: '0.0.0.0',
+    port: 5173,
+    strictPort: true,
+    // HMR configuration for Docker
+    hmr: {
+      clientPort: 5173,
+    },
+    // Watch options for file watching in Docker
+    watch: {
+      usePolling: true,
+      interval: 1000,
+    },
+  },
 });

@@ -5,7 +5,7 @@
   "lastUpdated": "2026-01-11",
   "currentPhase": "phase-1",
   "currentWeek": 3,
-  "overallProgress": 0.19,
+  "overallProgress": 0.27,
   "phases": [
     {
       "id": "phase-1",
@@ -33,33 +33,36 @@
           "title": "Create .github/ templates",
           "week": 1,
           "priority": "P0",
-          "status": "pending",
+          "status": "completed",
           "category": "infrastructure",
           "files": [".github/CONTRIBUTING.md", ".github/CODE_OF_CONDUCT.md", ".github/SECURITY.md"],
           "blocked": false,
-          "description": "Create community standard templates"
+          "description": "Create community standard templates",
+          "completedAt": "2026-01-12"
         },
         {
           "id": "ci-cd",
           "title": "Setup CI/CD GitHub Actions",
           "week": 1,
           "priority": "P0",
-          "status": "pending",
+          "status": "completed",
           "category": "infrastructure",
-          "files": [".github/workflows/ci.yml", ".github/workflows/lint.yml"],
+          "files": [".github/workflows/ci.yml"],
           "blocked": false,
-          "description": "Setup type checking and linting workflows"
+          "description": "Setup type checking, linting, build, and test workflows",
+          "completedAt": "2026-01-12"
         },
         {
           "id": "linting-config",
           "title": "Configure ESLint, Prettier, and Husky",
           "week": 1,
           "priority": "P1",
-          "status": "pending",
+          "status": "completed",
           "category": "infrastructure",
-          "files": [".eslintrc.js", ".prettierrc", ".husky/pre-commit"],
+          "files": ["eslint.config.js", ".prettierrc", ".husky/pre-commit"],
           "blocked": false,
-          "description": "Configure code quality tools"
+          "description": "Configure code quality tools",
+          "completedAt": "2026-01-12"
         },
         {
           "id": "monorepo-setup",
@@ -161,24 +164,26 @@
           "title": "Build login UI page",
           "week": 3,
           "priority": "P1",
-          "status": "pending",
+          "status": "completed",
           "category": "frontend",
           "files": ["apps/web/src/routes/(auth)/login/+page.svelte"],
           "blocked": false,
           "dependencies": ["auth-router"],
-          "description": "Login form with email/password"
+          "description": "Login form with email/password",
+          "completedAt": "2026-01-12"
         },
         {
           "id": "register-ui",
           "title": "Build register UI page",
           "week": 3,
           "priority": "P1",
-          "status": "pending",
+          "status": "completed",
           "category": "frontend",
           "files": ["apps/web/src/routes/(auth)/register/+page.svelte"],
           "blocked": false,
           "dependencies": ["auth-router"],
-          "description": "Registration form with validation"
+          "description": "Registration form with validation",
+          "completedAt": "2026-01-12"
         },
         {
           "id": "auth-layout",
