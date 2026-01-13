@@ -153,6 +153,89 @@ shadcn-svelte components that have been added:
 - ✅ `Input` - Text input field
 - ✅ `Textarea` - Multi-line text input
 - ✅ `Card` - Card container with Header, Title, Description, Content, Footer
+- ✅ `Label` - Form label
+- ✅ `Checkbox` - Checkbox input
+- ✅ `Separator` - Visual separator
+- ✅ `Skeleton` - Loading placeholder
+- ✅ `Tooltip` - Hover tooltip
+- ✅ `Sonner/Toaster` - Toast notifications
+- ✅ `DropdownMenu` - Dropdown menu
+- ✅ `Select` - Select input
+
+### Toast Notifications
+
+Uses `svelte-sonner` for toast notifications.
+
+#### Basic Usage
+
+```ts
+import { toast } from 'svelte-sonner';
+
+// Success toast
+toast.success('Account created successfully!');
+
+// Error toast
+toast.error('Failed to create account. Please try again.');
+
+// Info toast
+toast.info('Processing your request...');
+
+// Warning toast
+toast.warning('Please check your input');
+
+// Loading toast (with dismiss)
+const loadingToast = toast.loading('Creating account...');
+// ... later
+toast.dismiss(loadingToast);
+```
+
+#### With Description
+
+```ts
+toast.success('Account created!', {
+  description: 'You can now sign in with your credentials.',
+});
+```
+
+#### Promise Toast
+
+```ts
+toast.promise(createUserAccount(formData), {
+  loading: 'Creating account...',
+  success: 'Account created successfully!',
+  error: (err) => `Failed to create account: ${err.message}`,
+});
+```
+
+#### Toast Colors
+
+| Type    | Background                    | Border                        | Usage       |
+| ------- | ----------------------------- | ----------------------------- | ----------- |
+| Success | `oklch(0.3 0.1 142)` - Teal   | `oklch(0.5 0.15 142)` - Teal  | Success     |
+| Error   | `oklch(0.3 0.15 27)` - Red    | `oklch(0.5 0.2 27)` - Red     | Errors      |
+| Warning | `oklch(0.3 0.12 48)` - Orange | `oklch(0.5 0.18 48)` - Orange | Warnings    |
+| Info    | `oklch(0.3 0.1 240)` - Blue   | `oklch(0.5 0.15 240)` - Blue  | Information |
+| Normal  | Popover colors                | Border colors                 | Default     |
+
+#### Toaster Setup
+
+The `Toaster` component must be added to your root layout (dynamic import for SSR):
+
+```svelte
+<script lang="ts">
+  import { onMount } from 'svelte';
+  let ToasterComponent = $state<any>(null);
+
+  onMount(async () => {
+    const { Toaster } = await import('@sambung-chat/ui');
+    ToasterComponent = Toaster;
+  });
+</script>
+
+{#if ToasterComponent}
+  <svelte:component this={ToasterComponent} />
+{/if}
+```
 
 ### List of Available shadcn-svelte Components to Add
 

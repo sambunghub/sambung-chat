@@ -12,8 +12,7 @@ export default defineConfig({
     },
   },
   ssr: {
-    // Allow @sambung-chat/ui to be processed by Vite (pre-built dist files)
-    noExternal: ['@sambung-chat/ui'],
+    // No external - use default behavior
   },
   server: {
     // Listen on all interfaces for Docker compatibility

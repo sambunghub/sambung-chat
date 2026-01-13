@@ -1,35 +1,98 @@
 <script lang="ts">
   import { SignInForm, SignUpForm } from '@sambung-chat/ui';
+  import { AuthLayout } from '@sambung-chat/ui';
   import { authClient } from '../../../lib/auth-client';
   import { goto } from '$app/navigation';
+  import { toast } from 'svelte-sonner';
 
   let showSignIn = $state(true);
+  let isLoading = $state(false);
 
   async function handleSignIn(credentials: { email: string; password: string }) {
-    const result = await authClient.signIn.email(credentials);
+    isLoading = true;
 
-    if (result.error) {
-      console.error('Sign in error:', result.error);
-      return;
+    try {
+      const result = await authClient.signIn.email(credentials);
+
+      if (result.error) {
+        const error = result.error;
+        const message =
+          typeof error === 'string'
+            ? error
+            : (error as any)?.message || 'Failed to sign in. Please check your credentials.';
+
+        toast.error(message);
+        return;
+      }
+
+      toast.success('Welcome back!');
+      goto('/dashboard');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'An unexpected error occurred';
+      toast.error(message);
+    } finally {
+      isLoading = false;
     }
-
-    goto('/dashboard');
   }
 
   async function handleSignUp(credentials: { name: string; email: string; password: string }) {
-    const result = await authClient.signUp.email(credentials);
+    isLoading = true;
 
-    if (result.error) {
-      console.error('Sign up error:', result.error);
-      return;
+    try {
+      const result = await authClient.signUp.email(credentials);
+
+      if (result.error) {
+        const error = result.error;
+        const message =
+          typeof error === 'string'
+            ? error
+            : (error as any)?.message || 'Failed to create account. Please try again.';
+
+        toast.error(message);
+        return;
+      }
+
+      toast.success('Account created successfully!');
+      goto('/dashboard');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'An unexpected error occurred';
+      toast.error(message);
+    } finally {
+      isLoading = false;
     }
+  }
 
-    goto('/dashboard');
+  function switchToSignUp() {
+    showSignIn = false;
+  }
+
+  function switchToSignIn() {
+    showSignIn = true;
   }
 </script>
 
 {#if showSignIn}
-  <SignInForm onSubmit={handleSignIn} switchToSignUp={() => (showSignIn = false)} />
+  <AuthLayout>
+    <div class="w-full max-w-sm space-y-6">
+      <!-- shadcn-svelte pattern: title and description -->
+      <div class="flex flex-col space-y-2 text-center">
+        <h1 class="text-2xl font-semibold tracking-tight">Login</h1>
+        <p class="text-sm text-muted-foreground">Enter your email below to login to your account</p>
+      </div>
+
+      <SignInForm onSubmit={handleSignIn} {switchToSignUp} {isLoading} />
+    </div>
+  </AuthLayout>
 {:else}
-  <SignUpForm onSubmit={handleSignUp} switchToSignIn={() => (showSignIn = true)} />
+  <AuthLayout>
+    <div class="w-full max-w-sm space-y-6">
+      <!-- shadcn-svelte pattern: title and description -->
+      <div class="flex flex-col space-y-2 text-center">
+        <h1 class="text-2xl font-semibold tracking-tight">Create an account</h1>
+        <p class="text-sm text-muted-foreground">Enter your email below to create your account</p>
+      </div>
+
+      <SignUpForm onSubmit={handleSignUp} {switchToSignIn} {isLoading} />
+    </div>
+  </AuthLayout>
 {/if}

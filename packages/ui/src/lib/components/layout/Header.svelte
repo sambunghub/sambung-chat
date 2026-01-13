@@ -6,7 +6,7 @@
     isLoadingUser?: boolean;
     onNavigate?: (path: string) => void;
     onSignIn?: () => void;
-    onSignOut?: () => void | Promise<void>;
+    onSignOut?: () => Promise<void>;
   }
 
   let { user = null, isLoadingUser = false, onNavigate, onSignIn, onSignOut }: Props = $props();
@@ -52,6 +52,19 @@
     </div>
 
     <div class="flex items-center gap-2">
+      <!-- Light/Dark mode toggle - temporarily hidden -->
+      <!-- <button
+				onclick={toggleMode}
+				class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 w-9"
+				type="button"
+			>
+				{#if currentMode === 'dark'}
+					<Sun class="size-5" />
+				{:else}
+					<Moon class="size-5" />
+				{/if}
+			</button> -->
+
       {#if isLoadingUser}
         <div class="h-8 w-8 animate-pulse rounded-full bg-muted"></div>
       {:else if user}

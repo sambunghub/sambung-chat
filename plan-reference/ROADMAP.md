@@ -32,8 +32,8 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 
 - [x] Complete Better Auth integration (backend configured with email/password)
 - [x] User registration/login UI components (SignInForm, SignUpForm exist)
-- [ ] Session management implementation
-- [ ] Protected routes implementation
+- [x] Session management implementation
+- [x] Protected routes implementation
 - [ ] User profile page
 
 ### Week 5-6: Multi-Model Chat Interface

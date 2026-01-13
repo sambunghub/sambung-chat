@@ -69,7 +69,9 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 5173
-      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:3000}
+      # Use internal Docker network URL for server-to-server communication
+      PUBLIC_SERVER_URL: ${PUBLIC_SERVER_URL:-http://server:3000}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://server:3000}
     volumes:
       - .:/app
       - node_modules:/app/node_modules

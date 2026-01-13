@@ -1,6 +1,7 @@
 <script lang="ts">
   import { QueryClientProvider } from '@tanstack/svelte-query';
   import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools';
+  import { ModeWatcher } from 'mode-watcher';
   import '../app.css';
   import '@sambung-chat/ui/styles.css';
   import { queryClient } from '../lib/orpc';
@@ -8,6 +9,15 @@
   import { authClient } from '../lib/auth-client';
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
+
+  // Dynamic import Toaster for client-side only rendering
+  import { onMount } from 'svelte';
+  let ToasterComponent = $state<any>(null);
+
+  onMount(async () => {
+    const { Toaster } = await import('@sambung-chat/ui');
+    ToasterComponent = Toaster;
+  });
 
   const { children } = $props();
 
@@ -28,6 +38,9 @@
   });
 </script>
 
+<!-- ModeWatcher must be at root level for global theme tracking -->
+<ModeWatcher defaultMode="dark" />
+
 <QueryClientProvider client={queryClient}>
   <div class="grid h-svh grid-rows-[auto_1fr]">
     <LayoutHeader
@@ -45,4 +58,8 @@
     </main>
   </div>
   <SvelteQueryDevtools />
+  {#if ToasterComponent}
+    {@const Toaster = ToasterComponent}
+    <Toaster />
+  {/if}
 </QueryClientProvider>

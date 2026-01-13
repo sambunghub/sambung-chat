@@ -53,6 +53,11 @@ export {
   SelectPortal,
 } from './select/index';
 
+export { Checkbox } from './checkbox/index';
+export { Label } from './label/index';
 export { Separator } from './separator/index';
 export { Skeleton } from './skeleton/index';
 export * from './tooltip/index';
+
+// Toast/Sonner for notifications
+export { Toaster } from './sonner/index';
