@@ -49,7 +49,7 @@
     try {
       const result = await authClient.signIn.oauth2({
         providerId: 'keycloak',
-        callbackURL: '/dashboard',
+        callbackURL: `${window.location.origin}/dashboard`,
       });
 
       if (result.error) {
