@@ -281,3 +281,7 @@ If you encounter build errors:
 - **docs/TROUBLESHOOTING.md** - Common build errors
 - **docs/architecture.md** - System architecture overview
 - **plan-reference/ROADMAP.md** - Development timeline
+
+## NOTES
+
+1. Don't Use Watermark when Commit like created by

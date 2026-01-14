@@ -120,27 +120,45 @@ const openai = createOpenAICompatible({
 });
 
 app.post('/ai', async (c) => {
-  const body = await c.req.json();
-  const uiMessages = body.messages || [];
-  const model = wrapLanguageModel({
-    model: openai(env.OPENAI_MODEL ?? 'gpt-4o-mini'),
-    middleware: devToolsMiddleware(),
-  });
-  const result = streamText({
-    model,
-    messages: await convertToModelMessages(uiMessages),
-  });
+  try {
+    console.log('[AI] Request received');
+    const body = await c.req.json();
+    console.log('[AI] Messages count:', body.messages?.length || 0);
 
-  // Use Hono's streaming API with AI SDK
-  const response = result.toUIMessageStreamResponse();
+    const uiMessages = body.messages || [];
+    const model = wrapLanguageModel({
+      model: openai(env.OPENAI_MODEL ?? 'gpt-4o-mini'),
+      middleware: devToolsMiddleware(),
+    });
 
-  // Convert AI SDK response to Hono-compatible response
-  return new Response(response.body, {
-    headers: {
-      'Content-Type': response.headers.get('Content-Type') || 'text/plain; charset=utf-8',
-      'Transfer-Encoding': 'chunked',
-    },
-  });
+    console.log('[AI] Calling streamText...');
+    const result = streamText({
+      model,
+      messages: await convertToModelMessages(uiMessages),
+    });
+
+    console.log('[AI] Creating stream response...');
+    // Use Hono's streaming API with AI SDK
+    const response = result.toUIMessageStreamResponse();
+
+    console.log('[AI] Sending response...');
+    // Convert AI SDK response to Hono-compatible response
+    return new Response(response.body, {
+      headers: {
+        'Content-Type': response.headers.get('Content-Type') || 'text/plain; charset=utf-8',
+        'Transfer-Encoding': 'chunked',
+      },
+    });
+  } catch (error) {
+    console.error('[AI] Error:', error);
+    return c.json(
+      {
+        error: 'Failed to process AI request',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      500
+    );
+  }
 });
 
 // ============================================================================
@@ -169,4 +187,6 @@ console.log(`[SERVER] Configured for port ${port}`);
 export default {
   port,
   fetch: app.fetch,
+  // Increase timeout for AI requests (default is 10 seconds)
+  idleTimeout: 120, // 2 minutes
 };
