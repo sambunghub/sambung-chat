@@ -112,38 +112,43 @@
         <p class="text-muted-foreground mb-4">Centered card layout for authentication pages.</p>
 
         <div class="rounded-lg border border-border overflow-hidden">
-          <AuthLayout
-            title="Sign In"
-            description="Enter your credentials to access your account"
-            showLogo={true}
-          >
-            <form class="space-y-4" onsubmit={(e) => e.preventDefault()}>
-              <div>
-                <label class="block text-sm font-medium mb-1">Email</label>
-                <input
-                  type="email"
-                  class="w-full px-3 py-2 border border-input rounded-md bg-background"
-                  placeholder="you@example.com"
-                />
+          <AuthLayout>
+            <div class="w-full max-w-sm space-y-6">
+              <div class="flex flex-col space-y-2 text-center">
+                <h1 class="text-2xl font-semibold tracking-tight">Sign In</h1>
+                <p class="text-sm text-muted-foreground">
+                  Enter your credentials to access your account
+                </p>
               </div>
-              <div>
-                <label class="block text-sm font-medium mb-1">Password</label>
-                <input
-                  type="password"
-                  class="w-full px-3 py-2 border border-input rounded-md bg-background"
-                  placeholder="••••••••"
-                />
-              </div>
-              <Button type="submit" class="w-full">Sign In</Button>
-            </form>
-            {#snippet footer()}
+              <form class="space-y-4" onsubmit={(e) => e.preventDefault()}>
+                <div>
+                  <label class="block text-sm font-medium mb-1" for="demo-email"> Email </label>
+                  <input
+                    id="demo-email"
+                    type="email"
+                    class="w-full px-3 py-2 border border-input rounded-md bg-background"
+                    placeholder="you@example.com"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1" for="demo-password">
+                    Password
+                  </label>
+                  <input
+                    id="demo-password"
+                    type="password"
+                    class="w-full px-3 py-2 border border-input rounded-md bg-background"
+                    placeholder="••••••••"
+                  />
+                </div>
+                <Button type="submit" class="w-full">Sign In</Button>
+              </form>
               <p class="mt-6 text-center text-xs text-muted-foreground">
-                Custom footer: Don't have an account? <a
-                  href="#"
-                  class="text-primary hover:underline">Sign up</a
+                Don't have an account? <a href="/register" class="text-primary hover:underline"
+                  >Sign up</a
                 >
               </p>
-            {/snippet}
+            </div>
           </AuthLayout>
         </div>
       </section>
