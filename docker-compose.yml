@@ -78,7 +78,7 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: 5173
       # Server-side environment variables (required for SvelteKit SSR)
-      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:password@postgres:5432/sambung-chat}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sambungchat:sambungchat_dev@postgres:5432/sambungchat_dev}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-sambungchat-dev-secret-key-at-least-32-chars-long}
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:5173}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
