@@ -86,7 +86,7 @@ services:
       AI_PROVIDER: ${AI_PROVIDER:-ollama}
       # Frontend URLs
       PUBLIC_SERVER_URL: ${PUBLIC_SERVER_URL:-http://localhost:5173}
-      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:3000}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://sambungchat-server-dev:3000}
       # Authentication Method Configuration (frontend)
       PUBLIC_EMAIL_PASSWORD_ENABLED: ${PUBLIC_EMAIL_PASSWORD_ENABLED:-true}
       EMAIL_PASSWORD_ENABLED: ${EMAIL_PASSWORD_ENABLED:-true}
