@@ -8,9 +8,14 @@
 import { describe, it, expect } from 'bun:test';
 
 describe('ORPC Client Configuration', () => {
-  it('should have PUBLIC_SERVER_URL defined', () => {
+  it('should have PUBLIC_API_URL defined for backend API calls', () => {
+    expect(process.env.PUBLIC_API_URL).toBeDefined();
+    expect(process.env.PUBLIC_API_URL).toBe('http://localhost:3000');
+  });
+
+  it('should have PUBLIC_SERVER_URL defined for frontend URL', () => {
     expect(process.env.PUBLIC_SERVER_URL).toBeDefined();
-    expect(process.env.PUBLIC_SERVER_URL).toBe('http://localhost:3000');
+    expect(process.env.PUBLIC_SERVER_URL).toBe('http://localhost:5173');
   });
 
   it('should match CORS_ORIGIN with frontend', () => {

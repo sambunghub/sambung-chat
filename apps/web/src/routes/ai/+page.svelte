@@ -1,12 +1,14 @@
 <script lang="ts">
-  import { PUBLIC_SERVER_URL } from '$env/static/public';
   import { Chat } from '@ai-sdk/svelte';
   import { DefaultChatTransport } from 'ai';
+
+  // Use PUBLIC_API_URL for AI endpoint (backend)
+  const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:3000';
 
   let input = $state('');
   const chat = new Chat({
     transport: new DefaultChatTransport({
-      api: `${PUBLIC_SERVER_URL}/ai`,
+      api: `${PUBLIC_API_URL}/ai`,
     }),
   });
 
