@@ -114,6 +114,11 @@
 | Build SettingsPage component  | ⏳ pending | P1       | -              | Settings navigation                |
 | Implement theme toggle        | ⏳ pending | P1       | -              | Light/dark mode with OKLCH colors  |
 | Build appearance settings     | ⏳ pending | P2       | -              | Font size, sidebar width           |
+| Setup svelte-i18n             | ⏳ pending | P1       | -              | Install and configure i18n library |
+| Create locale files (en, id)  | ⏳ pending | P1       | svelte-i18n    | English & Indonesia translations   |
+| Extract UI strings            | ⏳ pending | P1       | svelte-i18n    | Move hardcoded strings to locales  |
+| Add language selector         | ⏳ pending | P1       | svelte-i18n    | Dropdown in settings page          |
+| Store language preference     | ⏳ pending | P1       | user-settings  | Save to database, load on login    |
 
 ---
 

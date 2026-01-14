@@ -1,7 +1,7 @@
 # SAMBUNG CHAT: Development Roadmap
 
 **Version:** 1.1
-**Last Updated:** January 12, 2026
+**Last Updated:** January 14, 2026
 **License:** AGPL-3.0
 
 ---
@@ -39,7 +39,7 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 ### Week 5-6: Multi-Model Chat Interface
 
 - [ ] Integrate LLM providers (direct API calls):
-  - [ ] OpenAI Compatible
+  - [x] OpenAI Compatible (Z.AI integration working)
   - [ ] OpenAI (GPT-4, GPT-3.5)
   - [ ] Anthropic (Claude)
   - [ ] Google (Gemini)
@@ -48,8 +48,8 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 - [x] Database schema for chats, messages, and apiKeys
 - [x] Basic API routes (chat, message CRUD via ORPC)
 - [ ] Model selector dropdown
-- [ ] Real-time streaming responses (StreamingText component exists)
-- [ ] Error handling & fallback mechanism
+- [x] Real-time streaming responses (AI SDK v6 streaming implemented)
+- [x] Error handling & fallback mechanism (retry with exponential backoff)
 - [x] API key database schema (apiKeys table ready)
 - [ ] API key management UI (encrypted storage)
 
@@ -76,7 +76,12 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 
 - [x] Theme provider (ThemeProvider.svelte exists)
 - [ ] Settings page UI
-- [ ] Language selection (English, Indonesian)
+- [ ] **Internationalization (i18n) setup**:
+  - [ ] Install and configure `svelte-i18n`
+  - [ ] Create locale files (en, id)
+  - [ ] Extract UI strings to translation files
+  - [ ] Add language selector to settings
+  - [ ] Store language preference in database
 - [ ] Sidebar width adjustment
 - [ ] Font size adjustment
 - [ ] Privacy mode toggle

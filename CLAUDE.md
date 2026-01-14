@@ -95,11 +95,21 @@ sambung-chat/
 │   ├── env/                 # Environment validation
 │   └── config/              # Shared TypeScript configs
 ├── docs/                    # Public documentation
-│   ├── TROUBLESHOOTING.md   # Common build errors
-│   ├── UI-PACKAGE-GUIDE.md  # UI development guide
-│   └── architecture.md      # System architecture
+│   ├── index.md             # Documentation navigation index
+│   ├── README.md            # Documentation hub
+│   ├── teams-concept.md     # Team model & access control
+│   ├── routes.md            # URL structure & routing
+│   ├── database.md          # Database tables & relationships
+│   ├── i18n.md              # Internationalization guide
+│   ├── troubleshooting.md   # Common build errors
+│   ├── ui-package-guide.md  # UI development guide
+│   ├── architecture.md      # System architecture
+│   ├── getting-started.md   # Installation & setup
+│   ├── deployment.md        # Deployment guides
+│   └── api-reference.md     # API endpoint documentation
 └── plan-reference/          # Planning docs
     ├── ROADMAP.md           # Development timeline
+    ├── STATUS.md            # Current development status
     └── AGENTS.md            # Root AI agent reference
 ```
 
@@ -152,7 +162,7 @@ export const router = {
 
 ### packages/ui - shadcn-svelte Components
 
-**CRITICAL:** Read `packages/ui/AGENTS.md` and `docs/UI-PACKAGE-GUIDE.md` before any changes.
+**CRITICAL:** Read `packages/ui/AGENTS.md` and `docs/ui-package-guide.md` before any changes.
 
 **Golden Rules:**
 
@@ -275,9 +285,29 @@ If you encounter build errors:
 
 ## Documentation References
 
-- **Root AGENTS.md** - Primary AI agent reference
-- **packages/ui/AGENTS.md** - UI package guidelines
-- **docs/UI-PACKAGE-GUIDE.md** - Comprehensive UI development guide
-- **docs/TROUBLESHOOTING.md** - Common build errors
-- **docs/architecture.md** - System architecture overview
-- **plan-reference/ROADMAP.md** - Development timeline
+**Start Here:**
+
+- **[docs/index.md](docs/index.md)** - Documentation navigation hub
+- **[docs/README.md](docs/README.md)** - Main documentation hub
+
+**Team & Organization:**
+
+- **[docs/teams-concept.md](docs/teams-concept.md)** - Team model, access control, workspaces
+- **[docs/routes.md](docs/routes.md)** - Complete URL structure and routing
+- **[docs/database.md](docs/database.md)** - Database tables and relationships
+
+**Development Guides:**
+
+- **[docs/getting-started.md](docs/getting-started.md)** - Installation & setup guide
+- **[docs/i18n.md](docs/i18n.md)** - Internationalization with svelte-i18n
+- **[docs/ui-package-guide.md](docs/ui-package-guide.md)** - UI package development guide
+- **[docs/ai-provider-integration-guide.md](docs/ai-provider-integration-guide.md)** - AI provider integration
+
+**Reference:**
+
+- **[docs/architecture.md](docs/architecture.md)** - System architecture overview
+- **[docs/api-reference.md](docs/api-reference.md)** - API endpoint documentation
+- **[docs/troubleshooting.md](docs/troubleshooting.md)** - Common build errors
+- **[docs/deployment.md](docs/deployment.md)** - Deployment guides
+- **[plan-reference/ROADMAP.md](plan-reference/ROADMAP.md)** - Development timeline
+- **[plan-reference/STATUS.md](plan-reference/STATUS.md)** - Current development status

@@ -16,6 +16,12 @@
 
 SambungChat uses **ORPC** (OpenAPI-compatible RPC) for type-safe API communication. All endpoints are POST requests to `/rpc/*` paths.
 
+> **Team & Organization API**
+>
+> For team-related API endpoints (team management, members, invitations), see **[Teams Concept](./teams-concept.md)** for the team model and access control patterns.
+>
+> Team endpoints follow the same ORPC patterns documented below, with additional team context validation.
+
 ### Authentication
 
 Most endpoints require authentication via session cookies. Set by Better Auth during sign in.

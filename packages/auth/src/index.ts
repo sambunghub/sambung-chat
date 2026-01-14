@@ -5,13 +5,6 @@ import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { genericOAuth, keycloak } from 'better-auth/plugins';
 
-console.log('[BETTERAUTH] ===============================================');
-console.log('[BETTERAUTH] Initializing Better Auth with Keycloak');
-console.log('[BETTERAUTH] Keycloak URL:', env.KEYCLOAK_URL);
-console.log('[BETTERAUTH] Keycloak Realm:', env.KEYCLOAK_REALM);
-console.log('[BETTERAUTH] BetterAuth URL:', env.BETTER_AUTH_URL);
-console.log('[BETTERAUTH] ===============================================');
-
 // Check if email/password auth is enabled
 const isEmailPasswordEnabled = env.EMAIL_PASSWORD_ENABLED !== 'false';
 
@@ -52,9 +45,3 @@ export const auth = betterAuth({
     }),
   ],
 });
-
-console.log('[BETTERAUTH] ===============================================');
-console.log('[BETTERAUTH] ✅ Better Auth Configuration Complete');
-console.log('[BETTERAUTH] - Keycloak SSO:', env.KEYCLOAK_CLIENT_ID ? 'ENABLED' : 'DISABLED');
-console.log('[BETTERAUTH] - Email/Password:', isEmailPasswordEnabled ? 'ENABLED' : 'DISABLED');
-console.log('[BETTERAUTH] ===============================================');

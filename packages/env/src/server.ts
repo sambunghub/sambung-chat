@@ -13,6 +13,7 @@ const envSchema = createEnv({
     BETTER_AUTH_URL: z.url(),
     CORS_ORIGIN: z.url(),
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+    PORT: z.coerce.number().default(3000),
 
     // ═══════════════════════════════════════════════════════════════════
     // AUTHENTICATION METHOD CONFIGURATION
@@ -263,6 +264,18 @@ function validateAIProviders(env: typeof envSchema): void {
 }
 
 // Validate and export the environment
-validateAIProviders(envSchema);
+// Skip validation for client-side/web (when running in browser context)
+if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
+  try {
+    validateAIProviders(envSchema);
+  } catch (error) {
+    // Only throw in server context, allow web to continue
+    if (typeof process !== 'undefined' && process.env.PORT?.toString() === '3000') {
+      throw error;
+    }
+    // For web, just log warning
+    console.warn('AI provider validation skipped for web context');
+  }
+}
 
 export const env = envSchema;

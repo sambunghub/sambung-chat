@@ -29,7 +29,7 @@ describe('Server Environment', () => {
 
   it('should have NODE_ENV set', () => {
     expect(process.env.NODE_ENV).toBeDefined();
-    expect(['development', 'test', 'production']).toContain(process.env.NODE_ENV);
+    expect(['development', 'test', 'production']).toContain(process.env.NODE_ENV!);
   });
 });
 

@@ -18,6 +18,17 @@
 
 ---
 
+## Related Documents
+
+| Document                            | Description                                |
+| ----------------------------------- | ------------------------------------------ |
+| [Teams Concept](./teams-concept.md) | Team model, access control, workspaces     |
+| [Routes Structure](./routes.md)     | Complete URL structure and routing         |
+| [Database Schema](./database.md)    | Detailed database tables and relationships |
+| [API Reference](./api-reference.md) | Complete API endpoint documentation        |
+
+---
+
 ## Overview
 
 SambungChat follows a **monorepo architecture** using Turborepo for orchestration. The application is split into:
@@ -178,7 +189,19 @@ SambungChat follows a **monorepo architecture** using Turborepo for orchestratio
 
 ## Database Schema
 
-### Core Tables
+> **Complete Database Documentation**
+>
+> For detailed database schema including team tables, relationships, and access patterns, see **[Database Schema](./database.md)**.
+>
+> **Key Tables:**
+>
+> - **Team Tables**: teams, team_members, team_invites, slug_redirects
+> - **Core Tables**: users, sessions, chats, messages, prompts, api_keys
+> - **Organization**: folders, tags, chat_tags
+>
+> **[View Complete Database Documentation →](./database.md)**
+
+### Core Tables (Summary)
 
 ```sql
 -- Users (via Better Auth)

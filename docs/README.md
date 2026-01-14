@@ -4,12 +4,75 @@ Welcome to the SambungChat documentation! This hub provides comprehensive guides
 
 ## Quick Links
 
-| Document                                                            | Description                            |
-| ------------------------------------------------------------------- | -------------------------------------- |
-| [AI Provider Integration Guide](./ai-provider-integration-guide.md) | Complete guide for adding AI providers |
-| [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)                          | Common issues and solutions            |
-| [UI-PACKAGE-GUIDE.md](./UI-PACKAGE-GUIDE.md)                        | UI package development guide           |
-| [Architecture](../architecture.md)                                  | System architecture with diagrams      |
+| Document                                                            | Description                                |
+| ------------------------------------------------------------------- | ------------------------------------------ |
+| [Teams Concept](./teams-concept.md)                                 | Team model, access control, workspaces     |
+| [Routes Structure](./routes.md)                                     | Complete URL structure and routing         |
+| [Database Schema](./database.md)                                    | Database tables and relationships          |
+| [Internationalization](./i18n.md)                                   | Multi-language support guide (svelte-i18n) |
+| [AI Provider Integration Guide](./ai-provider-integration-guide.md) | Complete guide for adding AI providers     |
+| [troubleshooting](./troubleshooting.md)                             | Common issues and solutions                |
+| [ui-package-guide](./ui-package-guide.md)                           | UI package development guide               |
+| [Architecture](./architecture.md)                                   | System architecture with diagrams          |
+
+---
+
+## Team & Organization
+
+### Team Documentation
+
+**[Teams Concept](./teams-concept.md)** - Team Model & Access Control
+
+Complete guide to team-based collaboration in SambungChat:
+
+- **Team Model**: Team = Organization (single-level grouping for MVP)
+- **Workspaces**: Personal (`/app/*`) vs Team (`/team/[slug]/*`)
+- **Roles & Permissions**: Admin (manage members) and Member (view/contribute)
+- **Access Control**: Membership validation and data isolation patterns
+- **Slug Management**: User-selectable with validation and redirect support
+- **Extensibility**: Points for future RBAC, SSO, and multi-level hierarchy
+
+**📖 [Read Teams Concept →](./teams-concept.md)**
+
+### Route Structure
+
+**[Routes Structure](./routes.md)** - Complete URL Structure
+
+Comprehensive routing documentation for all workspace types:
+
+- **Route Groups**: `(app)`, `(team)`, `(auth)`, `(admin)`, `(public)`, `(models)`
+- **Personal Workspace**: `/app/*` routes (chat, chats, folders, tags, settings)
+- **Team Workspace**: `/team/[slug]/*` routes (chats, members, agents, plugins)
+- **Public Shares**: `/p/[token]` for externally shared chats
+- **Platform Admin**: `/admin/*` for superadmin features
+- **Migration Guide**: Old routes → New routes mapping
+
+**📖 [Read Routes Structure →](./routes.md)**
+
+### Database Schema
+
+**[Database Schema](./database.md)** - Database Tables & Relationships
+
+Complete database schema documentation:
+
+- **Team Tables**: teams, team_members, team_invites, slug_redirects
+- **Core Tables**: users, chats, messages, api_keys, prompts
+- **Organization**: folders, tags, chat_tags for categorization
+- **Relationships**: Foreign keys, indexes, and constraints
+- **Access Patterns**: SQL queries for team data isolation
+- **ERD**: Entity relationship diagrams
+
+**📖 [Read Database Schema →](./database.md)**
+
+### Quick Reference
+
+| Workspace Type | URL Pattern      | Description                        |
+| -------------- | ---------------- | ---------------------------------- |
+| **Personal**   | `/app/*`         | User's private workspace           |
+| **Team**       | `/team/[slug]/*` | Shared workspace for collaboration |
+| **Public**     | `/p/[token]`     | Publicly accessible shared chats   |
+| **Admin**      | `/admin/*`       | Platform superadmin features       |
+| **Models**     | `/models/*`      | Centralized model configuration    |
 
 ---
 
@@ -118,7 +181,7 @@ The [diagrams/](./diagrams/) directory contains:
 
 ## Troubleshooting
 
-**[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - List of common problems found and their solutions:
+**[troubleshooting.md](./troubleshooting.md)** - List of common problems found and their solutions:
 
 - Build errors
 - Svelte 5 runes issues
@@ -131,7 +194,7 @@ The [diagrams/](./diagrams/) directory contains:
 
 ## UI Development
 
-**[UI-PACKAGE-GUIDE.md](./UI-PACKAGE-GUIDE.md)** - Complete guide for UI package development:
+**[ui-package-guide.md](./ui-package-guide.md)** - Complete guide for UI package development:
 
 - Package structure and golden rules
 - Creating new components
@@ -151,7 +214,7 @@ sambung-chat/
 │   ├── web/              # Frontend SvelteKit application
 │   └── server/           # Backend Hono API server
 ├── packages/
-│   ├── ui/               # UI component library → [UI Guide](./UI-PACKAGE-GUIDE.md)
+│   ├── ui/               # UI component library → [UI Guide](./ui-package-guide.md)
 │   ├── api/              # API routers
 │   ├── auth/             # Authentication module
 │   ├── db/               # Database schemas
@@ -322,8 +385,8 @@ OLLAMA_MODEL_ID=llama3.2
 
 If you encounter issues:
 
-1. Check [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for common solutions
-2. Check [UI-PACKAGE-GUIDE.md](./UI-PACKAGE-GUIDE.md) for UI package issues
+1. Check [troubleshooting.md](./troubleshooting.md) for common solutions
+2. Check [ui-package-guide.md](./ui-package-guide.md) for UI package issues
 3. Read [AI Provider Integration Guide](./ai-provider-integration-guide.md) for AI issues
 4. Search existing issues on GitHub
 5. Create a new issue with error details and steps to reproduce

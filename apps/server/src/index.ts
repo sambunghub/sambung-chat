@@ -42,7 +42,6 @@ app.use(
 // auth.handler() returns a Response directly
 // ============================================================================
 app.all('/api/auth/*', (c) => {
-  console.log('[AUTH] Handler called:', c.req.method, c.req.url);
   try {
     return auth.handler(c.req.raw);
   } catch (error) {
@@ -82,8 +81,7 @@ export const rpcHandler = new RPCHandler(appRouter, {
 
 // Only apply this middleware to non-auth routes
 app.use('/ai', async (c, next) => {
-  const context = await createContext({ context: c });
-  c.set('context', context);
+  await createContext({ context: c });
   await next();
 });
 
@@ -121,31 +119,50 @@ const openai = createOpenAICompatible({
 });
 
 app.post('/ai', async (c) => {
-  const body = await c.req.json();
-  const uiMessages = body.messages || [];
-  const model = wrapLanguageModel({
-    model: openai(env.OPENAI_MODEL ?? 'gpt-4o-mini'),
-    middleware: devToolsMiddleware(),
-  });
-  const result = streamText({
-    model,
-    messages: await convertToModelMessages(uiMessages),
-  });
+  try {
+    const body = await c.req.json();
+    const uiMessages = body.messages || [];
+    const model = wrapLanguageModel({
+      model: openai(env.OPENAI_MODEL ?? 'gpt-4o-mini'),
+      middleware: devToolsMiddleware(),
+    });
 
-  return result.toUIMessageStreamResponse();
+    const result = streamText({
+      model,
+      messages: await convertToModelMessages(uiMessages),
+    });
+
+    // Use Hono's streaming API with AI SDK
+    const response = result.toUIMessageStreamResponse();
+
+    // Convert AI SDK response to Hono-compatible response
+    return new Response(response.body, {
+      headers: {
+        'Content-Type': response.headers.get('Content-Type') || 'text/plain; charset=utf-8',
+        'Transfer-Encoding': 'chunked',
+      },
+    });
+  } catch (error) {
+    console.error('[AI] Error:', error);
+    return c.json(
+      {
+        error: 'Failed to process AI request',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      500
+    );
+  }
 });
 
 // ============================================================================
 // HEALTH CHECK
 // ============================================================================
 app.get('/', (c) => {
-  console.log('[ROOT] Root endpoint called');
   return c.text('OK');
 });
 
 // Debug endpoint to test handler
 app.get('/debug', (c) => {
-  console.log('[DEBUG] Debug endpoint called');
   return c.json({ message: 'Debug works', time: new Date().toISOString() });
 });
 
@@ -156,9 +173,9 @@ app.get('/debug', (c) => {
 // ============================================================================
 const port = env.PORT || 3000;
 
-console.log(`[SERVER] Configured for port ${port}`);
-
 export default {
   port,
   fetch: app.fetch,
+  // Increase timeout for AI requests (default is 10 seconds)
+  idleTimeout: 120, // 2 minutes
 };

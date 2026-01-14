@@ -11,6 +11,11 @@
 2. [Database Schema](#database-schema)
 3. [Entity Relationship Diagram](#entity-relationship-diagram)
 4. [Table Definitions](#table-definitions)
+   - [Better Auth Tables](#better-auth-tables)
+   - [Team Tables](#team-tables)
+   - [Chat & Message Tables](#chat--message-tables)
+   - [Organization Tables](#organization-tables)
+   - [Content Tables](#content-tables)
 5. [Migration Guide](#migration-guide)
 6. [Commands Reference](#commands-reference)
 7. [Drizzle Studio](#drizzle-studio)
@@ -80,14 +85,26 @@ export const db = drizzle(client, { schema });
 
 ### Core Tables
 
-| Table      | Purpose               | Managed By  |
-| ---------- | --------------------- | ----------- |
-| `users`    | User accounts         | Better Auth |
-| `sessions` | User sessions         | Better Auth |
-| `chats`    | Chat conversations    | Custom      |
-| `messages` | Chat messages         | Custom      |
-| `prompts`  | User prompt templates | Custom      |
-| `api_keys` | Encrypted API keys    | Custom      |
+| Table            | Purpose                | Managed By  |
+| ---------------- | ---------------------- | ----------- |
+| `users`          | User accounts          | Better Auth |
+| `sessions`       | User sessions          | Better Auth |
+| `teams`          | Team/Organization data | Custom      |
+| `team_members`   | Team membership        | Custom      |
+| `team_invites`   | Team invitations       | Custom      |
+| `slug_redirects` | Slug change redirects  | Custom      |
+| `chats`          | Chat conversations     | Custom      |
+| `chat_tags`      | Chat-tag relationships | Custom      |
+| `messages`       | Chat messages          | Custom      |
+| `folders`        | Chat folders           | Custom      |
+| `tags`           | Chat tags              | Custom      |
+| `prompts`        | User prompt templates  | Custom      |
+| `api_keys`       | Encrypted API keys     | Custom      |
+
+**Related:**
+
+- [teams-concept.md](./teams-concept.md) - Team model explained
+- [routes.md](./routes.md) - URL structure for teams
 
 ---
 
@@ -174,21 +191,136 @@ export const account = authTables.account;
 export const verification = authTables.verification;
 ```
 
+### Team Tables
+
+**File:** `packages/db/src/schema/team.ts`
+
+```typescript
+import { pgTable, uuid, text, timestamp, jsonb } from 'drizzle-orm/pg-core';
+import { user } from './auth';
+import { teams } from './team';
+
+// Teams table (Team = Organization for open-source version)
+export const teams = pgTable('teams', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  slug: text('slug').notNull().unique(), // User-selectable, validated format
+  description: text('description'),
+  createdBy: uuid('created_by')
+    .references(() => user.id, { onDelete: 'cascade' })
+    .notNull(),
+  settings: jsonb('settings').default('{}'), // Extensible: future team settings
+  metadata: jsonb('metadata').default('{}'), // Extensible: future metadata
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export type Team = typeof teams.$inferSelect;
+export type NewTeam = typeof teams.$inferInsert;
+
+// Team members table (Basic: 2 roles - admin/member)
+export const teamMembers = pgTable('team_members', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  teamId: uuid('team_id')
+    .references(() => teams.id, { onDelete: 'cascade' })
+    .notNull(),
+  userId: uuid('user_id')
+    .references(() => user.id, { onDelete: 'cascade' })
+    .notNull(),
+  role: text('role').notNull().default('member'), // 'admin' | 'member'
+  // Future: Add roleId REFERENCES roles(id) for RBAC
+  joinedAt: timestamp('joined_at').defaultNow().notNull(),
+});
+
+export type TeamMember = typeof teamMembers.$inferSelect;
+export type NewTeamMember = typeof teamMembers.$inferInsert;
+
+// Team invites table (Email invitations)
+export const teamInvites = pgTable('team_invites', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  teamId: uuid('team_id')
+    .references(() => teams.id, { onDelete: 'cascade' })
+    .notNull(),
+  email: text('email').notNull(),
+  role: text('role').notNull().default('member'),
+  token: text('token').notNull().unique(),
+  invitedBy: uuid('invited_by')
+    .references(() => user.id, { onDelete: 'cascade' })
+    .notNull(),
+  acceptedAt: timestamp('accepted_at'),
+  expiresAt: timestamp('expires_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type TeamInvite = typeof teamInvites.$inferSelect;
+export type NewTeamInvite = typeof teamInvites.$inferInsert;
+
+// Slug redirects table (For team slug changes)
+export const slugRedirects = pgTable('slug_redirects', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  oldSlug: text('old_slug').notNull(),
+  newSlug: text('new_slug').notNull(),
+  teamId: uuid('team_id').references(() => teams.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type SlugRedirect = typeof slugRedirects.$inferSelect;
+export type NewSlugRedirect = typeof slugRedirects.$inferInsert;
+```
+
+**Indexes:**
+
+```typescript
+// Teams
+export const teamSlugIdx = index('team_slug_idx').on(teams.slug);
+export const teamCreatedByIdx = index('team_created_by_idx').on(teams.createdBy);
+
+// Team members
+export const teamMemberTeamIdIdx = index('team_member_team_id_idx').on(teamMembers.teamId);
+export const teamMemberUserIdIdx = index('team_member_user_id_idx').on(teamMembers.userId);
+export const teamMemberTeamUserIdx = index('team_member_team_user_idx').on(
+  teamMembers.teamId,
+  teamMembers.userId
+);
+
+// Team invites
+export const teamInviteTokenIdx = index('team_invite_token_idx').on(teamInvites.token);
+export const teamInviteEmailIdx = index('team_invite_email_idx').on(teamInvites.email);
+
+// Slug redirects
+export const slugRedirectOldSlugIdx = index('slug_redirect_old_slug_idx').on(slugRedirects.oldSlug);
+```
+
+---
+
 ### Chat Table
 
 **File:** `packages/db/src/schema/chat.ts`
 
 ```typescript
-import { pgTable, serial, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, boolean } from 'drizzle-orm/pg-core';
 import { user } from './auth';
+import { teams } from './team';
+import { folders } from './folder';
 
 export const chats = pgTable('chats', {
-  id: serial('id').primaryKey(),
+  id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id')
     .references(() => user.id, { onDelete: 'cascade' })
     .notNull(),
+  teamId: uuid('team_id').references(() => teams.id, { onDelete: 'cascade' }), // NULL = personal, NOT NULL = team
+  folderId: uuid('folder_id').references(() => folders.id, { onDelete: 'set null' }), // Optional folder
   title: text('title').notNull(),
-  modelId: text('model_id').notNull(), // e.g., "gpt-4", "claude-3-opus"
+  model: text('model').notNull(), // e.g., "gpt-4", "claude-3-opus"
+  provider: text('provider').notNull(), // e.g., "openai", "anthropic"
+  settings: jsonb('settings').default('{}').$type<{
+    temperature?: number;
+    maxTokens?: number;
+    systemPrompt?: string;
+  }>(),
+  metadata: jsonb('metadata').default('{}'), // Extensible: future metadata
+  publicToken: text('public_token').unique(), // For /p/[token] public shares
+  isPublic: boolean('is_public').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -202,8 +334,51 @@ export type NewChat = typeof chats.$inferInsert;
 ```typescript
 // Create index for faster user chat queries
 export const chatUserIdIdx = index('chat_user_id_idx').on(chats.userId);
+// Create index for team chats
+export const chatTeamIdIdx = index('chat_team_id_idx').on(chats.teamId);
+// Create composite index for user+team filtering
+export const chatUserTeamIdx = index('chat_user_team_idx').on(chats.userId, chats.teamId);
+// Create index for folder
+export const chatFolderIdIdx = index('chat_folder_id_idx').on(chats.folderId);
 // Create index for sorting by updated date
 export const chatUpdatedAtIdx = index('chat_updated_at_idx').on(chats.updatedAt);
+// Create index for public shares
+export const chatPublicTokenIdx = index('chat_public_token_idx')
+  .on(chats.publicToken)
+  .where(sql`${chats.isPublic} = true`);
+```
+
+**Chat Isolation:**
+
+```typescript
+// Personal chat (user_id only)
+const personalChat = {
+  userId: 'user-123',
+  teamId: null, // No team
+  folderId: 'folder-abc',
+};
+
+// Team chat (team_id set)
+const teamChat = {
+  userId: 'user-123', // Creator
+  teamId: 'team-xyz', // Team members can see
+  folderId: 'folder-def', // Team folder
+};
+
+// Access control logic
+async function canAccessChat(userId: string, chat: Chat): Promise<boolean> {
+  // Personal chat: only owner
+  if (!chat.teamId) {
+    return chat.userId === userId;
+  }
+
+  // Team chat: check team membership
+  const membership = await db.query.teamMembers.findFirst({
+    where: and(eq(teamMembers.teamId, chat.teamId), eq(teamMembers.userId, userId)),
+  });
+
+  return !!membership;
+}
 ```
 
 ### Message Table
@@ -304,6 +479,151 @@ export type NewApiKey = typeof apiKeys.$inferInsert;
 export const apiKeyUserIdIdx = index('api_key_user_id_idx').on(apiKeys.userId);
 export const apiKeyProviderIdx = index('api_key_provider_idx').on(apiKeys.provider);
 ```
+
+---
+
+### Folder Table
+
+**File:** `packages/db/src/schema/folder.ts`
+
+```typescript
+import { pgTable, uuid, text, timestamp } from 'drizzle-orm/pg-core';
+import { user } from './auth';
+import { teams } from './team';
+
+// Folders for organizing chats (personal OR team-scoped)
+export const folders = pgTable('folders', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => user.id, { onDelete: 'cascade' }), // NULL = team folder
+  teamId: uuid('team_id').references(() => teams.id, { onDelete: 'cascade' }), // NULL = personal folder
+  name: text('name').notNull(),
+  parentId: uuid('parent_id').references(() => folders.id, { onDelete: 'cascade' }), // For nested folders
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export type Folder = typeof folders.$inferSelect;
+export type NewFolder = typeof folders.$inferInsert;
+```
+
+**Constraint:**
+
+```sql
+-- A folder is EITHER personal OR team, never both
+ALTER TABLE folders ADD CONSTRAINT folder_scope_check CHECK (
+  (user_id IS NOT NULL AND team_id IS NULL) OR  -- Personal folder
+  (user_id IS NULL AND team_id IS NOT NULL)     -- Team folder
+);
+```
+
+**Indexes:**
+
+```typescript
+// Index for personal folders
+export const folderUserIdIdx = index('folder_user_id_idx')
+  .on(folders.userId)
+  .where(sql`${folders.teamId} IS NULL`);
+// Index for team folders
+export const folderTeamIdIdx = index('folder_team_id_idx')
+  .on(folders.teamId)
+  .where(sql`${folders.userId} IS NULL`);
+// Index for parent-child relationships
+export const folderParentIdIdx = index('folder_parent_id_idx').on(folders.parentId);
+```
+
+---
+
+### Tag Table
+
+**File:** `packages/db/src/schema/tag.ts`
+
+```typescript
+import { pgTable, uuid, text, timestamp } from 'drizzle-orm/pg-core';
+import { user } from './auth';
+import { teams } from './team';
+
+// Tags for labeling chats (public, personal, OR team-scoped)
+export const tags = pgTable('tags', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  color: text('color'), // Hex color for UI: "#ff5733"
+  userId: uuid('user_id').references(() => user.id, { onDelete: 'cascade' }), // NULL = not personal
+  teamId: uuid('team_id').references(() => teams.id, { onDelete: 'cascade' }), // NULL = not team
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export type Tag = typeof tags.$inferSelect;
+export type NewTag = typeof tags.$inferInsert;
+```
+
+**Constraint:**
+
+```sql
+-- Tag scopes: public (both NULL), personal (user_id only), team (team_id only)
+ALTER TABLE tags ADD CONSTRAINT tag_scope_check CHECK (
+  (user_id IS NULL AND team_id IS NULL) OR  -- Public tag
+  (user_id IS NOT NULL AND team_id IS NULL) OR  -- Personal tag
+  (user_id IS NULL AND team_id IS NOT NULL)     -- Team tag
+);
+```
+
+**Indexes:**
+
+```typescript
+// Index for personal tags
+export const tagUserIdIdx = index('tag_user_id_idx')
+  .on(tags.userId)
+  .where(sql`${tags.teamId} IS NULL`);
+// Index for team tags
+export const tagTeamIdIdx = index('tag_team_id_idx')
+  .on(tags.teamId)
+  .where(sql`${tags.userId} IS NULL`);
+// Index for name search
+export const tagNameIdx = index('tag_name_idx').on(tags.name);
+```
+
+---
+
+### Chat Tags Table (Many-to-Many)
+
+**File:** `packages/db/src/schema/chat-tag.ts`
+
+```typescript
+import { pgTable, uuid, timestamp } from 'drizzle-orm/pg-core';
+import { chats } from './chat';
+import { tags } from './tag';
+
+// Many-to-many relationship between chats and tags
+export const chatTags = pgTable(
+  'chat_tags',
+  {
+    chatId: uuid('chat_id')
+      .references(() => chats.id, { onDelete: 'cascade' })
+      .notNull(),
+    tagId: uuid('tag_id')
+      .references(() => tags.id, { onDelete: 'cascade' })
+      .notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.chatId, table.tagId] }),
+  })
+);
+
+export type ChatTag = typeof chatTags.$inferSelect;
+export type NewChatTag = typeof chatTags.$inferInsert;
+```
+
+**Indexes:**
+
+```typescript
+// Index for finding all tags of a chat
+export const chatTagChatIdIdx = index('chat_tag_chat_id_idx').on(chatTags.chatId);
+// Index for finding all chats with a tag
+export const chatTagTagIdIdx = index('chat_tag_tag_id_idx').on(chatTags.tagId);
+```
+
+---
 
 ### Schema Exports
 

@@ -5,6 +5,7 @@ export const env = createEnv({
   clientPrefix: 'PUBLIC_',
   client: {
     PUBLIC_SERVER_URL: z.url(),
+    PUBLIC_API_URL: z.url(),
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   runtimeEnv: (import.meta as any).env,
