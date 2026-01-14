@@ -82,8 +82,7 @@ export const rpcHandler = new RPCHandler(appRouter, {
 
 // Only apply this middleware to non-auth routes
 app.use('/ai', async (c, next) => {
-  const context = await createContext({ context: c });
-  c.set('context', context);
+  await createContext({ context: c });
   await next();
 });
 
@@ -132,7 +131,16 @@ app.post('/ai', async (c) => {
     messages: await convertToModelMessages(uiMessages),
   });
 
-  return result.toUIMessageStreamResponse();
+  // Use Hono's streaming API with AI SDK
+  const response = result.toUIMessageStreamResponse();
+
+  // Convert AI SDK response to Hono-compatible response
+  return new Response(response.body, {
+    headers: {
+      'Content-Type': response.headers.get('Content-Type') || 'text/plain; charset=utf-8',
+      'Transfer-Encoding': 'chunked',
+    },
+  });
 });
 
 // ============================================================================

@@ -13,6 +13,7 @@ const envSchema = createEnv({
     BETTER_AUTH_URL: z.url(),
     CORS_ORIGIN: z.url(),
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+    PORT: z.coerce.number().default(3000),
 
     // ═══════════════════════════════════════════════════════════════════
     // AUTHENTICATION METHOD CONFIGURATION
