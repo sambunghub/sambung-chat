@@ -1,0 +1,24 @@
+# =============================================================================
+# Development Dockerfile for SambungChat
+# =============================================================================
+# Simplified Dockerfile for development with hot reload
+#
+# Entire project is mounted as volume, so we only need base image with Bun
+# and proper runtime setup.
+#
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Base image with Bun
+# -----------------------------------------------------------------------------
+FROM oven/bun:1.2.23
+WORKDIR /app
+
+# Set development environment
+ENV NODE_ENV=development
+
+# Copy package files for context (not strictly needed but good for caching)
+COPY package.json bun.lock* ./
+
+# Expose ports
+EXPOSE 3000 5173

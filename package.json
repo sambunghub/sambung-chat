@@ -58,7 +58,14 @@
     "test:e2e": "node node_modules/playwright/cli.js test",
     "test:e2e:ui": "node node_modules/playwright/cli.js test --ui",
     "test:e2e:debug": "node node_modules/playwright/cli.js test --debug",
-    "prepare": "husky"
+    "prepare": "husky",
+    "docker:dev": "docker-compose -f docker-compose.dev.yml up",
+    "docker:dev:build": "docker-compose -f docker-compose.dev.yml up --build",
+    "docker:dev:logs": "docker-compose -f docker-compose.dev.yml logs -f",
+    "docker:dev:down": "docker-compose -f docker-compose.dev.yml down",
+    "docker:prod": "docker-compose -f docker-compose.prod.yml up -d --build",
+    "docker:prod:logs": "docker-compose -f docker-compose.prod.yml logs -f",
+    "docker:prod:down": "docker-compose -f docker-compose.prod.yml down"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2.0.4",

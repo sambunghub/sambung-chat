@@ -1,8 +1,9 @@
 import dotenv from 'dotenv';
 import { defineConfig } from 'drizzle-kit';
 
+// Load environment variables from root .env
 dotenv.config({
-  path: '../../apps/server/.env',
+  path: '../../.env',
 });
 
 export default defineConfig({
