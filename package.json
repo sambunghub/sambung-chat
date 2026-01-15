@@ -54,9 +54,9 @@
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:debug": "playwright test --debug",
+    "test:e2e": "node node_modules/playwright/cli.js test",
+    "test:e2e:ui": "node node_modules/playwright/cli.js test --ui",
+    "test:e2e:debug": "node node_modules/playwright/cli.js test --debug",
     "prepare": "husky"
   },
   "dependencies": {

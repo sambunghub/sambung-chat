@@ -12,6 +12,9 @@ export default defineConfig({
   // Test directory
   testDir: './tests/e2e',
 
+  // Explicitly only test .spec.ts files in tests/e2e
+  testMatch: '**/*.spec.ts',
+
   // Run tests in files in parallel
   fullyParallel: true,
 
@@ -72,7 +75,7 @@ export default defineConfig({
 
   // Run your local dev server before starting the tests
   webServer: {
-    command: 'bun run dev',
+    command: 'bun run dev:web',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
