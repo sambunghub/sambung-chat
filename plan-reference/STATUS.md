@@ -1,9 +1,27 @@
 # SambungChat Development Status
 
-**Last Updated:** 2026-01-16
+**Last Updated:** January 16, 2026
 **Current Phase:** Phase 1 - MVP Foundation
 **Current Week:** 4
 **Overall Progress:** 35% (21/59 tasks completed)
+
+---
+
+## 🚀 Active Development: Navigation System
+
+**Current Focus:** Implementing NavigationRail + SecondarySidebar layout system
+
+**Planning Documents:**
+
+- 📋 [navigation-system-design.md](./navigation-system-design.md) - Complete design specifications
+- 🗺️ [navigation-system-roadmap.md](./navigation-system-roadmap.md) - Implementation roadmap
+- 📚 [INDEX.md](./INDEX.md) - Planning documents index
+
+**Progress:**
+
+- ✅ Design approved
+- ⏳ Implementation ready to start
+- 📝 Roadmap defined (4 sprints, ~70 hours)
 
 ---
 

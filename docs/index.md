@@ -226,14 +226,17 @@ For deploying SambungChat:
 
 ## Planning Documents
 
-For roadmap, status, and product requirements, see the `plan-reference/` directory:
+For roadmap, status, and implementation planning, see the `plan-reference/` directory:
 
-| Document                                              | Description                                     |
-| ----------------------------------------------------- | ----------------------------------------------- |
-| [ROADMAP](../plan-reference/ROADMAP.md)               | Development timeline and milestones             |
-| [STATUS](../plan-reference/STATUS.md)                 | Current development status and task progress    |
-| [PRD-OpenSource](../plan-reference/PRD-OpenSource.md) | Open source product requirements                |
-| `.notes` (hidden)                                     | SaaS/Enterprise features reference (gitignored) |
+| Document                                                                    | Description                                             |
+| --------------------------------------------------------------------------- | ------------------------------------------------------- |
+| [Planning Index](../plan-reference/INDEX.md)                                | Navigation for all planning documents                   |
+| [Navigation System Design](../plan-reference/navigation-system-design.md)   | NavigationRail + SecondarySidebar design specifications |
+| [Navigation System Roadmap](../plan-reference/navigation-system-roadmap.md) | Navigation system implementation plan                   |
+| [ROADMAP](../plan-reference/ROADMAP.md)                                     | Overall development timeline and milestones             |
+| [STATUS](../plan-reference/STATUS.md)                                       | Current development status and task progress            |
+| [PRD-OpenSource](../plan-reference/PRD-OpenSource.md)                       | Open source product requirements                        |
+| `.notes` (hidden)                                                           | SaaS/Enterprise features reference (gitignored)         |
 
 ---
 
