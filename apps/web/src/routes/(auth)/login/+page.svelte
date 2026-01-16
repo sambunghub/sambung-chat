@@ -25,12 +25,13 @@
   async function handleSSO() {
     try {
       const callbackURL = `${$page.url.origin}/app/chat`;
-      await authClient.signIn.social({
-        provider: 'keycloak',
+      // Use oauth2 for generic OAuth providers like Keycloak
+      await authClient.signIn.oauth2({
+        providerId: 'keycloak',
         callbackURL,
       });
-    } catch (err) {
-      alert('SSO failed');
+    } catch {
+      alert('SSO failed: Please try again');
     }
   }
 </script>

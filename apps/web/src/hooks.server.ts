@@ -26,6 +26,7 @@ export const handle: Handle = async ({ event, resolve }) => {
   }
 
   // Auth routes (login, register) - redirect to app if already logged in
+  // Note: /logout is excluded - should always be accessible
   if (isLoggedIn && (path === '/login' || path === '/register')) {
     return redirect(302, '/app/chat');
   }
@@ -38,6 +39,5 @@ export const handle: Handle = async ({ event, resolve }) => {
       return redirect(302, '/login');
     }
   }
-
   return svelteKitHandler({ event, resolve, auth, building });
 };

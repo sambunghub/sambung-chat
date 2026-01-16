@@ -15,12 +15,6 @@ import { cors } from 'hono/cors';
 
 const app = new Hono();
 
-// Test route - should be the first route registered
-app.get('/test', (c) => {
-  console.log('[TEST] Test route called!');
-  return c.json({ message: 'Test route works', timestamp: Date.now() });
-});
-
 // ============================================================================
 // CORS - Must be registered before auth handler
 // ============================================================================
@@ -37,17 +31,8 @@ app.use(
 // ============================================================================
 // BETTER AUTH HANDLER
 // ============================================================================
-// According to Hono + Better Auth examples:
-// https://hono.dev/examples/better-auth
-// auth.handler() returns a Response directly
-// ============================================================================
-app.all('/api/auth/*', (c) => {
-  try {
-    return auth.handler(c.req.raw);
-  } catch (error) {
-    console.error('[AUTH] Error:', error);
-    throw error;
-  }
+app.all('/api/auth/*', async (c) => {
+  return auth.handler(c.req.raw);
 });
 
 // ============================================================================
@@ -159,6 +144,44 @@ app.post('/ai', async (c) => {
 // ============================================================================
 app.get('/', (c) => {
   return c.text('OK');
+});
+
+// Test database connection
+app.get('/debug/db', async (c) => {
+  try {
+    const { db } = await import('@sambung-chat/db');
+    const result = await db.execute('SELECT 1 as test');
+    return c.json({ success: true, result: result.rows });
+  } catch (error) {
+    return c.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
+      500
+    );
+  }
+});
+
+// Test Better Auth instance
+app.get('/debug/auth', async (c) => {
+  try {
+    const { auth } = await import('@sambung-chat/auth');
+    return c.json({
+      success: true,
+      authExists: !!auth,
+      hasHandler: typeof auth.handler === 'function',
+      hasAPI: typeof auth.api === 'object',
+    });
+  } catch (error) {
+    return c.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
+      500
+    );
+  }
 });
 
 // Debug endpoint to test handler

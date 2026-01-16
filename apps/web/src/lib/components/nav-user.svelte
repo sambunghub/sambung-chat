@@ -83,10 +83,12 @@
           </DropdownMenu.Item>
         </DropdownMenu.Group>
         <DropdownMenu.Separator />
-        <DropdownMenu.Item>
-          <LogOutIcon />
-          Log out
-        </DropdownMenu.Item>
+        <a href="/logout" class="contents">
+          <DropdownMenu.Item>
+            <LogOutIcon />
+            Log out
+          </DropdownMenu.Item>
+        </a>
       </DropdownMenu.Content>
     </DropdownMenu.Root>
   </Sidebar.MenuItem>

@@ -1,0 +1,294 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-01-16",
+  "contexts": {
+    "chat": {
+      "id": "chat",
+      "label": "Chat History",
+      "component": "ChatList",
+      "header": {
+        "title": "Chats",
+        "actionButton": {
+          "label": "New Chat",
+          "icon": "Plus",
+          "action": "createNewChat",
+          "primary": true
+        }
+      },
+      "categories": [
+        {
+          "id": "recent",
+          "label": "Recent",
+          "type": "dynamic",
+          "icon": "Clock",
+          "defaultOpen": true,
+          "limit": 50
+        },
+        {
+          "id": "folders",
+          "label": "Folders",
+          "type": "folders",
+          "icon": "Folder",
+          "defaultOpen": true,
+          "items": [
+            {
+              "id": "work",
+              "label": "Work",
+              "icon": "Briefcase",
+              "count": 0
+            },
+            {
+              "id": "personal",
+              "label": "Personal",
+              "icon": "User",
+              "count": 0
+            }
+          ]
+        }
+      ],
+      "search": {
+        "placeholder": "Search chats...",
+        "icon": "Search",
+        "filters": ["tags", "folders", "date"]
+      },
+      "itemActions": [
+        {
+          "id": "pin",
+          "label": "Pin",
+          "icon": "Pin",
+          "action": "pinChat"
+        },
+        {
+          "id": "rename",
+          "label": "Rename",
+          "icon": "Pencil",
+          "action": "renameChat"
+        },
+        {
+          "id": "delete",
+          "label": "Delete",
+          "icon": "Trash2",
+          "action": "deleteChat",
+          "destructive": true
+        }
+      ]
+    },
+    "agents": {
+      "id": "agents",
+      "label": "Agents Library",
+      "component": "AgentsCategories",
+      "header": {
+        "title": "Agents",
+        "actionButton": {
+          "label": "Create Agent",
+          "icon": "Plus",
+          "action": "createAgent",
+          "primary": true
+        }
+      },
+      "categories": [
+        {
+          "id": "my-agents",
+          "label": "My Agents",
+          "type": "personal",
+          "icon": "Bot",
+          "defaultOpen": true,
+          "emptyMessage": "No agents yet. Create your first AI agent!"
+        },
+        {
+          "id": "marketplace",
+          "label": "Marketplace",
+          "type": "marketplace",
+          "icon": "Store",
+          "defaultOpen": false,
+          "emptyMessage": "No agents available in marketplace"
+        },
+        {
+          "id": "shared",
+          "label": "Shared with me",
+          "type": "shared",
+          "icon": "Users",
+          "defaultOpen": false,
+          "emptyMessage": "No agents shared with you"
+        }
+      ],
+      "search": {
+        "placeholder": "Search agents...",
+        "icon": "Search",
+        "filters": ["name", "description", "category"]
+      },
+      "itemActions": [
+        {
+          "id": "edit",
+          "label": "Edit",
+          "icon": "Pencil",
+          "action": "editAgent"
+        },
+        {
+          "id": "duplicate",
+          "label": "Duplicate",
+          "icon": "Copy",
+          "action": "duplicateAgent"
+        },
+        {
+          "id": "delete",
+          "label": "Delete",
+          "icon": "Trash2",
+          "action": "deleteAgent",
+          "destructive": true
+        }
+      ]
+    },
+    "prompts": {
+      "id": "prompts",
+      "label": "Prompts Library",
+      "component": "PromptsCategories",
+      "header": {
+        "title": "Prompts",
+        "actionButton": {
+          "label": "Create Prompt",
+          "icon": "Plus",
+          "action": "createPrompt",
+          "primary": true
+        }
+      },
+      "categories": [
+        {
+          "id": "my-prompts",
+          "label": "My Prompts",
+          "type": "personal",
+          "icon": "Sparkles",
+          "defaultOpen": true,
+          "emptyMessage": "No prompts yet. Create your first prompt template!"
+        },
+        {
+          "id": "marketplace",
+          "label": "Marketplace",
+          "type": "marketplace",
+          "icon": "Store",
+          "defaultOpen": false,
+          "emptyMessage": "No prompts available in marketplace"
+        },
+        {
+          "id": "shared",
+          "label": "Shared with me",
+          "type": "shared",
+          "icon": "Users",
+          "defaultOpen": false,
+          "emptyMessage": "No prompts shared with you"
+        }
+      ],
+      "search": {
+        "placeholder": "Search prompts...",
+        "icon": "Search",
+        "filters": ["name", "tags", "variables"]
+      },
+      "itemActions": [
+        {
+          "id": "use",
+          "label": "Use Prompt",
+          "icon": "Check",
+          "action": "usePrompt"
+        },
+        {
+          "id": "edit",
+          "label": "Edit",
+          "icon": "Pencil",
+          "action": "editPrompt"
+        },
+        {
+          "id": "duplicate",
+          "label": "Duplicate",
+          "icon": "Copy",
+          "action": "duplicatePrompt"
+        },
+        {
+          "id": "delete",
+          "label": "Delete",
+          "icon": "Trash2",
+          "action": "deletePrompt",
+          "destructive": true
+        }
+      ]
+    },
+    "team": {
+      "id": "team",
+      "label": "Team Workspace",
+      "component": "TeamDashboard",
+      "header": {
+        "title": "Team",
+        "subtitle": "{{teamName}}"
+      },
+      "sections": [
+        {
+          "id": "dashboard",
+          "label": "Dashboard",
+          "icon": "LayoutDashboard",
+          "type": "analytics",
+          "metrics": [
+            {
+              "id": "total-chats",
+              "label": "Total Chats",
+              "icon": "MessageSquare"
+            },
+            {
+              "id": "active-members",
+              "label": "Active Members",
+              "icon": "Users"
+            },
+            {
+              "id": "agent-usage",
+              "label": "Agent Usage",
+              "icon": "Bot"
+            },
+            {
+              "id": "prompt-usage",
+              "label": "Prompt Usage",
+              "icon": "Sparkles"
+            }
+          ]
+        },
+        {
+          "id": "members",
+          "label": "Members",
+          "icon": "Users",
+          "type": "list",
+          "actionButton": {
+            "label": "Invite Member",
+            "icon": "UserPlus",
+            "action": "inviteMember"
+          }
+        },
+        {
+          "id": "settings",
+          "label": "Settings",
+          "icon": "Settings",
+          "type": "form",
+          "fields": [
+            {
+              "id": "team-name",
+              "label": "Team Name",
+              "type": "text"
+            },
+            {
+              "id": "team-avatar",
+              "label": "Team Avatar",
+              "type": "image"
+            }
+          ]
+        }
+      ]
+    },
+    "settings": {
+      "id": "settings",
+      "label": "Settings",
+      "component": null,
+      "hidden": true,
+      "description": "Settings page has no secondary sidebar - full width content"
+    }
+  },
+  "metadata": {
+    "displayName": "Secondary Sidebar Menu",
+    "description": "Context-aware secondary sidebar configuration that changes based on active navigation"
+  }
+}

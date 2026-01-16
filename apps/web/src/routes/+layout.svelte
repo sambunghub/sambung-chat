@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { page } from '$app/stores';
   import { ModeWatcher } from 'mode-watcher';
   import '../app.css';
 
@@ -7,4 +8,5 @@
 
 <!-- ModeWatcher must be at root level for global theme tracking -->
 <ModeWatcher defaultMode="dark" />
+
 {@render children()}
