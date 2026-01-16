@@ -2,13 +2,14 @@
 	import * as Tooltip from "$lib/components/ui/tooltip/index.js";
 	import { cn, type WithElementRef } from "$lib/utils.js";
 	import type { HTMLAttributes } from "svelte/elements";
+	import { browser } from '$app/environment';
 	import {
 		SIDEBAR_COOKIE_MAX_AGE,
 		SIDEBAR_COOKIE_NAME,
 		SIDEBAR_WIDTH,
 		SIDEBAR_WIDTH_ICON,
 	} from "./constants.js";
-	import { setSidebar } from "./context.svelte.js";
+	import { setSidebar, type SidebarContext } from "./context.svelte.js";
 
 	let {
 		ref = $bindable(null),
@@ -22,20 +23,7 @@
 		open?: boolean;
 		onOpenChange?: (open: boolean) => void;
 	} = $props();
-
-	const sidebar = setSidebar({
-		open: () => open,
-		setOpen: (value: boolean) => {
-			open = value;
-			onOpenChange(value);
-
-			// This sets the cookie to keep the sidebar state.
-			document.cookie = `${SIDEBAR_COOKIE_NAME}=${open}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
-		},
-	});
 </script>
-
-<svelte:window onkeydown={sidebar.handleShortcutKeydown} />
 
 <Tooltip.Provider delayDuration={0}>
 	<div
