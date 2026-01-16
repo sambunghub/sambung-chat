@@ -7,7 +7,7 @@
     class: className,
     children,
     ...restProps
-  }: WithElementRef<HTMLAttributes<HTMLLIElement>, HTMLLIElement> = $props();
+  }: WithElementRef<HTMLAttributes<HTMLLIElement>> = $props();
 </script>
 
 <li

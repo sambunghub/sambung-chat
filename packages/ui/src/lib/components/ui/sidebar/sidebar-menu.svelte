@@ -7,7 +7,7 @@
     class: className,
     children,
     ...restProps
-  }: WithElementRef<HTMLAttributes<HTMLUListElement>, HTMLUListElement> = $props();
+  }: WithElementRef<HTMLAttributes<HTMLUListElement>> = $props();
 </script>
 
 <ul
