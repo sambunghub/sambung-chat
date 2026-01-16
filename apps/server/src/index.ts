@@ -21,10 +21,12 @@ const app = new Hono();
 app.use(
   '/*',
   cors({
-    origin: env.CORS_ORIGIN,
+    origin: (env.CORS_ORIGIN || 'http://localhost:5173').split(','),
     allowMethods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE', 'PATCH'],
-    allowHeaders: ['Content-Type', 'Authorization'],
+    allowHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Set-Cookie'],
+    exposeHeaders: ['Set-Cookie', 'Content-Length', 'Content-Type'],
     credentials: true,
+    maxAge: 86400,
   })
 );
 
