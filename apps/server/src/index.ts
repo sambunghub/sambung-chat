@@ -32,7 +32,31 @@ app.use(
 // BETTER AUTH HANDLER
 // ============================================================================
 app.all('/api/auth/*', async (c) => {
-  return auth.handler(c.req.raw);
+  try {
+    const response = await auth.handler(c.req.raw);
+
+    // For non-error responses, pass through directly (important for OAuth redirects)
+    if (response.status < 400) {
+      return response;
+    }
+
+    // For error responses, check if it's a redirect (3xx) which might be OAuth flow
+    if (response.status >= 300 && response.status < 400) {
+      return response;
+    }
+
+    // For other errors (4xx, 5xx), return the response as-is
+    return response;
+  } catch (error) {
+    // Return error as JSON for unexpected exceptions
+    return c.json(
+      {
+        error: 'Auth handler error',
+        details: error instanceof Error ? error.message : String(error),
+      },
+      500
+    );
+  }
 });
 
 // ============================================================================
