@@ -2,14 +2,14 @@
 
 **Last Updated:** January 16, 2026
 **Current Phase:** Phase 1 - MVP Foundation
-**Current Week:** 4
-**Overall Progress:** 35% (21/59 tasks completed)
+**Current Week:** 6
+**Overall Progress:** 42% (28/67 tasks completed)
 
 ---
 
-## 🚀 Active Development: Navigation System
+## 🚀 Active Development: Chat Features
 
-**Current Focus:** Implementing NavigationRail + SecondarySidebar layout system
+**Current Focus:** Implementing complete chat management system with history, search, and export
 
 **Planning Documents:**
 
@@ -17,11 +17,14 @@
 - 🗺️ [navigation-system-roadmap.md](./navigation-system-roadmap.md) - Implementation roadmap
 - 📚 [INDEX.md](./INDEX.md) - Planning documents index
 
-**Progress:**
+**Recent Progress:**
 
-- ✅ Design approved
-- ⏳ Implementation ready to start
-- 📝 Roadmap defined (4 sprints, ~70 hours)
+- ✅ NavigationRail + SecondarySidebar layout complete
+- ✅ ChatList sidebar with search and filtering
+- ✅ Chat CRUD operations (create, delete, rename, pin)
+- ✅ Export functionality (JSON, MD, TXT)
+- ✅ Dynamic chat routes with history loading
+- ✅ Folder organization support
 
 ---
 
@@ -29,10 +32,10 @@
 
 | Metric          | Value |
 | --------------- | ----- |
-| **Total Tasks** | 59    |
-| **Completed**   | 21    |
-| **In Progress** | 3     |
-| **Pending**     | 35    |
+| **Total Tasks** | 67    |
+| **Completed**   | 28    |
+| **In Progress** | 2     |
+| **Pending**     | 37    |
 | **Blocked**     | 0     |
 | **P0 Blockers** | 1     |
 
@@ -61,34 +64,38 @@
 
 ---
 
-### Week 3-4: Authentication & Layout ✅ 80%
+### Week 3-4: Authentication & Layout ✅ 100%
 
-| Task                               | Status      | Priority | Dependencies      | Notes                                     |
-| ---------------------------------- | ----------- | -------- | ----------------- | ----------------------------------------- |
-| Fix conflicting Header exports     | ✅          | P0       | -                 |                                           |
-| Create auth router with procedures | ✅          | P1       | better-auth-setup | Better Auth configured with Keycloak SSO  |
-| Write unit tests for auth router   | ⏳ pending  | P1       | auth-router       | Unit tests with Vitest                    |
-| Build login UI page                | ✅          | P1       | auth-router       | Login form with Keycloak SSO              |
-| Build register UI page             | ✅          | P1       | auth-router       | Registration form with Keycloak           |
-| Create AuthLayout component        | ✅          | P1       | -                 | Centered layout for (auth) route group    |
-| Implement session management       | ✅          | P1       | auth-router       | Server-side session via hooks.server.ts   |
-| Remove TanStack Query dependency   | ✅          | P1       | -                 | Using native Svelte 5 runes instead       |
-| Create AppSidebar component        | ✅          | P1       | -                 | Sidebar navigation with shadcn-svelte     |
-| Create AppLayout component         | 🔄 in-progr | P1       | app-sidebar       | App layout with Sidebar.Provider (350px)  |
-| Create NavigationRail component    | ⏳ pending  | P1       | -                 | 64px icon-based navigation rail (planned) |
-| Create SecondarySidebar component  | ⏳ pending  | P1       | -                 | 280px context-aware sidebar (planned)     |
+| Task                               | Status     | Priority | Dependencies      | Notes                                         |
+| ---------------------------------- | ---------- | -------- | ----------------- | --------------------------------------------- |
+| Fix conflicting Header exports     | ✅         | P0       | -                 |                                               |
+| Create auth router with procedures | ✅         | P1       | better-auth-setup | Better Auth configured with Keycloak SSO      |
+| Write unit tests for auth router   | ⏳ pending | P1       | auth-router       | Unit tests with Vitest                        |
+| Build login UI page                | ✅         | P1       | auth-router       | Login form with Keycloak SSO                  |
+| Build register UI page             | ✅         | P1       | auth-router       | Registration form with Keycloak               |
+| Create AuthLayout component        | ✅         | P1       | -                 | Centered layout for (auth) route group        |
+| Implement session management       | ✅         | P1       | auth-router       | Server-side session via hooks.server.ts       |
+| Remove TanStack Query dependency   | ✅         | P1       | -                 | Using native Svelte 5 runes instead           |
+| Create AppSidebar component        | ✅         | P1       | -                 | Dual sidebar navigation (NavRail + Secondary) |
+| Create AppLayout component         | ✅         | P1       | app-sidebar       | App layout with dual sidebar system           |
+| Create NavigationRail component    | ✅         | P1       | -                 | 64px icon-based navigation rail               |
+| Create SecondarySidebar component  | ✅         | P1       | -                 | 280px context-aware sidebar                   |
 
 ---
 
-### Week 5-6: Chat Backend ✅ 63%
+### Week 5-6: Chat Backend ✅ 75%
 
 | Task                                     | Status     | Priority | Dependencies                | Notes                                   |
 | ---------------------------------------- | ---------- | -------- | --------------------------- | --------------------------------------- |
 | Define chat database schema              | ✅         | P1       | -                           | Chats table with user relation          |
 | Define message database schema           | ✅         | P1       | -                           | Messages table with chat relation       |
-| Run database migration                   | ✅         | P1       | chat-schema, message-schema | All 9 tables created successfully       |
+| Define folders database schema           | ✅         | P1       | -                           | Folders table for chat organization     |
+| Run database migration                   | ✅         | P1       | chat-schema, message-schema | All 10 tables created successfully      |
 | Create chat router with CRUD             | ✅         | P1       | db-migration                | getAll, getById, create, update, delete |
 | Create message router with streaming     | ✅         | P1       | db-migration                | getByChatId, stream (SSE)               |
+| Create folder router with CRUD           | ✅         | P1       | folders-schema              | getAll, getById, create, update, delete |
+| Add pin/unpin chat endpoints             | ✅         | P1       | chat-router                 | togglePin, updateFolder                 |
+| Add search chats endpoint                | ✅         | P1       | chat-router                 | Search by title, filter by folder/pin   |
 | Write unit tests for chat router         | ⏳ pending | P2       | chat-router                 |                                         |
 | Write unit tests for message router      | ⏳ pending | P2       | message-router              |                                         |
 | Implement multi-provider LLM integration | ✅         | P1       | -                           | OpenAI, Anthropic, Google, Groq, Ollama |
@@ -111,19 +118,22 @@
 
 ---
 
-### Week 9-10: Chat Features & Prompts ⏳ 0%
+### Week 9-10: Chat Features & Prompts ✅ 38%
 
-| Task                               | Status     | Priority | Dependencies                | Notes                            |
-| ---------------------------------- | ---------- | -------- | --------------------------- | -------------------------------- |
-| Build ChatList sidebar component   | ⏳ pending | P1       | -                           | Chat list with search            |
-| Implement chat CRUD in frontend    | ⏳ pending | P1       | chat-router, chat-interface | Create, delete, pin operations   |
-| Add error handling for AI failures | ✅         | P2       | -                           | Retry logic, exponential backoff |
-| Define prompts database schema     | ✅         | P1       | -                           | Prompt templates storage         |
-| Create prompt router               | ⏳ pending | P1       | prompts-schema              | getAll, create, update, delete   |
-| Write unit tests for prompt router | ⏳ pending | P2       | prompt-router               |                                  |
-| Build PromptLibrary component      | ⏳ pending | P1       | -                           | Grid/list view, search, filter   |
-| Build PromptEditor component       | ⏳ pending | P1       | -                           | Variable substitution            |
-| Add built-in prompt templates      | ⏳ pending | P2       | -                           | Summarize, Translate, Code Gen   |
+| Task                               | Status     | Priority | Dependencies                | Notes                                  |
+| ---------------------------------- | ---------- | -------- | --------------------------- | -------------------------------------- |
+| Build ChatList sidebar component   | ✅         | P1       | -                           | Chat list with search, pin, delete     |
+| Implement chat CRUD in frontend    | ✅         | P1       | chat-router, chat-interface | Create, delete, pin, rename operations |
+| Add chat search & filter           | ✅         | P1       | chat-router                 | Debounced search, group by date        |
+| Create export chat utilities       | ✅         | P2       | -                           | JSON, Markdown, TXT export             |
+| Create dynamic chat route ([id])   | ✅         | P1       | chat-router                 | Load chat history from database        |
+| Add error handling for AI failures | ✅         | P2       | -                           | Retry logic, exponential backoff       |
+| Define prompts database schema     | ✅         | P1       | -                           | Prompt templates storage               |
+| Create prompt router               | ⏳ pending | P1       | prompts-schema              | getAll, create, update, delete         |
+| Write unit tests for prompt router | ⏳ pending | P2       | prompt-router               |                                        |
+| Build PromptLibrary component      | ⏳ pending | P1       | -                           | Grid/list view, search, filter         |
+| Build PromptEditor component       | ⏳ pending | P1       | -                           | Variable substitution                  |
+| Add built-in prompt templates      | ⏳ pending | P2       | -                           | Summarize, Translate, Code Gen         |
 
 ---
 

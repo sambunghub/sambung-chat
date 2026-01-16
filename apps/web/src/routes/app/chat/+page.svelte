@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { page } from '$app/stores';
   import { Chat } from '@ai-sdk/svelte';
   import { DefaultChatTransport } from 'ai';
   import { fade } from 'svelte/transition';
@@ -6,6 +7,8 @@
   import * as Sidebar from '$lib/components/ui/sidebar/index.js';
   import { Separator } from '$lib/components/ui/separator/index.js';
   import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
+  import { orpc } from '$lib/orpc';
+  import { goto } from '$app/navigation';
 
   // Use PUBLIC_URL for AI endpoint (backend)
   const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:3000';
@@ -20,6 +23,7 @@
   let stoppedMessageId = $state<string | null>(null);
   let stoppedMessageContent = $state<string | null>(null);
   let isSubmitting = $state(false);
+  let currentChatId = $state<string | null>(null);
   const MAX_RETRIES = 3;
 
   const chat = new Chat({
@@ -80,10 +84,46 @@
     const initialMessageCount = chat.messages.length;
 
     try {
+      // Create chat if doesn't exist
+      if (!currentChatId) {
+        const newChat = await orpc.chat.create({
+          title: messageToSend.slice(0, 50) + (messageToSend.length > 50 ? '...' : ''),
+          modelId: 'gpt-4',
+        });
+        currentChatId = newChat.id;
+      }
+
+      // Save user message to database
+      await orpc.message.create({
+        chatId: currentChatId,
+        content: messageToSend,
+      });
+
+      // Send via AI SDK for streaming
       await chat.sendMessage({ text: messageToSend });
 
       if (chat.messages.length === initialMessageCount) {
         throw new Error('No assistant response was received');
+      }
+
+      // Save assistant message to database
+      const lastMessage = chat.messages[chat.messages.length - 1];
+      if (lastMessage && lastMessage.role === 'assistant') {
+        const textPart = lastMessage.parts.find(
+          (p): p is Extract<typeof p, { type: 'text' }> => p.type === 'text'
+        );
+        if (textPart && 'text' in textPart) {
+          await orpc.message.create({
+            chatId: currentChatId,
+            content: textPart.text as string,
+            role: 'assistant',
+          });
+        }
+      }
+
+      // Redirect to /app/chat/[id] after everything is saved
+      if (currentChatId && $page.url.pathname === '/app/chat') {
+        await goto(`/app/chat/${currentChatId}`, { replaceState: true });
       }
     } catch (error) {
       console.error('Failed to send message:', error);
@@ -221,14 +261,14 @@
         <div
           class="group max-w-[85%] rounded-2xl px-4 py-3 text-sm transition-all duration-200 hover:shadow-lg md:text-base"
           class:ml-auto={message.role === 'user'}
-          class:bg-primary={message.role === 'user'}
+          class:bg-accent={message.role === 'user'}
           class:bg-muted={message.role === 'assistant'}
           class:rounded-tr-sm={message.role === 'user'}
           class:rounded-tl-sm={message.role === 'assistant'}
         >
           <p
             class="mb-1.5 text-xs font-medium opacity-70"
-            class:text-primary-foreground={message.role === 'user'}
+            class:text-accent-foreground={message.role === 'user'}
             class:text-muted-foreground={message.role === 'assistant'}
           >
             {message.role === 'user' ? 'You' : 'AI Assistant'}
@@ -260,8 +300,8 @@
 
           <div
             class="markdown-content prose prose-sm max-w-none dark:prose-invert"
-            class:prose-p:text-primary-foreground={message.role === 'user'}
-            class:prose-p:text-foreground={message.role === 'assistant'}
+            class:prose-p:text-accent-foreground={message.role === 'user'}
+            class:prose-p:text-card-foreground={message.role === 'assistant'}
             class:opacity-70={isThisStoppedMessage}
           >
             {#if isThisStoppedMessage && stoppedMessageContent}

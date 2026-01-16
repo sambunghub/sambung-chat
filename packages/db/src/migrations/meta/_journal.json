@@ -15,6 +15,13 @@
       "when": 1768120550371,
       "tag": "0001_left_impossible_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1768575082701,
+      "tag": "0002_kind_the_twelve",
+      "breakpoints": true
     }
   ]
 }

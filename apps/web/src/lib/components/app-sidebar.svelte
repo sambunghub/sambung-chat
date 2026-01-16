@@ -6,6 +6,7 @@
   import { useSidebar } from '$lib/components/ui/sidebar/context.svelte.js';
   import * as Sidebar from '$lib/components/ui/sidebar/index.js';
   import CommandIcon from '@lucide/svelte/icons/command';
+  import ChatList from './secondary-sidebar/ChatList.svelte';
 
   // Load nav config from JSON
   import navRailConfig from '$lib/navigation/nav-rail-menu.config.json';
@@ -85,6 +86,12 @@
   ): header is { title: string; actionButton: { label: string; icon?: string } } {
     return typeof header === 'object' && header !== null && 'actionButton' in header;
   }
+
+  // Helper function to extract chat ID from path
+  function extractChatIdFromPath(pathname: string): string | undefined {
+    const match = pathname.match(/\/app\/chat\/([a-zA-Z0-9]{26})/);
+    return match ? match[1] : undefined;
+  }
 </script>
 
 <!-- Flex container for dual sidebar layout -->
@@ -146,64 +153,70 @@
   <!-- Secondary Sidebar (280px) - Context aware content -->
   {#if !isSettingsContext(sidebarConfig)}
     <Sidebar.Root collapsible="none" class="flex-1">
-      <Sidebar.Header class="gap-3.5 border-b p-4">
-        <div class="flex w-full items-center justify-between">
-          <div class="text-foreground text-base font-medium">
-            {hasHeader(sidebarConfig) && sidebarConfig.header.title
-              ? sidebarConfig.header.title
-              : sidebarConfig.label}
-          </div>
-          {#if hasHeader(sidebarConfig) && hasActionButton(sidebarConfig.header)}
-            <button
-              class="focus-visible:ring-ring bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-8 items-center justify-center rounded-md px-3 text-sm font-medium shadow transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
-            >
-              {#if sidebarConfig.header.actionButton.icon}
-                {@const ActionIcon = getIcon(sidebarConfig.header.actionButton.icon)}
-                {#if ActionIcon}
-                  <ActionIcon class="mr-1 size-4" />
-                {/if}
-              {/if}
-              {sidebarConfig.header.actionButton.label}
-            </button>
-          {/if}
-        </div>
-        {#if hasSearch(sidebarConfig)}
-          {@const SearchIcon = getIcon('Search')}
-          {#if SearchIcon}
-            <div class="relative">
-              <SearchIcon class="text-muted-foreground absolute top-2.5 left-2.5 size-4" />
-              <input
-                type="text"
-                placeholder={sidebarConfig.search.placeholder}
-                class="border-input placeholder:text-muted-foreground focus-visible:ring-ring flex h-8 w-full rounded-md border bg-transparent px-3 py-1 pl-8 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-              />
+      {#if activeNavId() === 'chat'}
+        <!-- Render ChatList component for chat context -->
+        <ChatList currentChatId={extractChatIdFromPath($page.url.pathname)} />
+      {:else}
+        <!-- Render config-based sidebar for other contexts -->
+        <Sidebar.Header class="gap-3.5 border-b p-4">
+          <div class="flex w-full items-center justify-between">
+            <div class="text-foreground text-base font-medium">
+              {hasHeader(sidebarConfig) && sidebarConfig.header.title
+                ? sidebarConfig.header.title
+                : sidebarConfig.label}
             </div>
-          {/if}
-        {/if}
-      </Sidebar.Header>
-      <Sidebar.Content>
-        <Sidebar.Group class="px-0">
-          <Sidebar.GroupContent>
-            {#if hasCategories(sidebarConfig)}
-              {#each sidebarConfig.categories as category}
-                {@const CategoryIcon = getIcon(category.icon)}
-                <Sidebar.MenuItem>
-                  <Sidebar.MenuButton>
-                    {#if CategoryIcon}
-                      <CategoryIcon />
-                    {/if}
-                    <span>{category.label}</span>
-                  </Sidebar.MenuButton>
-                </Sidebar.MenuItem>
-              {/each}
-            {:else}
-              <div class="text-muted-foreground p-4 text-center text-sm">
-                <p>No items to display</p>
+            {#if hasHeader(sidebarConfig) && hasActionButton(sidebarConfig.header)}
+              <button
+                class="focus-visible:ring-ring bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-8 items-center justify-center rounded-md px-3 text-sm font-medium shadow transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+              >
+                {#if sidebarConfig.header.actionButton.icon}
+                  {@const ActionIcon = getIcon(sidebarConfig.header.actionButton.icon)}
+                  {#if ActionIcon}
+                    <ActionIcon class="mr-1 size-4" />
+                  {/if}
+                {/if}
+                {sidebarConfig.header.actionButton.label}
+              </button>
+            {/if}
+          </div>
+          {#if hasSearch(sidebarConfig)}
+            {@const SearchIcon = getIcon('Search')}
+            {#if SearchIcon}
+              <div class="relative">
+                <SearchIcon class="text-muted-foreground absolute top-2.5 left-2.5 size-4" />
+                <input
+                  type="text"
+                  placeholder={sidebarConfig.search.placeholder}
+                  class="border-input placeholder:text-muted-foreground focus-visible:ring-ring flex h-8 w-full rounded-md border bg-transparent px-3 py-1 pl-8 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                />
               </div>
             {/if}
-          </Sidebar.GroupContent>
-        </Sidebar.Group>
-      </Sidebar.Content>
+          {/if}
+        </Sidebar.Header>
+        <Sidebar.Content>
+          <Sidebar.Group class="px-0">
+            <Sidebar.GroupContent>
+              {#if hasCategories(sidebarConfig)}
+                {#each sidebarConfig.categories as category}
+                  {@const CategoryIcon = getIcon(category.icon)}
+                  <Sidebar.MenuItem>
+                    <Sidebar.MenuButton>
+                      {#if CategoryIcon}
+                        <CategoryIcon />
+                      {/if}
+                      <span>{category.label}</span>
+                    </Sidebar.MenuButton>
+                  </Sidebar.MenuItem>
+                {/each}
+              {:else}
+                <div class="text-muted-foreground p-4 text-center text-sm">
+                  <p>No items to display</p>
+                </div>
+              {/if}
+            </Sidebar.GroupContent>
+          </Sidebar.Group>
+        </Sidebar.Content>
+      {/if}
     </Sidebar.Root>
   {/if}
 </div>

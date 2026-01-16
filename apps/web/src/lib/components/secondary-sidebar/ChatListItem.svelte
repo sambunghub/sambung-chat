@@ -1,0 +1,243 @@
+<script lang="ts">
+  import PinIcon from '@lucide/svelte/icons/pin';
+  import PinOffIcon from '@lucide/svelte/icons/pin-off';
+  import MoreVerticalIcon from '@lucide/svelte/icons/more-vertical';
+  import FolderIcon from '@lucide/svelte/icons/folder';
+  import FolderInputIcon from '@lucide/svelte/icons/folder-input';
+  import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
+  import { buttonVariants } from '$lib/components/ui/button/index.js';
+
+  // Types
+  interface Chat {
+    id: string;
+    title: string;
+    modelId: string;
+    pinned: boolean;
+    folderId: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+  }
+
+  interface Folder {
+    id: string;
+    name: string;
+    userId: string;
+    createdAt: Date;
+  }
+
+  interface Props {
+    chat: Chat;
+    folders: Folder[];
+    isActive: boolean;
+    onSelect: () => void;
+    onDelete: () => void;
+    onRename: (newTitle: string) => void;
+    onTogglePin: () => void;
+    onMoveToFolder: (folderId: string | null) => void;
+  }
+
+  let {
+    chat,
+    folders,
+    isActive,
+    onSelect,
+    onDelete,
+    onRename,
+    onTogglePin,
+    onMoveToFolder,
+  }: Props = $props();
+
+  let isRenaming = $state(false);
+  let renameValue = $state('');
+  let showActions = $state(false);
+
+  // Initialize rename value when entering rename mode
+  $effect(() => {
+    if (isRenaming) {
+      renameValue = chat.title;
+    }
+  });
+
+  // Format relative time
+  function getRelativeTime(date: Date): string {
+    const now = new Date();
+    const diffMs = now.getTime() - new Date(date).getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return new Date(date).toLocaleDateString();
+  }
+
+  // Handle rename submit
+  function handleRenameSubmit() {
+    if (renameValue.trim() && renameValue !== chat.title) {
+      onRename(renameValue.trim());
+    }
+    isRenaming = false;
+    renameValue = chat.title;
+  }
+
+  // Handle rename cancel
+  function handleRenameCancel() {
+    isRenaming = false;
+    renameValue = chat.title;
+  }
+
+  // Handle keyboard events for rename
+  function handleRenameKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+      handleRenameSubmit();
+    } else if (e.key === 'Escape') {
+      handleRenameCancel();
+    }
+  }
+
+  // Helper to handle dropdown menu item clicks
+  function handleMenuClick(e: Event, action: () => void) {
+    e.stopPropagation();
+    action();
+  }
+</script>
+
+<div
+  class="group relative flex items-center gap-2 rounded-md px-2 py-2 text-sm transition-colors {isActive
+    ? 'bg-accent text-accent-foreground'
+    : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'}"
+  onmouseenter={() => (showActions = true)}
+  onmouseleave={() => (showActions = false)}
+  onclick={onSelect}
+  role="button"
+  tabindex="0"
+  onkeydown={(e) => e.key === 'Enter' && onSelect()}
+>
+  <!-- Pin Icon -->
+  {#if chat.pinned}
+    <PinIcon class="text-muted-foreground size-3.5 shrink-0" />
+  {:else}
+    <div class="size-3.5 shrink-0"></div>
+  {/if}
+
+  <!-- Chat Title/Info -->
+  <div class="min-w-0 flex-1">
+    {#if isRenaming}
+      <input
+        type="text"
+        class="bg-background focus:ring-ring w-full rounded border px-2 py-0.5 text-xs focus:ring-1 focus:outline-none"
+        bind:value={renameValue}
+        onkeydown={handleRenameKeydown}
+        onblur={handleRenameSubmit}
+        use:autofocus
+      />
+    {:else}
+      <div class="flex items-center justify-between">
+        <span class="block truncate">{chat.title}</span>
+        <span class="text-muted-foreground text-xs">
+          {getRelativeTime(chat.updatedAt)}
+        </span>
+      </div>
+    {/if}
+  </div>
+
+  <!-- Actions Menu (visible on hover) -->
+  {#if showActions && !isRenaming}
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger
+        class="group/actions focus:ring-ring absolute right-1 rounded-sm opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
+        onclick={(e) => e.stopPropagation()}
+      >
+        <div
+          class={buttonVariants({
+            variant: 'ghost',
+            size: 'sm',
+            class: 'data-[state=open]:bg-accent size-7 p-0',
+          })}
+        >
+          <MoreVerticalIcon class="size-4" />
+          <span class="sr-only">Open menu</span>
+        </div>
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content class="w-48">
+        <DropdownMenu.Item onclick={(e) => handleMenuClick(e, onTogglePin)}>
+          {#if chat.pinned}
+            <PinOffIcon class="mr-2 size-4" />
+            Unpin
+          {:else}
+            <PinIcon class="mr-2 size-4" />
+            Pin
+          {/if}
+        </DropdownMenu.Item>
+        <DropdownMenu.Item onclick={(e) => handleMenuClick(e, () => (isRenaming = true))}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="mr-2 size-4"
+          >
+            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 20.5 2 22l1.5-5.5Z" />
+          </svg>
+          Rename
+        </DropdownMenu.Item>
+
+        <!-- Move to Folder Submenu -->
+        {#if folders.length > 0}
+          <DropdownMenu.Sub>
+            <DropdownMenu.SubTrigger>
+              <FolderInputIcon class="mr-2 size-4" />
+              Move to
+            </DropdownMenu.SubTrigger>
+            <DropdownMenu.SubContent class="w-48">
+              <DropdownMenu.Item onclick={(e) => handleMenuClick(e, () => onMoveToFolder(null))}>
+                <FolderIcon class="mr-2 size-4" />
+                No Folder
+              </DropdownMenu.Item>
+              <DropdownMenu.Separator />
+              {#each folders as folder}
+                <DropdownMenu.Item
+                  onclick={(e) => handleMenuClick(e, () => onMoveToFolder(folder.id))}
+                >
+                  <FolderIcon class="mr-2 size-4" />
+                  {folder.name}
+                </DropdownMenu.Item>
+              {/each}
+            </DropdownMenu.SubContent>
+          </DropdownMenu.Sub>
+        {/if}
+
+        <DropdownMenu.Separator />
+        <DropdownMenu.Item
+          onclick={(e) => handleMenuClick(e, onDelete)}
+          class="text-destructive focus:text-destructive"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="mr-2 size-4"
+          >
+            <path d="M3 6h18" />
+            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+          </svg>
+          Delete
+        </DropdownMenu.Item>
+      </DropdownMenu.Content>
+    </DropdownMenu.Root>
+  {/if}
+</div>

@@ -1,16 +1,36 @@
 import { relations } from 'drizzle-orm';
-import { pgTable, serial, text, timestamp, index, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, index, jsonb, boolean } from 'drizzle-orm/pg-core';
 import { user } from './auth';
+import { generateULID } from '../utils/ulid';
+
+export const folders = pgTable(
+  'folders',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => generateULID()),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [index('folder_user_id_idx').on(table.userId)]
+);
 
 export const chats = pgTable(
   'chats',
   {
-    id: serial('id').primaryKey(),
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => generateULID()),
     userId: text('user_id')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
     title: text('title').notNull(),
     modelId: text('model_id').notNull(),
+    folderId: text('folder_id').references(() => folders.id, { onDelete: 'set null' }),
+    pinned: boolean('pinned').notNull().default(false),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
       .defaultNow()
@@ -20,14 +40,18 @@ export const chats = pgTable(
   (table) => [
     index('chat_user_id_idx').on(table.userId),
     index('chat_updated_at_idx').on(table.updatedAt),
+    index('chat_pinned_idx').on(table.pinned),
+    index('chat_folder_id_idx').on(table.folderId),
   ]
 );
 
 export const messages = pgTable(
   'messages',
   {
-    id: serial('id').primaryKey(),
-    chatId: serial('chat_id')
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => generateULID()),
+    chatId: text('chat_id')
       .notNull()
       .references(() => chats.id, { onDelete: 'cascade' }),
     role: text('role').notNull(), // "user" | "assistant" | "system"
@@ -45,10 +69,22 @@ export const messages = pgTable(
   ]
 );
 
+export const folderRelations = relations(folders, ({ one, many }) => ({
+  user: one(user, {
+    fields: [folders.userId],
+    references: [user.id],
+  }),
+  chats: many(chats),
+}));
+
 export const chatRelations = relations(chats, ({ one, many }) => ({
   user: one(user, {
     fields: [chats.userId],
     references: [user.id],
+  }),
+  folder: one(folders, {
+    fields: [chats.folderId],
+    references: [folders.id],
   }),
   messages: many(messages),
 }));

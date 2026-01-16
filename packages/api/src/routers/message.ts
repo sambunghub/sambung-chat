@@ -4,11 +4,12 @@ import { messages } from '@sambung-chat/db/schema/chat';
 import { eq, and, asc } from 'drizzle-orm';
 import z from 'zod';
 import { protectedProcedure } from '../index';
+import { ulidSchema } from '../utils/validation';
 
 export const messageRouter = {
   // Get messages by chat ID
   getByChatId: protectedProcedure
-    .input(z.object({ chatId: z.number() }))
+    .input(z.object({ chatId: ulidSchema }))
     .handler(async ({ input, context }) => {
       const userId = context.session.user.id;
 
@@ -30,12 +31,13 @@ export const messageRouter = {
         .orderBy(asc(messages.createdAt));
     }),
 
-  // Create user message
+  // Create message
   create: protectedProcedure
     .input(
       z.object({
-        chatId: z.number(),
+        chatId: ulidSchema,
         content: z.string().min(1),
+        role: z.enum(['user', 'assistant']).default('user'),
       })
     )
     .handler(async ({ input, context }) => {
@@ -56,7 +58,7 @@ export const messageRouter = {
         .insert(messages)
         .values({
           chatId: input.chatId,
-          role: 'user',
+          role: input.role,
           content: input.content,
         })
         .returning();
@@ -66,7 +68,7 @@ export const messageRouter = {
 
   // Delete message
   delete: protectedProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: ulidSchema }))
     .handler(async ({ input, context }) => {
       const userId = context.session.user.id;
 
