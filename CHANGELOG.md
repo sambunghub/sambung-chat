@@ -150,6 +150,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Update imports across all pages (+layout.svelte, login, todos, ai)
   - Centralize component management in UI package
 
+### Security
+
+- **Critical Security Vulnerabilities Fixed**
+  - **Folder Delete Unauthorized Access** - Fixed vulnerability where users could unassign chats from folders they don't own. Added ownership verification before operations and transaction for atomicity ([packages/api/src/routers/folder.ts](packages/api/src/routers/folder.ts:52-71))
+  - **AI Endpoint Authentication** - Added authentication requirement to `/ai` endpoint. Previously accessible without auth, now requires valid Better Auth session ([apps/server/src/index.ts](apps/server/src/index.ts:132-141))
+  - **AI Endpoint Input Validation** - Added comprehensive input validation including message count limits, role validation, and content size limits ([apps/server/src/index.ts](apps/server/src/index.ts:146-177))
+  - **Debug Endpoints Exposure** - Guarded debug endpoints (`/debug/db`, `/debug/auth`, `/debug`) to only respond in development environment ([apps/server/src/index.ts](apps/server/src/index.ts:219-260))
+
+- **Code Review Documentation**
+  - Created comprehensive code review document documenting 50+ issues found during security audit ([plan-reference/code-review.md](plan-reference/code-review.md))
+
+### Changed
+
+- **API Router Organization**
+  - Moved example `todo` router to `_example/` folder with clear WARNING comments indicating it's for reference only and not production-ready ([packages/api/src/routers/\_example/todo.ts](packages/api/src/routers/_example/todo.ts))
+  - Removed todo router from production API exports ([packages/api/src/routers/index.ts](packages/api/src/routers/index.ts:8-11))
+
+- **Web Routes**
+  - Removed legacy `/ai` redirect page from web application (functionality moved to `/app/chat`)
+
+- **Tests**
+  - Updated ORPC tests to reflect folder router availability and note todo router move to examples ([apps/web/src/lib/**tests**/orpc.test.ts](apps/web/src/lib/__tests__/orpc.test.ts:41-43))
+  - Removed todo example page tests
+
 ### Fixed
 
 - **Husky Pre-commit Hook**

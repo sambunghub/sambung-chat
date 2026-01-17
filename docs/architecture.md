@@ -1,7 +1,7 @@
 # SambungChat Architecture
 
 **Version:** 0.1.0
-**Last Updated:** January 11, 2026
+**Last Updated:** January 17, 2026
 
 ---
 
@@ -442,6 +442,28 @@ See [Deployment Guide](./deployment.md) for details.
 - **SQL Injection**: Prevented by Drizzle ORM
 - **XSS**: Svelte auto-escapes by default
 - **CSRF**: Better Auth built-in protection
+
+### Authentication & Authorization
+
+- **Protected Routes**: All ORPC routes use `protectedProcedure` which requires valid Better Auth session
+- **AI Endpoint Authentication**: The `/ai` streaming endpoint requires authentication via Better Auth session cookie
+- **Ownership Verification**: Critical operations (like folder deletion) verify resource ownership before executing
+- **Transaction Safety**: Multi-step operations use database transactions for atomicity
+
+### Development vs Production
+
+- **Debug Endpoints**: Debug endpoints (`/debug/db`, `/debug/auth`, `/debug`) are only available in development mode (`NODE_ENV=development`)
+- **Environment-Specific Config**: Sensitive endpoints and features are guarded by environment checks
+
+### Security Best Practices
+
+When implementing new endpoints:
+
+1. **Use `protectedProcedure`** for any endpoint that requires authentication
+2. **Verify ownership** before allowing operations on user-owned resources
+3. **Use transactions** for multi-step database operations
+4. **Add input validation** using Zod schemas for all user inputs
+5. **Return appropriate errors** using `ORPCError` with correct status codes
 
 ---
 
