@@ -89,9 +89,39 @@ Removed `Sidebar.Inset` from individual pages, keeping it only in the app layout
 - [`apps/web/src/routes/app/prompts/+page.svelte`](../apps/web/src/routes/app/prompts/+page.svelte)
 - [`apps/web/src/routes/app/chat/+page.svelte`](../apps/web/src/routes/app/chat/+page.svelte)
 
-### Problem 3: Tooltip Hydration Mismatch
+### Problem 3: Tooltip Provider SSR Mismatch
 
 **Error:** `Failed to hydrate: TypeError: element2.getAttribute is not a function in tooltip-provider.svelte`
+
+**Root Cause:**
+The `bits-ui` Tooltip.Provider component doesn't handle SSR well. When included in server-rendered HTML, it creates DOM elements that behave differently during client-side hydration.
+
+**Solution:**
+Use browser-only rendering for Tooltip.Provider in sidebar-provider.svelte:
+
+```svelte
+<script lang="ts">
+  import { browser } from '$app/environment';
+  import * as Tooltip from '$lib/components/ui/tooltip/index.js';
+</script>
+
+{#if browser}
+  <Tooltip.Provider delayDuration={0}>
+    <div><!-- content --></div>
+  </Tooltip.Provider>
+{:else}
+  <!-- Server-side: render without Tooltip.Provider -->
+  <div><!-- content --></div>
+{/if}
+```
+
+**Files Modified:**
+
+- [`packages/ui/src/lib/components/ui/sidebar/sidebar-provider.svelte`](../packages/ui/src/lib/components/ui/sidebar/sidebar-provider.svelte)
+
+### Problem 4: Tooltip Content Default Values
+
+**Error:** Hydration mismatch in sidebar menu buttons
 
 **Root Cause:**
 The header logo button in `app-sidebar.svelte` didn't have `tooltipContent={undefined}`, causing the default tooltip wrapper to create SSR/client mismatch.
@@ -180,19 +210,25 @@ The header logo button in `app-sidebar.svelte` didn't have `tooltipContent={unde
 - Individual pages should NOT have their own `Sidebar.Inset` wrapper
 - This prevents double-nesting issues
 
-### 3. Disable Tooltips When Not Needed
+### 3. Use Browser-Only Rendering for SSR-Unsafe Components
+
+- Wrap components that don't handle SSR well with `{#if browser}` checks
+- Import `browser` from `$app/environment`
+- This prevents hydration mismatches from third-party libraries like `bits-ui`
+
+### 4. Disable Tooltips When Not Needed
 
 - Use `tooltipContent={undefined}` to disable default tooltip behavior
 - Prevents SSR hydration mismatches
 - Especially important for logo/home buttons
 
-### 4. Follow shadcn-svelte Reference Patterns
+### 5. Follow shadcn-svelte Reference Patterns
 
 - Refer to official examples: https://shadcn-svelte.com/blocks/sidebar
 - **sidebar-09** (Collapsible nested sidebars) was the closest match for dual-sidebar layout
 - Follow the exact structure: `Provider > AppSidebar + Inset`
 
-### 5. CSS Variables Must Be Set Correctly
+### 6. CSS Variables Must Be Set Correctly
 
 ```svelte
 <Sidebar.Provider style="--sidebar-width: 280px; --sidebar-width-icon: 3rem;">
@@ -200,6 +236,22 @@ The header logo button in `app-sidebar.svelte` didn't have `tooltipContent={unde
 
 - Define both `--sidebar-width` and `--sidebar-width-icon`
 - Set on `Sidebar.Provider` to propagate to all sidebar components
+
+### 7. Null-Safe Data Access for Server Load Functions
+
+```svelte
+<!-- Use optional chaining and null coalescing -->
+<Component
+  showFeature={data?.showFeature ?? false}
+  {data?.item}
+/>
+
+<!-- Or use derived values in components -->
+<script>
+  let { showFeature = false }: Props = $props();
+  const isEnabled = $derived(Boolean(showFeature));
+</script>
+```
 
 ## Configuration Files
 

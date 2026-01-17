@@ -10,29 +10,30 @@
   } from '$lib/components/ui/field/index.js';
 
   interface Props {
-    onSignIn?: (credentials: { email: string; password: string }) => void;
+    onSignUp?: (credentials: { name: string; email: string; password: string }) => void;
     onSSO?: () => void;
     showSSO?: boolean;
     showEmailPassword?: boolean;
   }
 
-  let { onSignIn, onSSO, showSSO = false, showEmailPassword = true }: Props = $props();
+  let { onSignUp, onSSO, showSSO = false, showEmailPassword = true }: Props = $props();
 
   // Ensure boolean values for SSR/client consistency
   const shouldShowSSO = $derived(Boolean(showSSO));
   const shouldShowEmailPassword = $derived(Boolean(showEmailPassword));
 
+  let name = $state('');
   let email = $state('');
   let password = $state('');
   let isSubmitting = $state(false);
 
   async function handleSubmit(e: Event) {
     e.preventDefault();
-    if (!email || !password || isSubmitting) return;
+    if (!name || !email || !password || isSubmitting) return;
 
     isSubmitting = true;
     try {
-      await onSignIn?.({ email, password });
+      await onSignUp?.({ name, email, password });
     } finally {
       isSubmitting = false;
     }
@@ -51,13 +52,24 @@
 
 <Card.Root class="mx-auto w-full max-w-sm">
   <Card.Header>
-    <Card.Title class="text-2xl">Login</Card.Title>
-    <Card.Description>Enter your email below to login to your account</Card.Description>
+    <Card.Title class="text-2xl">Create an account</Card.Title>
+    <Card.Description>Enter your details to get started</Card.Description>
   </Card.Header>
   <Card.Content>
     <form onsubmit={handleSubmit}>
       <FieldGroup>
         {#if shouldShowEmailPassword}
+          <Field>
+            <FieldLabel for="name">Name</FieldLabel>
+            <Input
+              id="name"
+              type="text"
+              bind:value={name}
+              placeholder="John Doe"
+              required
+              disabled={isSubmitting}
+            />
+          </Field>
           <Field>
             <FieldLabel for="email">Email</FieldLabel>
             <Input
@@ -70,24 +82,23 @@
             />
           </Field>
           <Field>
-            <div class="flex items-center">
-              <FieldLabel for="password">Password</FieldLabel>
-              <a href="##" class="ms-auto inline-block text-sm underline">
-                Forgot your password?
-              </a>
-            </div>
+            <FieldLabel for="password">Password</FieldLabel>
             <Input
               id="password"
               type="password"
               bind:value={password}
-              placeholder="Enter your password"
+              placeholder="Create a password"
               required
               disabled={isSubmitting}
             />
           </Field>
           <Field>
-            <Button type="submit" class="w-full" disabled={isSubmitting || !email || !password}>
-              {isSubmitting ? 'Signing in...' : 'Sign In'}
+            <Button
+              type="submit"
+              class="w-full"
+              disabled={isSubmitting || !name || !email || !password}
+            >
+              {isSubmitting ? 'Creating account...' : 'Sign Up'}
             </Button>
           </Field>
         {/if}
@@ -118,13 +129,13 @@
                 />
                 <path d="M13 14h-2v2h2v-2z" fill="currentColor" />
               </svg>
-              {isSubmitting ? 'Redirecting...' : 'Sign In with Keycloak'}
+              {isSubmitting ? 'Redirecting...' : 'Sign Up with Keycloak'}
             </Button>
           </Field>
         {/if}
 
         <FieldDescription class="text-center">
-          Don't have an account? <a href="/register" class="underline">Sign up</a>
+          Already have an account? <a href="/login" class="underline">Sign in</a>
         </FieldDescription>
       </FieldGroup>
     </form>

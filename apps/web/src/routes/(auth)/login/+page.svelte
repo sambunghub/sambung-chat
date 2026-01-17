@@ -47,9 +47,9 @@
 
 <div class="w-full max-w-sm">
   <LoginForm
-    onSignIn={data.showEmailPassword ? handleSignIn : undefined}
-    onSSO={data.showSSO ? handleSSO : undefined}
-    showSSO={data.showSSO}
-    showEmailPassword={data.showEmailPassword}
+    onSignIn={data?.showEmailPassword ? handleSignIn : undefined}
+    onSSO={data?.showSSO ? handleSSO : undefined}
+    showSSO={data?.showSSO ?? false}
+    showEmailPassword={data?.showEmailPassword ?? true}
   />
 </div>
