@@ -2,6 +2,7 @@ import { db } from '@sambung-chat/db';
 import { folders, chats } from '@sambung-chat/db/schema/chat';
 import { eq, and, asc, sql } from 'drizzle-orm';
 import z from 'zod';
+import { ORPCError } from '@orpc/server';
 import { protectedProcedure } from '../index';
 import { ulidSchema } from '../utils/validation';
 
@@ -93,11 +94,26 @@ export const folderRouter = {
     .handler(async ({ input, context }) => {
       const userId = context.session.user.id;
 
-      // Unassign chats from this folder first
-      await db.update(chats).set({ folderId: null }).where(eq(chats.folderId, input.id));
+      // First, verify folder ownership before any operations
+      const folderResults = await db
+        .select()
+        .from(folders)
+        .where(and(eq(folders.id, input.id), eq(folders.userId, userId)));
 
-      // Delete folder
-      await db.delete(folders).where(and(eq(folders.id, input.id), eq(folders.userId, userId)));
+      if (folderResults.length === 0) {
+        throw new ORPCError('NOT_FOUND', {
+          message: 'Folder not found or you do not have permission to delete it',
+        });
+      }
+
+      // Use transaction for atomicity
+      await db.transaction(async (tx) => {
+        // Unassign chats from this folder
+        await tx.update(chats).set({ folderId: null }).where(eq(chats.folderId, input.id));
+
+        // Delete folder
+        await tx.delete(folders).where(eq(folders.id, input.id));
+      });
 
       return { success: true };
     }),

@@ -131,8 +131,52 @@ const openai = createOpenAICompatible({
 
 app.post('/ai', async (c) => {
   try {
+    // Authentication check
+    const session = await auth.api.getSession({
+      headers: c.req.raw.headers,
+    });
+
+    if (!session?.user) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+
+    // Parse and validate request body
     const body = await c.req.json();
-    const uiMessages = body.messages || [];
+
+    // Input validation
+    const uiMessages = body.messages;
+    if (!Array.isArray(uiMessages)) {
+      return c.json({ error: 'Invalid request: messages must be an array' }, 400);
+    }
+
+    if (uiMessages.length === 0) {
+      return c.json({ error: 'Invalid request: messages cannot be empty' }, 400);
+    }
+
+    if (uiMessages.length > 100) {
+      return c.json({ error: 'Invalid request: too many messages (max 100)' }, 400);
+    }
+
+    // Validate message structure
+    for (const msg of uiMessages) {
+      if (!msg.role || !msg.content) {
+        return c.json(
+          { error: 'Invalid message format: each message must have role and content' },
+          400
+        );
+      }
+      if (!['user', 'assistant', 'system'].includes(msg.role)) {
+        return c.json({ error: `Invalid message role: ${msg.role}` }, 400);
+      }
+      if (typeof msg.content !== 'string' || msg.content.length > 100000) {
+        return c.json(
+          { error: 'Invalid message content: must be string and max 100000 characters' },
+          400
+        );
+      }
+    }
+
+    // Create AI model
     const model = wrapLanguageModel({
       model: openai(env.OPENAI_MODEL ?? 'gpt-4o-mini'),
       middleware: devToolsMiddleware(),
