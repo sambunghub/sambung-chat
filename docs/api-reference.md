@@ -818,7 +818,7 @@ type ChatGetAll = Router['chat']['getAll'];
 ### Using ORPC Client (TypeScript)
 
 ```typescript
-import { orpc } from '@sambung-chat/ui';
+import { orpc } from '@sambung-chat/api';
 
 // Query
 const chats = await orpc.chat.getAll({ limit: 50 });

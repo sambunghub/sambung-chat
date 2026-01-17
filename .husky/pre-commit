@@ -17,19 +17,8 @@ fi
 echo "   ✅ ESLint passed"
 echo ""
 
-# 3. Run svelte-check for UI package
-echo "3️⃣  Running svelte-check on UI package..."
-cd packages/ui && bun run check
-if [ $? -ne 0 ]; then
-  echo "   ❌ svelte-check failed - fix type errors before committing"
-  exit 1
-fi
-cd ../..
-echo "   ✅ svelte-check passed"
-echo ""
-
-# 4. Run svelte-check for web app
-echo "4️⃣  Running svelte-check on web app..."
+# 3. Run svelte-check for web app
+echo "3️⃣  Running svelte-check on web app..."
 cd apps/web && bun run check
 if [ $? -ne 0 ]; then
   echo "   ❌ svelte-check failed - fix type errors before committing"
@@ -39,8 +28,8 @@ cd ../..
 echo "   ✅ svelte-check passed"
 echo ""
 
-# 5. Run full build to ensure everything compiles
-echo "5️⃣  Running build..."
+# 4. Run full build to ensure everything compiles
+echo "4️⃣  Running build..."
 bun run build
 if [ $? -ne 0 ]; then
   echo "   ❌ Build failed - fix build errors before committing"

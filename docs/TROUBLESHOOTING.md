@@ -47,7 +47,7 @@ Use CSS variables directly:
 </style>
 ```
 
-**Reference:** `packages/ui/src/lib/components/layout/SecondarySidebar.svelte:113-116`
+**Reference:** `apps/web/src/lib/components/layout/SecondarySidebar.svelte:113-116`
 
 ---
 
@@ -73,7 +73,7 @@ import { Icon } from 'lucide-svelte';
 import { Icon } from '@lucide/svelte';
 ```
 
-**Reference:** `packages/ui/package.json:21` (use registered dependency)
+**Reference:** `apps/web/package.json` (use registered dependency)
 
 ---
 
@@ -101,7 +101,7 @@ Using `const` with `$state` in Svelte 5 runes. Variables using `$state` must be 
 </script>
 ```
 
-**Reference:** `packages/ui/src/lib/components/layout/SecondarySidebar.svelte:30`
+**Reference:** `apps/web/src/lib/components/layout/SecondarySidebar.svelte:30`
 
 ---
 
@@ -168,7 +168,7 @@ Tailwind CSS v4 does not support `@apply` with custom color utilities in `<style
 **Available CSS Variables:**
 
 ```css
-/* From packages/ui/src/styles/index.css */
+/* From apps/web/src/lib/styles/index.css */
 --color-background
 --color-foreground
 --color-card
@@ -224,7 +224,7 @@ export default {
 };
 ```
 
-**Reference:** `packages/ui/tailwind.config.js:49`
+**Reference:** `apps/web/tailwind.config.js:49`
 
 ---
 
@@ -237,71 +237,24 @@ export default {
 **Structure:**
 
 ```
-packages/ui/
-├── src/
-│   ├── lib/              # ✅ Built by svelte-package
-│   │   ├── components/
-│   │   ├── utils/
-│   │   └── index.ts
-│   └── components/       # ❌ NOT built
-│       └── auth/
-└── dist/                 # Output from src/lib/
-    ├── components/
-    └── index.js
+apps/web/src/lib/
+├── components/          # UI components
+├── utils/              # Utility functions
+└── stores/             # Svelte stores
 ```
-
-**Solution:**
-Always place component/library code inside `src/lib/`:
-
-```bash
-# DON'T - outside lib
-packages/ui/src/components/auth/
-
-# DO - inside lib
-packages/ui/src/lib/components/auth/
-```
-
-**Reference:** Commit `3889b8e` - moved auth components to `src/lib/components/auth/`
 
 ---
 
-### Export Paths in lib/index.ts
+### Export Paths
 
-Export paths in `lib/index.ts` must be relative to that file's location:
+Export paths in `index.ts` files must be relative to that file's location:
 
 ```typescript
-// packages/ui/src/lib/index.ts
+// apps/web/src/lib/components/auth/index.ts
 
-// ✅ Correct - relative to lib/
-export * from './components/auth/index';
-export * from './components/ui/index';
-
-// ❌ Wrong - wrong relative path
-export * from '../../components/auth/index';
-```
-
----
-
-### Package Dependencies
-
-Always check `package.json` to ensure package dependencies are registered:
-
-```bash
-# Check package dependencies
-cat packages/ui/package.json | grep -A 20 '"dependencies"'
-```
-
-**Common dependencies:**
-
-```json
-{
-  "dependencies": {
-    "@lucide/svelte": "^0.561.0",
-    "bits-ui": "^2.15.4",
-    "tailwind-merge": "catalog:",
-    "tw-animate-css": "^1.4.0"
-  }
-}
+// ✅ Correct - relative to current directory
+export { SignInForm } from './SignInForm.svelte';
+export { SignUpForm } from './SignUpForm.svelte';
 ```
 
 ---
@@ -323,30 +276,11 @@ Two components with the same export name.
 Use an alias for one of the exports:
 
 ```typescript
-// packages/ui/src/lib/components/layout/index.ts
+// apps/web/src/lib/components/layout/index.ts
 export { Header as LayoutHeader } from './Header.svelte';
 
 // apps/web/src/routes/+layout.svelte
-import { LayoutHeader } from '@sambung-chat/ui';
-```
-
-**Reference:** Commit `e1d0d56` - fixed Header export conflict
-
----
-
-### Re-exports from Barrels
-
-Use barrel exports (`index.ts`) to group exports:
-
-```typescript
-// packages/ui/src/lib/components/auth/index.ts
-export { SignInForm } from './SignInForm.svelte';
-export { SignUpForm } from './SignUpForm.svelte';
-export { UserMenu } from './UserMenu.svelte';
-
-// packages/ui/src/lib/index.ts
-export * from './components/auth/index';
-export * from './components/ui/index';
+import { LayoutHeader } from '$lib/components/layout';
 ```
 
 ---
@@ -376,9 +310,6 @@ import type { HTMLInputElement } from 'svelte/elements';
 ## Quick Debugging Commands
 
 ```bash
-# Build specific package
-cd packages/ui && bun run build
-
 # Build entire monorepo
 bun run build
 
@@ -388,11 +319,11 @@ bun run check:types
 # Find specific file
 find . -name "*.svelte" | xargs grep "componentName"
 
-# Search for imports
-rg "from '@lucide/svelte'" packages/ui/src
+# Search for imports in web app
+rg "from '@lucide/svelte'" apps/web/src
 
 # Check package exports
-cat packages/ui/package.json | grep -A 10 "exports"
+cat apps/web/package.json | grep -A 10 "exports"
 ```
 
 ---
@@ -406,7 +337,7 @@ Before creating a PR, ensure:
 - [ ] No `@apply` with custom colors in `<style>` blocks
 - [ ] All imports use correct package names
 - [ ] `$state` variables use `let` not `const`
-- [ ] Component exports are in `src/lib/` for svelte-package
+- [ ] Component exports use proper paths
 - [ ] No named export conflicts
 
 ---

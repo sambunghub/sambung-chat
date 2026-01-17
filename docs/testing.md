@@ -152,7 +152,7 @@ export default defineConfig({
     alias: {
       '@sambung-chat/api': './packages/api/src',
       '@sambung-chat/db': './packages/db/src',
-      '@sambung-chat/ui': './packages/ui/src',
+      $lib: './apps/web/src/lib',
       $lib: './apps/web/src/lib',
     },
   },

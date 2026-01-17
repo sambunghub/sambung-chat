@@ -390,13 +390,13 @@ SambungChat Components
 │   └── SettingsNav
 │
 └── Shared Components
-    ├── Button (from @sambung-chat/ui)
-    ├── Input (from @sambung-chat/ui)
-    ├── Card (from @sambung-chat/ui)
-    ├── Dialog (from @sambung-chat/ui)
-    ├── DropdownMenu (from @sambung-chat/ui)
-    ├── Select (from @sambung-chat/ui)
-    ├── Toast (from @sambung-chat/ui)
+    ├── Button (from $lib/components/ui)
+    ├── Input (from $lib/components/ui)
+    ├── Card (from $lib/components/ui)
+    ├── Dialog (from $lib/components/ui)
+    ├── DropdownMenu (from $lib/components/ui)
+    ├── Select (from $lib/components/ui)
+    ├── Toast (from $lib/components/ui)
     └── LoadingSpinner
 ```
 
@@ -432,7 +432,7 @@ interface Props {
 
 ### 2. NavigationRail Component
 
-**Location:** `packages/ui/src/lib/components/layout/NavigationRail.svelte`
+**Location:** `apps/web/src/lib/components/layout/NavigationRail.svelte`
 
 **Props:**
 
@@ -494,7 +494,7 @@ const getNavItems = (workspaceType: 'personal' | 'team') => {
 
 ### 3. UserMenu Component
 
-**Location:** `packages/ui/src/lib/components/layout/UserMenu.svelte`
+**Location:** `apps/web/src/lib/components/layout/UserMenu.svelte`
 
 **Props:**
 
@@ -537,7 +537,7 @@ interface Props {
 **File Structure:**
 
 ```
-packages/ui/src/lib/components/layout/
+apps/web/src/lib/components/layout/
 ├── UserMenu.svelte
 └── user-menu/
     ├── WorkspaceSwitcher.svelte
@@ -548,7 +548,7 @@ packages/ui/src/lib/components/layout/
 
 ### 4. WorkspaceSwitcher Component
 
-**Location:** `packages/ui/src/lib/components/layout/user-menu/WorkspaceSwitcher.svelte`
+**Location:** `apps/web/src/lib/components/layout/user-menu/WorkspaceSwitcher.svelte`
 
 **Props:**
 
@@ -597,7 +597,7 @@ interface Props {
 
 ### 5. SecondarySidebar Component
 
-**Location:** `packages/ui/src/lib/components/layout/SecondarySidebar.svelte`
+**Location:** `apps/web/src/lib/components/layout/SecondarySidebar.svelte`
 
 **Props:**
 
@@ -1121,7 +1121,7 @@ export const cache = createCacheStore();
 
 ### Phase 1 (Week 1-4): Foundation & Layout
 
-1. ✅ Setup shadcn-svelte in packages/ui
+1. ✅ Setup shadcn-svelte in apps/web
 2. ✅ Create base components (Button, Input, Card)
 3. ⬜ Update Header component (logo only)
 4. ⬜ Create/Update NavigationRail with new structure
@@ -1183,7 +1183,7 @@ This section provides specific implementation details using shadcn-svelte compon
 ### Installation
 
 ```bash
-cd packages/ui
+cd apps/web
 bunx shadcn-svelte@latest add sidebar
 bunx shadcn-svelte@latest add popover
 bunx shadcn-svelte@latest add dropdown-menu
@@ -1525,7 +1525,7 @@ $effect(() => {
 ### File Structure
 
 ```
-packages/ui/src/lib/components/layout/
+apps/web/src/lib/components/layout/
 ├── Header.svelte                    # Logo only (60px)
 ├── NavigationRail.svelte            # 64px nav rail
 ├── UserMenu.svelte                  # User menu + workspace switcher
@@ -1554,7 +1554,7 @@ apps/web/src/routes/(app)/
 - **[database.md](../docs/database.md)** - Database tables and relationships
 - **[ROADMAP.md](./ROADMAP.md)** - Development timeline
 - **[STATUS.md](./STATUS.md)** - Current development status
-- **[packages/ui/agents.md](../packages/ui/agents.md)** - UI package guidelines
+- **[apps/web/AGENTS.md](../apps/web/AGENTS.md)** - Frontend app guidelines
 
 ---
 

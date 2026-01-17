@@ -52,8 +52,8 @@ SambungChat follows a **monorepo architecture** using Turborepo for orchestratio
 ┌─────────────────────────────────────────────────────────────────────┐
 │                           CLIENT LAYER                               │
 │  ┌─────────────────┐    ┌──────────────────┐    ┌─────────────┐  │
-│  │  SvelteKit App  │◀──▶│  TanStack Query  │◀──▶│  ORPC Client│  │
-│  │   (Web UI)      │    │  (Data Fetching) │    │  (Type-safe)│  │
+│  │  SvelteKit App  │◀──▶│  Svelte 5 Runes  │◀──▶│  ORPC Client│  │
+│  │   (Web UI)      │    │  (State Mgmt)    │    │  (Type-safe)│  │
 │  └─────────────────┘    └──────────────────┘    └─────────────┘  │
 │                                  │                                 │
 └──────────────────────────────────┼─────────────────────────────────┘
@@ -132,7 +132,7 @@ SambungChat follows a **monorepo architecture** using Turborepo for orchestratio
    ↓
 2. Svelte Component (Frontend)
    ↓
-3. TanStack Query Mutation
+3. Svelte 5 Runes ($derived)
    ↓
 4. ORPC Client (Type-safe Call)
    ↓
@@ -156,7 +156,7 @@ SambungChat follows a **monorepo architecture** using Turborepo for orchestratio
    ↓
 14. HTTP Response
    ↓
-15. TanStack Query Caches
+15. Svelte Reactivity Updates
    ↓
 16. UI Updates Automatically
 ```
@@ -473,7 +473,7 @@ When implementing new endpoints:
 
 - **Code Splitting**: SvelteKit automatic splitting
 - **Lazy Loading**: Components loaded on demand
-- **Caching**: TanStack Query aggressive caching
+- **Caching**: ORPC client caching
 - **Optimistic Updates**: Instant UI feedback
 
 ### Backend
