@@ -235,6 +235,8 @@ GET /api/chats/01ARZ3NDEKTSV4RRFFQ69G5FAV  ✓
 - Validate ULIDs at API boundaries using `ulidSchema`
 - Use ULID in URLs and API responses
 - Extract timestamps when needed for queries
+- **Use `string` type for ALL IDs in frontend/export types**
+- **Ensure TypeScript interfaces use `id: string` not `id: number`**
 
 ### ❌ DON'T
 
@@ -242,6 +244,8 @@ GET /api/chats/01ARZ3NDEKTSV4RRFFQ69G5FAV  ✓
 - Don't try to parse ULID as number
 - Don't create custom ID formats
 - Don't use UUID instead (ULID is better for our use case)
+- **Don't use `number` type for ID fields in any TypeScript interface**
+- **Don't convert ULID strings to numbers for export/validation**
 
 ## References
 

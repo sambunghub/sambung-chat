@@ -1,6 +1,8 @@
 // Types for chat export
+// IMPORTANT: All IDs use ULID strings (26 chars), not integers
+// See docs/ULID-STANDARD.md for more information
 export interface ChatMessage {
-  id: number;
+  id: string; // ULID
   role: 'user' | 'assistant' | 'system';
   content: string;
   metadata?: {
@@ -12,11 +14,11 @@ export interface ChatMessage {
 }
 
 export interface ChatExport {
-  id: number;
+  id: string; // ULID
   title: string;
   modelId: string;
   pinned: boolean;
-  folderId: number | null;
+  folderId: string | null; // ULID
   createdAt: Date;
   updatedAt: Date;
   messages: ChatMessage[];
@@ -102,7 +104,7 @@ export function downloadFile(content: string, filename: string, mimeType: string
 /**
  * Export chat and download as file
  */
-export function exportChat(chat: ChatExport, format: 'json' | 'md' | 'txt', chatId?: number): void {
+export function exportChat(chat: ChatExport, format: 'json' | 'md' | 'txt', chatId?: string): void {
   const timestamp = new Date().toISOString().split('T')[0];
   const safeTitle = chat.title
     .replace(/[^a-z0-9]/gi, '_')

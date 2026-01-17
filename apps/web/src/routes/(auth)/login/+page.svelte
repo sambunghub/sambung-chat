@@ -4,6 +4,13 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
 
+  interface PageData {
+    showSSO: boolean;
+    showEmailPassword: boolean;
+  }
+
+  export let data: PageData;
+
   async function handleSignIn(credentials: { email: string; password: string }) {
     try {
       const result = await authClient.signIn.email(credentials);
@@ -39,5 +46,10 @@
 </script>
 
 <div class="w-full max-w-sm">
-  <LoginForm onSignIn={handleSignIn} onSSO={handleSSO} />
+  <LoginForm
+    onSignIn={data.showEmailPassword ? handleSignIn : undefined}
+    onSSO={data.showSSO ? handleSSO : undefined}
+    showSSO={data.showSSO}
+    showEmailPassword={data.showEmailPassword}
+  />
 </div>

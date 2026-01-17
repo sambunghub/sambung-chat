@@ -113,15 +113,13 @@
             if (msg.role === 'user') {
               chat.messages.push({
                 role: 'user',
-                content: msg.content,
                 parts: [{ type: 'text', text: msg.content }],
-              });
+              } as any);
             } else if (msg.role === 'assistant') {
               chat.messages.push({
                 role: 'assistant',
-                content: msg.content,
                 parts: [{ type: 'text', text: msg.content }],
-              });
+              } as any);
             }
           }
         }
@@ -184,8 +182,7 @@
         const textPart = lastMessage.parts?.find(
           (p): p is Extract<typeof p, { type: 'text' }> => p.type === 'text'
         );
-        const content =
-          textPart && 'text' in textPart ? textPart.text : (lastMessage.content as string);
+        const content = textPart && 'text' in textPart ? textPart.text : '';
         await orpc.message.create({
           chatId: chatId()!,
           content: content,
@@ -245,8 +242,7 @@
         const textPart = lastMessage.parts?.find(
           (p): p is Extract<typeof p, { type: 'text' }> => p.type === 'text'
         );
-        stoppedMessageContent =
-          textPart && 'text' in textPart ? textPart.text : (lastMessage.content as string);
+        stoppedMessageContent = textPart && 'text' in textPart ? textPart.text : '';
       }
     }
   }
@@ -270,8 +266,7 @@
       const textPart = lastUserMessage.parts?.find(
         (p): p is Extract<typeof p, { type: 'text' }> => p.type === 'text'
       );
-      const content =
-        textPart && 'text' in textPart ? textPart.text : (lastUserMessage.content as string);
+      const content = textPart && 'text' in textPart ? textPart.text : '';
       await chat.sendMessage({ text: content });
     } catch (error) {
       console.error('Failed to regenerate:', error);
@@ -292,16 +287,16 @@
           const textPart = msg.parts?.find(
             (p): p is Extract<typeof p, { type: 'text' }> => p.type === 'text'
           );
-          const content = textPart && 'text' in textPart ? textPart.text : (msg.content as string);
+          const content = textPart && 'text' in textPart ? textPart.text : '';
           return {
-            id: idx + 1,
+            id: chatId() || '', // Use ULID string
             role: msg.role,
             content: content,
             createdAt: new Date(),
           };
         }),
       };
-      exportChat(exportData, format, chatId());
+      exportChat(exportData, format, chatId() || undefined);
     } catch (err) {
       console.error('Failed to export chat:', err);
     }
@@ -389,10 +384,18 @@
                 <div
                   class="prose-p:text-card-foreground prose prose-sm max-w-none dark:prose-invert"
                 >
-                  {@html renderMarkdownSync(message.content as string)}
+                  {@html renderMarkdownSync(
+                    (message.parts?.find(
+                      (p): p is Extract<typeof p, { type: 'text' }> => p.type === 'text'
+                    )?.text as string) || ''
+                  )}
                 </div>
               {:else}
-                <div class="whitespace-pre-wrap">{message.content as string}</div>
+                <div class="whitespace-pre-wrap">
+                  {(message.parts?.find(
+                    (p): p is Extract<typeof p, { type: 'text' }> => p.type === 'text'
+                  )?.text as string) || ''}
+                </div>
               {/if}
             </div>
           </div>

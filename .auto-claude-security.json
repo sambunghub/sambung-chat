@@ -130,15 +130,49 @@
   "stack_commands": [
     "bun",
     "bunx",
+    "composer",
+    "createdb",
+    "createuser",
+    "dive",
+    "docker",
+    "docker-buildx",
+    "docker-compose",
+    "dockerfile",
+    "dropdb",
+    "dropuser",
+    "eslint",
+    "initdb",
+    "ipython",
+    "jupyter",
     "node",
+    "notebook",
     "npm",
     "npx",
+    "pdb",
+    "pg_ctl",
+    "pg_dump",
+    "pg_dumpall",
+    "pg_isready",
+    "pg_restore",
+    "php",
+    "pip",
+    "pip3",
+    "pipx",
+    "playwright",
+    "postgres",
+    "prettier",
+    "psql",
+    "pudb",
+    "python",
+    "python3",
     "ts-node",
     "tsc",
     "tsx",
-    "turbo"
+    "turbo",
+    "vitest"
   ],
   "script_commands": [
+    "./validate-guide.sh",
     "bun",
     "npm",
     "pnpm",
@@ -147,17 +181,27 @@
   "custom_commands": [],
   "detected_stack": {
     "languages": [
+      "python",
       "javascript",
-      "typescript"
+      "typescript",
+      "php"
     ],
     "package_managers": [
       "bun"
     ],
     "frameworks": [
-      "turbo"
+      "turbo",
+      "vitest",
+      "playwright",
+      "eslint",
+      "prettier"
     ],
-    "databases": [],
-    "infrastructure": [],
+    "databases": [
+      "postgresql"
+    ],
+    "infrastructure": [
+      "docker"
+    ],
     "cloud_providers": [],
     "code_quality_tools": [],
     "version_managers": []
@@ -167,9 +211,14 @@
       "dev",
       "build",
       "check-types",
+      "lint",
+      "lint:fix",
+      "format",
+      "format:check",
       "dev:native",
       "dev:web",
       "dev:server",
+      "dev:all",
       "db:push",
       "db:studio",
       "db:generate",
@@ -177,14 +226,34 @@
       "db:start",
       "db:watch",
       "db:stop",
-      "db:down"
+      "db:down",
+      "status:update",
+      "status:pending",
+      "status:blocked",
+      "test",
+      "test:unit",
+      "test:unit:watch",
+      "test:coverage",
+      "test:e2e",
+      "test:e2e:ui",
+      "test:e2e:debug",
+      "prepare",
+      "docker:dev",
+      "docker:dev:build",
+      "docker:dev:logs",
+      "docker:dev:down",
+      "docker:prod",
+      "docker:prod:logs",
+      "docker:prod:down"
     ],
     "make_targets": [],
     "poetry_scripts": [],
     "cargo_aliases": [],
-    "shell_scripts": []
+    "shell_scripts": [
+      "validate-guide.sh"
+    ]
   },
-  "project_dir": "/Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/.auto-claude/worktrees/tasks/002-add-visual-diagrams-to-architecture-documentation",
-  "created_at": "2026-01-12T17:44:39.726139",
-  "project_hash": "86e582e73ea956d37dcca86d436fb4e2"
+  "project_dir": "/Users/mis-puragroup/development/riset-ai/sambung-chat",
+  "created_at": "2026-01-17T08:41:45.383825",
+  "project_hash": "8cbc407587b7645c396953a9412d6f4f"
 }

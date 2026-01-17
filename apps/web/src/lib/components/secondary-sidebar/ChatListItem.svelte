@@ -6,6 +6,7 @@
   import FolderInputIcon from '@lucide/svelte/icons/folder-input';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import { buttonVariants } from '$lib/components/ui/button/index.js';
+  import { autofocus } from '$lib/actions/autofocus.js';
 
   // Types
   interface Chat {

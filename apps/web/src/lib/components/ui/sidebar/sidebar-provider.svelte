@@ -1,41 +1,51 @@
 <script lang="ts">
-	import * as Tooltip from "$lib/components/ui/tooltip/index.js";
-	import { cn, type WithElementRef } from "$lib/utils.js";
-	import type { HTMLAttributes } from "svelte/elements";
-	import { browser } from '$app/environment';
-	import {
-		SIDEBAR_COOKIE_MAX_AGE,
-		SIDEBAR_COOKIE_NAME,
-		SIDEBAR_WIDTH,
-		SIDEBAR_WIDTH_ICON,
-	} from "./constants.js";
-	import { setSidebar, type SidebarContext } from "./context.svelte.js";
+  import { browser } from '$app/environment';
+  import * as Tooltip from '$lib/components/ui/tooltip/index.js';
+  import { cn, type WithElementRef } from '$lib/utils.js';
+  import type { HTMLAttributes } from 'svelte/elements';
+  import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_ICON } from './constants.js';
 
-	let {
-		ref = $bindable(null),
-		open = $bindable(true),
-		onOpenChange = () => {},
-		class: className,
-		style,
-		children,
-		...restProps
-	}: WithElementRef<HTMLAttributes<HTMLDivElement>> & {
-		open?: boolean;
-		onOpenChange?: (open: boolean) => void;
-	} = $props();
+  let {
+    ref = $bindable(null),
+    open = $bindable(true),
+    onOpenChange = () => {},
+    class: className,
+    style,
+    children,
+    ...restProps
+  }: WithElementRef<HTMLAttributes<HTMLDivElement>> & {
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+  } = $props();
 </script>
 
-<Tooltip.Provider delayDuration={0}>
-	<div
-		data-slot="sidebar-wrapper"
-		style="--sidebar-width: {SIDEBAR_WIDTH}; --sidebar-width-icon: {SIDEBAR_WIDTH_ICON}; {style}"
-		class={cn(
-			"group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full",
-			className
-		)}
-		bind:this={ref}
-		{...restProps}
-	>
-		{@render children?.()}
-	</div>
-</Tooltip.Provider>
+{#if browser}
+  <Tooltip.Provider delayDuration={0}>
+    <div
+      data-slot="sidebar-wrapper"
+      style="--sidebar-width: {SIDEBAR_WIDTH}; --sidebar-width-icon: {SIDEBAR_WIDTH_ICON}; {style}"
+      class={cn(
+        'group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full',
+        className
+      )}
+      bind:this={ref}
+      {...restProps}
+    >
+      {@render children?.()}
+    </div>
+  </Tooltip.Provider>
+{:else}
+  <!-- Server-side: render without Tooltip.Provider to avoid hydration issues -->
+  <div
+    data-slot="sidebar-wrapper"
+    style="--sidebar-width: {SIDEBAR_WIDTH}; --sidebar-width-icon: {SIDEBAR_WIDTH_ICON}; {style}"
+    class={cn(
+      'group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full',
+      className
+    )}
+    bind:this={ref}
+    {...restProps}
+  >
+    {@render children?.()}
+  </div>
+{/if}

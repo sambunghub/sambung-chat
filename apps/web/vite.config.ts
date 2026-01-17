@@ -26,12 +26,12 @@ export default defineConfig({
     // Listen on all interfaces for Docker compatibility
     host: '0.0.0.0',
 
-    port: 5173,
+    port: Number(process.env.WEB_PORT) || 5174,
     strictPort: true,
 
     // HMR configuration for Docker
     hmr: {
-      clientPort: 5173,
+      clientPort: Number(process.env.WEB_PORT) || 5174,
       // Use WebSocket for HMR with proper protocol
       protocol: 'ws',
     },
