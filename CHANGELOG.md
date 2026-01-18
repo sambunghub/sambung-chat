@@ -5,19 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.0.3] - 2025-01-18
 
 ### Added
 
-- **Search UI Connection**: Connected chat search input to backend API (`orpc.chat.search`). Search now filters chats in real-time with debouncing (300ms), folder filtering, pinned-only filtering, and search result highlighting.
+- **Folder Rename**: Double-click folder name or click pencil icon (hover) to rename folders inline with keyboard support (Enter to save, Escape to cancel)
+- **Folder Delete**: Click trash icon (hover) to delete folders with confirmation dialog; chats in deleted folder automatically move to "No Folder"
+- **Error Handling**: Add error state with retry button for failed chat loads; prevents infinite retry loops
+- **Search Trigger**: Search now only triggers on Enter key press, not per character change
+- **Folder Actions UI**: Add pencil and trash icons that appear on folder hover for quick access to rename/delete
 
 ### Changed
 
-- **Folder Creation UX**: Moved "New Folder" functionality from sidebar header to chat item popup menu. Users can now create folders directly from individual chat items via the three-dot menu.
+- **Search Behavior**: Changed from real-time search (per character) to manual trigger (Enter key press) to reduce API calls
+- **Filter Auto-trigger**: Folder dropdown and pinned checkbox still trigger auto-search (only search input requires Enter)
 
 ### Fixed
 
-- **DropdownMenu Trigger**: Fix three-dot menu icon click in ChatListItem by removing snippet child pattern and using simple buttonVariants with onclick stopPropagation
+- **Infinite Loop**: Fix sidebar blink issue caused by $effect triggering on every state change; now only triggers on actual filter value changes
+- **Nested Button Error**: Fix HTML validation error by replacing nested `<button>` with `<div role="button">` for folder action icons
+- **Search Debounce**: Removed 300ms auto-debounce; search now requires explicit Enter key press
 
 ---
 

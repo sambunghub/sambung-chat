@@ -7,11 +7,14 @@
   import * as Sidebar from '$lib/components/ui/sidebar/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
+  import { autofocus } from '$lib/actions/autofocus.js';
   import PlusIcon from '@lucide/svelte/icons/plus';
   import PanelLeftCloseIcon from '@lucide/svelte/icons/panel-left-close';
   import FolderIcon from '@lucide/svelte/icons/folder';
   import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
   import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
+  import PencilIcon from '@lucide/svelte/icons/pencil';
+  import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
   // Types
   interface Chat {
@@ -45,12 +48,14 @@
   let searching = $state(false);
   let error = $state<string | null>(null);
   let searchQuery = $state('');
-  let debouncedSearch = $state('');
-  let searchTimeout: ReturnType<typeof setTimeout>;
   let selectedFolderId = $state<string>('');
   let showPinnedOnly = $state(false);
   let collapsedFolders = $state<Record<string, boolean>>({});
   let isInitialLoad = $state(true);
+
+  // Folder rename state
+  let renamingFolderId = $state<string | null>(null);
+  let folderRenameValue = $state('');
 
   // Computed - filtered chats (API handles filtering, just return chats)
   let filteredChats = $derived(() => chats);
@@ -100,21 +105,18 @@
     return { pinnedChats, folderGroups: folderGroupsArray, noFolderChats };
   });
 
-  // Debounced search
-  $effect(() => {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-      debouncedSearch = searchQuery;
-    }, 300);
-  });
-
-  // Trigger search when filters change
-  $effect(() => {
-    // Skip initial load (handled by onMount)
-    if (!isInitialLoad && !loading && !searching) {
+  // Handle filter changes (folder, pinned) - direct event handlers, not reactive
+  function handleFolderChange() {
+    if (!isInitialLoad) {
       loadChats();
     }
-  });
+  }
+
+  function handlePinnedChange() {
+    if (!isInitialLoad) {
+      loadChats();
+    }
+  }
 
   // Load chats with search & filters
   async function loadChats() {
@@ -128,18 +130,30 @@
 
     try {
       const result = await orpc.chat.search({
-        query: debouncedSearch || undefined,
+        query: searchQuery || undefined,
         folderId: selectedFolderId || undefined,
         pinnedOnly: showPinnedOnly || undefined,
       });
       chats = result as Chat[];
     } catch (err) {
       console.error('Failed to load chats:', err);
-      error = err instanceof Error ? err.message : 'Failed to load chats';
+      // Only set error if it's a network/fetch error (not cancellation)
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+        error = 'Network error - check if server is running';
+      } else {
+        error = err instanceof Error ? err.message : 'Failed to load chats';
+      }
     } finally {
       loading = false;
       searching = false;
       isInitialLoad = false;
+    }
+  }
+
+  // Handle search on Enter key
+  function handleSearchKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+      loadChats();
     }
   }
 
@@ -263,6 +277,75 @@
   function isFolderCollapsed(folderId: string): boolean {
     return collapsedFolders[folderId] ?? true;
   }
+
+  // Handle folder rename
+  function startFolderRename(folderId: string, folderName: string) {
+    renamingFolderId = folderId;
+    folderRenameValue = folderName;
+  }
+
+  async function saveFolderRename() {
+    if (!renamingFolderId || !folderRenameValue.trim()) {
+      renamingFolderId = null;
+      folderRenameValue = '';
+      return;
+    }
+
+    try {
+      await orpc.folder.update({ id: renamingFolderId, name: folderRenameValue.trim() });
+      // Update local state
+      folders = folders.map((f) =>
+        f.id === renamingFolderId ? { ...f, name: folderRenameValue.trim() } : f
+      );
+      renamingFolderId = null;
+      folderRenameValue = '';
+    } catch (err) {
+      console.error('Failed to rename folder:', err);
+      alert('Failed to rename folder. Please try again.');
+    }
+  }
+
+  function cancelFolderRename() {
+    renamingFolderId = null;
+    folderRenameValue = '';
+  }
+
+  function handleFolderKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+      saveFolderRename();
+    } else if (e.key === 'Escape') {
+      cancelFolderRename();
+    }
+  }
+
+  // Handle folder delete
+  async function deleteFolder(folderId: string, folderName: string) {
+    const confirmed = confirm(
+      `Are you sure you want to delete folder "${folderName}"?\n\nAll chats in this folder will be moved to "No Folder".`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      // Get chats in this folder
+      const chatsInFolder = chats.filter((c) => c.folderId === folderId);
+
+      // Move all chats to "No Folder" (folderId = null)
+      for (const chat of chatsInFolder) {
+        await orpc.chat.updateFolder({ id: chat.id, folderId: null });
+      }
+
+      // Delete the folder
+      await orpc.folder.delete({ id: folderId });
+
+      // Update local state
+      chats = chats.map((c) => (c.folderId === folderId ? { ...c, folderId: null } : c));
+      folders = folders.filter((f) => f.id !== folderId);
+    } catch (err) {
+      console.error('Failed to delete folder:', err);
+      alert('Failed to delete folder. Please try again.');
+    }
+  }
 </script>
 
 <div class="flex h-full flex-col">
@@ -289,18 +372,13 @@
       </div>
     </div>
 
-    <!-- Search Input with Debounce -->
+    <!-- Search Input (press Enter to search) -->
     <div class="mb-3">
       <Input
         type="text"
-        placeholder="Search chats..."
+        placeholder="Search chats... (press Enter)"
         bind:value={searchQuery}
-        oninput={() => {
-          clearTimeout(searchTimeout);
-          searchTimeout = setTimeout(() => {
-            debouncedSearch = searchQuery;
-          }, 300);
-        }}
+        onkeydown={handleSearchKeydown}
         class="h-8"
       />
     </div>
@@ -308,7 +386,11 @@
     <!-- Filter Controls -->
     <div class="flex items-center justify-between gap-2">
       <select
-        bind:value={selectedFolderId}
+        value={selectedFolderId}
+        onchange={(e) => {
+          selectedFolderId = e.currentTarget.value;
+          handleFolderChange();
+        }}
         class="border-input bg-background focus:ring-ring flex-1 rounded-md border px-2 py-1 text-sm focus:ring-1 focus:outline-none"
       >
         <option value="">All Folders</option>
@@ -319,7 +401,11 @@
       <label class="text-muted-foreground flex items-center gap-1.5 text-xs">
         <input
           type="checkbox"
-          bind:checked={showPinnedOnly}
+          checked={showPinnedOnly}
+          onchange={(e) => {
+            showPinnedOnly = e.currentTarget.checked;
+            handlePinnedChange();
+          }}
           class="border-input bg-background focus:ring-ring rounded border px-1 py-0.5 text-sm focus:ring-1 focus:outline-none"
         />
         Pinned only
@@ -329,15 +415,35 @@
 
   <!-- Content -->
   <Sidebar.Content class="flex-1 overflow-hidden">
-    {#if loading || searching}
+    {#if error}
+      <div class="flex flex-col items-center gap-3 p-4 text-center">
+        <div class="text-destructive text-sm">
+          <svg class="mx-auto mb-2 size-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <p class="font-medium">Failed to load chats</p>
+          <p class="text-muted-foreground mt-1">{error}</p>
+        </div>
+        <Button size="sm" onclick={loadChats} variant="outline">
+          <svg class="mr-1 size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+          Retry
+        </Button>
+      </div>
+    {:else if loading || searching}
       <div class="text-muted-foreground flex items-center justify-center p-8 text-sm">
         {loading ? 'Loading chats...' : 'Searching...'}
-      </div>
-    {:else if error}
-      <div class="flex flex-col items-center justify-center p-8 text-center">
-        <p class="text-destructive mb-2">Error loading chats</p>
-        <p class="text-muted-foreground mb-4 text-sm">{error}</p>
-        <Button size="sm" variant="outline" onclick={loadChats}>Retry</Button>
       </div>
     {:else if chats.length === 0}
       <ChatEmptyState onNewChat={createNewChat} />
@@ -363,7 +469,7 @@
                   onTogglePin={() => togglePin(chat.id)}
                   onMoveToFolder={(folderId) => moveChatToFolder(chat.id, folderId)}
                   onCreateFolder={() => createFolder(chat.id)}
-                  searchQuery={debouncedSearch}
+                  {searchQuery}
                 />
               {/each}
             </div>
@@ -374,21 +480,70 @@
             {#if folderChats.length > 0}
               <div class="mb-3">
                 <!-- Collapsible Folder Header -->
-                <button
-                  onclick={() => toggleFolder(folder.id)}
-                  class="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-semibold uppercase transition-colors"
+                <div
+                  class="group/folder relative"
+                  ondblclick={() => startFolderRename(folder.id, folder.name)}
                 >
-                  {#if isFolderCollapsed(folder.id)}
-                    <ChevronRightIcon class="size-3.5" />
+                  {#if renamingFolderId === folder.id}
+                    <!-- Inline Rename Input -->
+                    <input
+                      type="text"
+                      class="bg-background focus:ring-ring w-full rounded border px-2 py-1 text-xs font-semibold uppercase focus:ring-1 focus:outline-none"
+                      bind:value={folderRenameValue}
+                      onkeydown={handleFolderKeydown}
+                      onblur={saveFolderRename}
+                      use:autofocus
+                    />
                   {:else}
-                    <ChevronDownIcon class="size-3.5" />
+                    <!-- Folder Display -->
+                    <div
+                      onclick={(e) => {
+                        // Only toggle if not clicking on actions
+                        if ((e.target as HTMLElement).closest('[data-action]')) return;
+                        toggleFolder(folder.id);
+                      }}
+                      class="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex w-full cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-semibold uppercase transition-colors"
+                    >
+                      {#if isFolderCollapsed(folder.id)}
+                        <ChevronRightIcon class="size-3.5" />
+                      {:else}
+                        <ChevronDownIcon class="size-3.5" />
+                      {/if}
+                      <FolderIcon class="size-3" />
+                      <span class="flex-1 text-left">{folder.name}</span>
+
+                      <!-- Folder Actions (visible on hover) -->
+                      <span
+                        class="flex gap-0.5 opacity-0 transition-opacity group-hover/folder:opacity-100"
+                      >
+                        <div
+                          data-action
+                          onclick={() => startFolderRename(folder.id, folder.name)}
+                          class="text-muted-foreground hover:text-foreground hover:bg-accent cursor-pointer rounded p-0.5"
+                          role="button"
+                          tabindex="0"
+                          title="Rename folder"
+                        >
+                          <PencilIcon class="size-3" />
+                        </div>
+                        <div
+                          data-action
+                          onclick={() => deleteFolder(folder.id, folder.name)}
+                          class="text-muted-foreground hover:text-destructive hover:bg-accent cursor-pointer rounded p-0.5"
+                          role="button"
+                          tabindex="0"
+                          title="Delete folder"
+                        >
+                          <Trash2Icon class="size-3" />
+                        </div>
+                      </span>
+
+                      <span class="text-muted-foreground text-xs">
+                        {folderChats.length}
+                      </span>
+                    </div>
                   {/if}
-                  <FolderIcon class="size-3" />
-                  {folder.name}
-                  <span class="text-muted-foreground ml-auto text-xs">
-                    {folderChats.length}
-                  </span>
-                </button>
+                </div>
 
                 <!-- Folder Chats (only show when expanded) -->
                 {#if !isFolderCollapsed(folder.id)}
@@ -403,7 +558,7 @@
                       onTogglePin={() => togglePin(chat.id)}
                       onMoveToFolder={(folderId) => moveChatToFolder(chat.id, folderId)}
                       onCreateFolder={() => createFolder(chat.id)}
-                      searchQuery={debouncedSearch}
+                      {searchQuery}
                     />
                   {/each}
                 {/if}
@@ -430,7 +585,7 @@
                   onTogglePin={() => togglePin(chat.id)}
                   onMoveToFolder={(folderId) => moveChatToFolder(chat.id, folderId)}
                   onCreateFolder={() => createFolder(chat.id)}
-                  searchQuery={debouncedSearch}
+                  {searchQuery}
                 />
               {/each}
             </div>
