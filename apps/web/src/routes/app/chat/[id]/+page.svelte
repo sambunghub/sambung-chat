@@ -28,9 +28,21 @@
   let loading = $state(true);
   const MAX_RETRIES = 3;
 
+  // Custom fetch wrapper to include credentials (cookies)
+  const authenticatedFetch = (input: RequestInfo | URL, init?: RequestInit) => {
+    return fetch(input, {
+      ...init,
+      credentials: 'include',
+      headers: {
+        ...init?.headers,
+      },
+    });
+  };
+
   const chat = new Chat({
     transport: new DefaultChatTransport({
       api: `${PUBLIC_API_URL}/ai`,
+      fetch: authenticatedFetch,
     }),
   });
 
@@ -373,7 +385,7 @@
       </div>
     {:else}
       <div class="mx-auto max-w-3xl space-y-6">
-        {#each chat.messages as message (message.id)}
+        {#each chat.messages as message, index (message.id || index)}
           <div class="flex {message.role === 'user' ? 'justify-end' : 'justify-start'}">
             <div
               class="max-w-[80%] rounded-lg px-4 py-2 {message.role === 'user'

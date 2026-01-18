@@ -95,3 +95,38 @@ export const messageRelations = relations(messages, ({ one }) => ({
     references: [chats.id],
   }),
 }));
+
+export const agents = pgTable(
+  'agents',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => generateULID()),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    description: text('description'),
+    systemPrompt: text('system_prompt').notNull(),
+    modelId: text('model_id').notNull(),
+    temperature: jsonb('temperature').$type<number>().default(0.7),
+    maxTokens: jsonb('max_tokens').$type<number>().default(2048),
+    isActive: boolean('is_active').default(true).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index('agent_user_id_idx').on(table.userId),
+    index('agent_is_active_idx').on(table.isActive),
+  ]
+);
+
+export const agentRelations = relations(agents, ({ one, many }) => ({
+  user: one(user, {
+    fields: [agents.userId],
+    references: [user.id],
+  }),
+}));
