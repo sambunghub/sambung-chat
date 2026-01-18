@@ -162,16 +162,21 @@
   <!-- Actions Menu (visible on hover) -->
   {#if showActions && !isRenaming}
     <DropdownMenu.Root>
-      <DropdownMenu.Trigger
-        class={buttonVariants({
-          variant: 'ghost',
-          size: 'sm',
-          class:
-            'group/actions focus:ring-ring data-[state=open]:bg-accent absolute right-1 size-7 rounded-sm p-0 opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100',
-        })}
-        onclick={(e) => e.stopPropagation()}
-      >
-        <MoreVerticalIcon class="size-4" />
+      <DropdownMenu.Trigger>
+        {#snippet child({ props })}
+          <button
+            {...props}
+            class={buttonVariants({
+              variant: 'ghost',
+              size: 'sm',
+              class:
+                'group/actions focus:ring-ring data-[state=open]:bg-accent absolute right-1 size-7 rounded-sm p-0 opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100',
+            })}
+            onclick={(e) => e.stopPropagation()}
+          >
+            <MoreVerticalIcon class="size-4" />
+          </button>
+        {/snippet}
       </DropdownMenu.Trigger>
       <DropdownMenu.Content class="w-48">
         <DropdownMenu.Item onclick={(e) => handleMenuClick(e, onTogglePin)}>
