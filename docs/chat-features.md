@@ -208,14 +208,17 @@
 
 ### Phase 2: Model Management
 
-4. ⏳ Model Management Backend
-5. ⏳ Model Management UI
+4. ✅ Model Management Backend
+5. ✅ Model Management UI
 
 ### Phase 3: Quality of Life
 
-6. ⏳ Chat Rename in Sidebar
+6. ✅ Chat Rename in Sidebar
 7. ⏳ Folder Auto-Arrange
 8. ⏳ Message Branching (Fork)
+9. ✅ Collapsible ChatList Sidebar
+10. ✅ Folder Badge UI
+11. ✅ Pin Indicator UI
 
 ### Phase 4: Advanced Features
 

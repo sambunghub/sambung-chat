@@ -108,7 +108,9 @@
 <div
   class="group relative flex items-center gap-2 rounded-md px-2 py-2 text-sm transition-colors {isActive
     ? 'bg-accent text-accent-foreground'
-    : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'}"
+    : chat.pinned
+      ? 'bg-accent/30 text-accent-foreground'
+      : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'}"
   onmouseenter={() => (showActions = true)}
   onmouseleave={() => (showActions = false)}
   onclick={onSelect}
@@ -118,7 +120,9 @@
 >
   <!-- Pin Icon -->
   {#if chat.pinned}
-    <PinIcon class="text-muted-foreground size-3.5 shrink-0" />
+    <div class="bg-primary/10 text-primary rounded p-0.5">
+      <PinIcon class="size-3 shrink-0" />
+    </div>
   {:else}
     <div class="size-3.5 shrink-0"></div>
   {/if}
@@ -135,11 +139,22 @@
         use:autofocus
       />
     {:else}
-      <div class="flex items-center justify-between">
-        <span class="block truncate">{chat.title}</span>
-        <span class="text-muted-foreground text-xs">
-          {getRelativeTime(chat.updatedAt)}
-        </span>
+      <div class="flex flex-col gap-0.5">
+        <div class="flex items-center justify-between">
+          <span class="block truncate">{chat.title}</span>
+          <span class="text-muted-foreground text-xs">
+            {getRelativeTime(chat.updatedAt)}
+          </span>
+        </div>
+        {#if chat.folderId}
+          {@const folder = folders.find((f) => f.id === chat.folderId)}
+          {#if folder}
+            <div class="flex items-center gap-1">
+              <FolderIcon class="text-muted-foreground size-3" />
+              <span class="text-muted-foreground text-xs">{folder.name}</span>
+            </div>
+          {/if}
+        {/if}
       </div>
     {/if}
   </div>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { goto } from '$app/navigation';
   import BadgeCheckIcon from '@lucide/svelte/icons/badge-check';
   import BellIcon from '@lucide/svelte/icons/bell';
   import ChevronsUpDownIcon from '@lucide/svelte/icons/chevrons-up-down';
@@ -14,6 +15,16 @@
   let { user }: { user: { name: string; email: string; avatar?: string } } = $props();
 
   const sidebar = useSidebar();
+
+  // SSR-safe: default to desktop during SSR
+  let isMobile = $state(false);
+
+  // Update isMobile when sidebar state changes (client-only)
+  $effect(() => {
+    if (sidebar?.isMobile !== undefined) {
+      isMobile = sidebar.isMobile;
+    }
+  });
 </script>
 
 <Sidebar.Menu>
@@ -42,7 +53,7 @@
       </DropdownMenu.Trigger>
       <DropdownMenu.Content
         class="w-(--bits-dropdown-menu-anchor-width) min-w-56 rounded-lg"
-        side={sidebar.isMobile ? 'bottom' : 'right'}
+        side={isMobile ? 'bottom' : 'right'}
         align="end"
         sideOffset={4}
       >
@@ -83,12 +94,10 @@
           </DropdownMenu.Item>
         </DropdownMenu.Group>
         <DropdownMenu.Separator />
-        <a href="/logout" class="contents">
-          <DropdownMenu.Item>
-            <LogOutIcon />
-            Log out
-          </DropdownMenu.Item>
-        </a>
+        <DropdownMenu.Item onclick={() => goto('/logout')}>
+          <LogOutIcon />
+          Log out
+        </DropdownMenu.Item>
       </DropdownMenu.Content>
     </DropdownMenu.Root>
   </Sidebar.MenuItem>

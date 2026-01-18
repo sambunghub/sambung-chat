@@ -8,6 +8,7 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import PlusIcon from '@lucide/svelte/icons/plus';
+  import PanelLeftCloseIcon from '@lucide/svelte/icons/panel-left-close';
   import FolderIcon from '@lucide/svelte/icons/folder';
   import FolderPlusIcon from '@lucide/svelte/icons/folder-plus';
 
@@ -31,9 +32,10 @@
 
   interface Props {
     currentChatId?: string;
+    onToggleCollapse?: () => void;
   }
 
-  let { currentChatId }: Props = $props();
+  let { currentChatId, onToggleCollapse }: Props = $props();
 
   // State
   let chats = $state<Chat[]>([]);
@@ -231,6 +233,17 @@
     <div class="mb-3 flex items-center justify-between">
       <h2 class="text-lg font-semibold">Chats</h2>
       <div class="flex gap-2">
+        {#if onToggleCollapse}
+          <Button
+            size="sm"
+            onclick={onToggleCollapse}
+            variant="ghost"
+            title="Collapse chat list"
+            class="h-8 w-8 p-0"
+          >
+            <PanelLeftCloseIcon class="size-4" />
+          </Button>
+        {/if}
         <Button
           size="sm"
           onclick={() => (showCreateFolder = !showCreateFolder)}

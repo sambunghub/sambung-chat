@@ -4,14 +4,23 @@
   import { DefaultChatTransport } from 'ai';
   import { fade } from 'svelte/transition';
   import { renderMarkdownSync } from '$lib/markdown-renderer.js';
-  import * as Sidebar from '$lib/components/ui/sidebar/index.js';
-  import { Separator } from '$lib/components/ui/separator/index.js';
   import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
   import { orpc } from '$lib/orpc';
   import { goto } from '$app/navigation';
 
   // Use PUBLIC_URL for AI endpoint (backend)
   const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:3000';
+
+  // Custom fetch wrapper to include credentials (cookies)
+  const authenticatedFetch = (input: RequestInfo | URL, init?: RequestInit) => {
+    return fetch(input, {
+      ...init,
+      credentials: 'include',
+      headers: {
+        ...init?.headers,
+      },
+    });
+  };
 
   let input = $state('');
   let errorMessage = $state('');
@@ -29,6 +38,7 @@
   const chat = new Chat({
     transport: new DefaultChatTransport({
       api: `${PUBLIC_API_URL}/ai`,
+      fetch: authenticatedFetch,
     }),
   });
 
@@ -212,8 +222,6 @@
 </script>
 
 <header class="bg-background sticky top-0 z-10 flex shrink-0 items-center gap-2 border-b p-4">
-  <Sidebar.Trigger class="-ms-1" />
-  <Separator orientation="vertical" class="me-2 data-[orientation=vertical]:h-4" />
   <Breadcrumb.Root>
     <Breadcrumb.List>
       <Breadcrumb.Item>

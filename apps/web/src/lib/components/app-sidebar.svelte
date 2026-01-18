@@ -6,6 +6,8 @@
   import { useSidebar } from '$lib/components/ui/sidebar/context.svelte.js';
   import * as Sidebar from '$lib/components/ui/sidebar/index.js';
   import CommandIcon from '@lucide/svelte/icons/command';
+  import PanelLeftCloseIcon from '@lucide/svelte/icons/panel-left-close';
+  import PanelLeftOpenIcon from '@lucide/svelte/icons/panel-left-open';
   import ChatList from './secondary-sidebar/ChatList.svelte';
 
   // Load nav config from JSON
@@ -74,6 +76,9 @@
 
   const sidebar = useSidebar();
 
+  // Secondary sidebar collapse state (default visible/expanded)
+  let secondarySidebarOpen = $state(true);
+
   // Handle navigation
   function handleNavClick(item: NavItem) {
     goto(item.path);
@@ -101,20 +106,21 @@
     <Sidebar.Header>
       <Sidebar.Menu>
         <Sidebar.MenuItem>
-          <Sidebar.MenuButton size="lg" class="md:h-8 md:p-0" tooltipContent={undefined}>
-            {#snippet child({ props })}
-              <a href="/app/chat" {...props}>
-                <div
-                  class="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg"
-                >
-                  <CommandIcon class="size-4" />
-                </div>
-                <div class="grid flex-1 text-start text-sm leading-tight">
-                  <span class="truncate font-medium">Sambung</span>
-                  <span class="truncate text-xs">Chat</span>
-                </div>
-              </a>
-            {/snippet}
+          <Sidebar.MenuButton
+            size="lg"
+            class="md:h-8 md:p-0"
+            tooltipContent={undefined}
+            onclick={() => goto('/app/chat')}
+          >
+            <div
+              class="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg"
+            >
+              <CommandIcon class="size-4" />
+            </div>
+            <div class="grid flex-1 text-start text-sm leading-tight">
+              <span class="truncate font-medium">Sambung</span>
+              <span class="truncate text-xs">Chat</span>
+            </div>
           </Sidebar.MenuButton>
         </Sidebar.MenuItem>
       </Sidebar.Menu>
@@ -152,10 +158,17 @@
 
   <!-- Secondary Sidebar (280px) - Context aware content -->
   {#if !isSettingsContext(sidebarConfig)}
-    <Sidebar.Root collapsible="none" class="flex-1">
+    <Sidebar.Root
+      collapsible="none"
+      class={secondarySidebarOpen ? 'flex-1' : 'w-0 overflow-hidden'}
+      style="transition: all 0.2s ease;"
+    >
       {#if activeNavId() === 'chat'}
         <!-- Render ChatList component for chat context -->
-        <ChatList currentChatId={extractChatIdFromPath($page.url.pathname)} />
+        <ChatList
+          currentChatId={extractChatIdFromPath($page.url.pathname)}
+          onToggleCollapse={() => (secondarySidebarOpen = !secondarySidebarOpen)}
+        />
       {:else}
         <!-- Render config-based sidebar for other contexts -->
         <Sidebar.Header class="gap-3.5 border-b p-4">
@@ -218,5 +231,16 @@
         </Sidebar.Content>
       {/if}
     </Sidebar.Root>
+
+    <!-- Expand Toggle Button (when collapsed) - positioned above input area -->
+    {#if !secondarySidebarOpen && activeNavId() === 'chat'}
+      <button
+        onclick={() => (secondarySidebarOpen = true)}
+        class="bg-background hover:bg-accent absolute bottom-20 left-[4.5rem] z-50 rounded-l-md border-t border-l p-1.5 shadow-lg transition-colors"
+        title="Expand chat list"
+      >
+        <PanelLeftOpenIcon class="text-muted-foreground size-4" />
+      </button>
+    {/if}
   {/if}
 </div>

@@ -4,6 +4,7 @@ import { protectedProcedure, publicProcedure } from '../index';
 import { chatRouter } from './chat';
 import { messageRouter } from './message';
 import { folderRouter } from './folder';
+import { modelRouter } from './model';
 
 // NOTE: Example routers are in _example/ folder for reference only
 // They are NOT exported to production API
@@ -22,6 +23,7 @@ export const appRouter = {
   chat: chatRouter,
   message: messageRouter,
   folder: folderRouter,
+  model: modelRouter,
 };
 export type AppRouter = typeof appRouter;
 export type AppRouterClient = RouterClient<typeof appRouter>;
