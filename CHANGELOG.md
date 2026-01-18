@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Folder Creation UX**: Moved "New Folder" functionality from sidebar header to chat item popup menu. Users can now create folders directly from individual chat items via the three-dot menu.
+
 ### Fixed
 
 - **DropdownMenu Trigger**: Fix three-dot menu icon click in ChatListItem by removing snippet child pattern and using simple buttonVariants with onclick stopPropagation

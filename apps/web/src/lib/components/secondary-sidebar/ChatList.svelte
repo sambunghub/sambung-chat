@@ -10,7 +10,6 @@
   import PlusIcon from '@lucide/svelte/icons/plus';
   import PanelLeftCloseIcon from '@lucide/svelte/icons/panel-left-close';
   import FolderIcon from '@lucide/svelte/icons/folder';
-  import FolderPlusIcon from '@lucide/svelte/icons/folder-plus';
   import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
   import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 
@@ -47,9 +46,6 @@
   let searchQuery = $state('');
   let debouncedSearch = $state('');
   let searchTimeout: ReturnType<typeof setTimeout>;
-  let showCreateFolder = $state(false);
-  let newFolderName = $state('');
-  let isCreatingFolder = $state(false);
   let selectedFolderId = $state<string>('');
   let showPinnedOnly = $state(false);
   let collapsedFolders = $state<Record<string, boolean>>({});
@@ -91,19 +87,19 @@
 
     // Build folder groups array
     if (folders && folders.length > 0) {
-      const folderMap = new Map<string, Chat[]>();
+      const folderRecord: Record<string, Chat[]> = {};
 
-      // Initialize folder map
+      // Initialize folder record
       for (const folder of folders) {
-        folderMap.set(folder.id, []);
+        folderRecord[folder.id] = [];
       }
 
       // Group chats by folder
       for (const chat of filteredChats()) {
         if (chat.pinned) {
           pinnedChats.push(chat);
-        } else if (chat.folderId && folderMap.has(chat.folderId)) {
-          folderMap.get(chat.folderId)!.push(chat);
+        } else if (chat.folderId && folderRecord[chat.folderId]) {
+          folderRecord[chat.folderId]!.push(chat);
         } else {
           noFolderChats.push(chat);
         }
@@ -111,7 +107,7 @@
 
       // Convert to array
       for (const folder of folders) {
-        const chats = folderMap.get(folder.id) || [];
+        const chats = folderRecord[folder.id] || [];
         folderGroupsArray.push({ folder, chats });
       }
     } else {
@@ -224,21 +220,27 @@
   }
 
   // Handle folder creation
-  async function createFolder() {
-    if (!newFolderName.trim() || isCreatingFolder) return;
+  async function createFolder(chatId: string) {
+    const folderName = prompt('Enter folder name:');
+    if (!folderName || !folderName.trim()) return;
 
-    isCreatingFolder = true;
     try {
-      await orpc.folder.create({
-        name: newFolderName.trim(),
+      // Create new folder
+      const newFolder = await orpc.folder.create({
+        name: folderName.trim(),
       });
-      newFolderName = '';
-      showCreateFolder = false;
+
+      // Move chat to new folder
+      await orpc.chat.updateFolder({ id: chatId, folderId: newFolder.id });
+
+      // Update local state
+      chats = chats.map((c) => (c.id === chatId ? { ...c, folderId: newFolder.id } : c));
+
+      // Reload folders to get updated list
       await loadFolders();
     } catch (err) {
       console.error('Failed to create folder:', err);
-    } finally {
-      isCreatingFolder = false;
+      alert('Failed to create folder. Please try again.');
     }
   }
 
@@ -284,40 +286,12 @@
             <PanelLeftCloseIcon class="size-4" />
           </Button>
         {/if}
-        <Button
-          size="sm"
-          onclick={() => (showCreateFolder = !showCreateFolder)}
-          variant="outline"
-          title="Create folder"
-        >
-          <FolderPlusIcon class="size-4" />
-        </Button>
         <Button size="sm" onclick={createNewChat} variant="default">
           <PlusIcon class="mr-1 size-4" />
           New Chat
         </Button>
       </div>
     </div>
-
-    {#if showCreateFolder}
-      <div class="mb-3 flex gap-2">
-        <Input
-          type="text"
-          placeholder="Folder name..."
-          bind:value={newFolderName}
-          onkeydown={(e) => e.key === 'Enter' && createFolder()}
-          class="h-8"
-          disabled={isCreatingFolder}
-        />
-        <Button
-          size="sm"
-          onclick={createFolder}
-          disabled={!newFolderName.trim() || isCreatingFolder}
-        >
-          {isCreatingFolder ? '...' : 'Add'}
-        </Button>
-      </div>
-    {/if}
 
     <!-- Search Input with Debounce -->
     <div class="mb-3">
@@ -372,7 +346,7 @@
     {:else if chats.length === 0}
       <ChatEmptyState onNewChat={createNewChat} />
     {:else}
-      <div class="h-full overflow-y-auto max-h-[50vh]">
+      <div class="h-full max-h-[50vh] overflow-y-auto">
         <div class="px-2">
           <!-- Pinned Section -->
           {#if groupedChats().pinnedChats.length > 0}
@@ -392,6 +366,7 @@
                   onRename={(newTitle) => renameChat(chat.id, newTitle)}
                   onTogglePin={() => togglePin(chat.id)}
                   onMoveToFolder={(folderId) => moveChatToFolder(chat.id, folderId)}
+                  onCreateFolder={() => createFolder(chat.id)}
                 />
               {/each}
             </div>
@@ -430,6 +405,7 @@
                       onRename={(newTitle) => renameChat(chat.id, newTitle)}
                       onTogglePin={() => togglePin(chat.id)}
                       onMoveToFolder={(folderId) => moveChatToFolder(chat.id, folderId)}
+                      onCreateFolder={() => createFolder(chat.id)}
                     />
                   {/each}
                 {/if}
@@ -455,6 +431,7 @@
                   onRename={(newTitle) => renameChat(chat.id, newTitle)}
                   onTogglePin={() => togglePin(chat.id)}
                   onMoveToFolder={(folderId) => moveChatToFolder(chat.id, folderId)}
+                  onCreateFolder={() => createFolder(chat.id)}
                 />
               {/each}
             </div>

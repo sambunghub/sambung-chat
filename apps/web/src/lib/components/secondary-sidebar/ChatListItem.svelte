@@ -4,6 +4,7 @@
   import MoreVerticalIcon from '@lucide/svelte/icons/more-vertical';
   import FolderIcon from '@lucide/svelte/icons/folder';
   import FolderInputIcon from '@lucide/svelte/icons/folder-input';
+  import FolderPlusIcon from '@lucide/svelte/icons/folder-plus';
   import PencilIcon from '@lucide/svelte/icons/pencil';
   import Trash2Icon from '@lucide/svelte/icons/trash-2';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
@@ -37,6 +38,7 @@
     onRename: (newTitle: string) => void;
     onTogglePin: () => void;
     onMoveToFolder: (folderId: string | null) => void;
+    onCreateFolder: () => void;
   }
 
   let {
@@ -48,6 +50,7 @@
     onRename,
     onTogglePin,
     onMoveToFolder,
+    onCreateFolder,
   }: Props = $props();
 
   let isRenaming = $state(false);
@@ -194,6 +197,10 @@
         <DropdownMenu.Item onclick={(e) => handleMenuClick(e, () => (isRenaming = true))}>
           <PencilIcon class="mr-2 size-4" />
           Rename
+        </DropdownMenu.Item>
+        <DropdownMenu.Item onclick={(e) => handleMenuClick(e, onCreateFolder)}>
+          <FolderPlusIcon class="mr-2 size-4" />
+          New Folder
         </DropdownMenu.Item>
 
         <!-- Move to Folder Submenu -->
