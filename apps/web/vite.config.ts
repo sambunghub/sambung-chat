@@ -26,7 +26,7 @@ export default defineConfig({
     // Listen on all interfaces for Docker compatibility
     host: '0.0.0.0',
 
-    port: Number(process.env.WEB_PORT) || 5173,
+    port: Number(process.env.WEB_PORT) || 5174,
     strictPort: false,
 
     // HMR configuration - let Vite auto-detect port from WebSocket handshake

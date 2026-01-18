@@ -187,7 +187,7 @@ bun run build && bun run preview  # Full SSR test
 
 ```bash
 bun run dev              # Start all services
-bun run dev:web          # Web app only (port 5173)
+bun run dev:web          # Web app only (port 5174)
 bun run dev:server       # Server only (port 3000)
 bun run check:types      # TypeScript check
 bun run check:hydration  # SSR hydration check

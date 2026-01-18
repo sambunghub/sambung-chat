@@ -16,7 +16,8 @@
   const user = $derived($page.data?.user);
 
   // Initialize sidebar context BEFORE rendering children
-  let sidebarOpen = $state(true);
+  // SSR-safe: always start with false for consistent server/client rendering
+  let sidebarOpen = $state(false);
   setSidebar({
     open: () => sidebarOpen,
     setOpen: (value: boolean) => {
