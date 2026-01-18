@@ -53,15 +53,23 @@
 #### Search UI
 
 - ✅ Backend API: `orpc.chat.search` with filters
-- ❌ Frontend UI: Search input exists but not connected
-- ❌ Filter UI: No folder/pinned filter UI
+- ✅ Frontend UI: Search input with debouncing
+- ✅ Filter UI: Folder dropdown and pinned-only checkbox
 
 #### Folder Management
 
 - ✅ Backend: Complete CRUD operations
-- ⚠️ Frontend: Basic sidebar display
-- ❌ Drag-and-drop: Not implemented
+- ✅ Frontend: Full UI with create, delete, move
+- ✅ Folder badge display in chat items
+- ❌ Drag-and-drop: Not implemented (see [Drag & Drop Plan](drag-drop-plan.md))
 - ❌ Dynamic count: Not connected
+
+#### ChatList UI
+
+- ✅ Collapsible sidebar with toggle button
+- ✅ Fixed layout (title + time on same line)
+- ✅ Folder and pin indicators
+- ❌ Drag-and-drop reordering (planned)
 
 ---
 
@@ -214,17 +222,26 @@
 ### Phase 3: Quality of Life
 
 6. ✅ Chat Rename in Sidebar
-7. ⏳ Folder Auto-Arrange
+7. ⏳ Folder Auto-Arrange (see Drag & Drop)
 8. ⏳ Message Branching (Fork)
 9. ✅ Collapsible ChatList Sidebar
 10. ✅ Folder Badge UI
 11. ✅ Pin Indicator UI
+12. ✅ Fixed ChatList Layout (title + time consistency)
 
-### Phase 4: Advanced Features
+### Phase 4: Drag & Drop (Planned)
 
-9. ⏳ Full-Text Search
-10. ⏳ Chat Templates
-11. ⏳ Export All Chats
+13. ⏳ Database schema changes (position field)
+14. ⏳ Chat reordering within folder
+15. ⏳ Move chat between folders
+16. ⏳ Folder reordering
+17. ⏳ See [Drag & Drop Plan](drag-drop-plan.md)
+
+### Phase 5: Advanced Features
+
+18. ⏳ Full-Text Search
+19. ⏳ Chat Templates
+20. ⏳ Export All Chats
 
 ---
 

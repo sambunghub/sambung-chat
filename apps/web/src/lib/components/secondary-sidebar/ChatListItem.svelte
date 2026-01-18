@@ -140,9 +140,9 @@
       />
     {:else}
       <div class="flex flex-col gap-0.5">
-        <div class="flex items-center justify-between">
-          <span class="block truncate">{chat.title}</span>
-          <span class="text-muted-foreground text-xs">
+        <div class="flex items-center gap-2">
+          <span class="min-w-0 flex-1 truncate">{chat.title}</span>
+          <span class="text-muted-foreground shrink-0 text-xs whitespace-nowrap">
             {getRelativeTime(chat.updatedAt)}
           </span>
         </div>
