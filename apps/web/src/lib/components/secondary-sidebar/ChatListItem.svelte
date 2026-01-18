@@ -4,6 +4,8 @@
   import MoreVerticalIcon from '@lucide/svelte/icons/more-vertical';
   import FolderIcon from '@lucide/svelte/icons/folder';
   import FolderInputIcon from '@lucide/svelte/icons/folder-input';
+  import PencilIcon from '@lucide/svelte/icons/pencil';
+  import Trash2Icon from '@lucide/svelte/icons/trash-2';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import { buttonVariants } from '$lib/components/ui/button/index.js';
   import { autofocus } from '$lib/actions/autofocus.js';
@@ -189,20 +191,7 @@
           {/if}
         </DropdownMenu.Item>
         <DropdownMenu.Item onclick={(e) => handleMenuClick(e, () => (isRenaming = true))}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="mr-2 size-4"
-          >
-            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 20.5 2 22l1.5-5.5Z" />
-          </svg>
+          <PencilIcon class="mr-2 size-4" />
           Rename
         </DropdownMenu.Item>
 
@@ -236,22 +225,7 @@
           onclick={(e) => handleMenuClick(e, onDelete)}
           class="text-destructive focus:text-destructive"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="mr-2 size-4"
-          >
-            <path d="M3 6h18" />
-            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-          </svg>
+          <Trash2Icon class="mr-2 size-4" />
           Delete
         </DropdownMenu.Item>
       </DropdownMenu.Content>
