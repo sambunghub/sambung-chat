@@ -53,11 +53,23 @@
   let isRenaming = $state(false);
   let renameValue = $state('');
   let showActions = $state(false);
+  let isDropdownOpen = $state(false);
 
   // Initialize rename value when entering rename mode
   $effect(() => {
     if (isRenaming) {
       renameValue = chat.title;
+    }
+  });
+
+  // Reset showActions when dropdown closes
+  $effect(() => {
+    if (!isDropdownOpen) {
+      // Small delay to prevent flickering
+      const timeout = setTimeout(() => {
+        showActions = false;
+      }, 100);
+      return () => clearTimeout(timeout);
     }
   });
 
@@ -114,7 +126,7 @@
       ? 'bg-accent/30 text-accent-foreground'
       : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'}"
   onmouseenter={() => (showActions = true)}
-  onmouseleave={() => (showActions = false)}
+  onmouseleave={() => !isDropdownOpen && (showActions = false)}
   onclick={onSelect}
   role="button"
   tabindex="0"
@@ -161,9 +173,9 @@
     {/if}
   </div>
 
-  <!-- Actions Menu (visible on hover) -->
-  {#if showActions && !isRenaming}
-    <DropdownMenu.Root>
+  <!-- Actions Menu (visible on hover or when dropdown is open) -->
+  {#if (showActions || isDropdownOpen) && !isRenaming}
+    <DropdownMenu.Root bind:open={isDropdownOpen}>
       <DropdownMenu.Trigger>
         {#snippet child({ props })}
           <button
