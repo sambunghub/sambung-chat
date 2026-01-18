@@ -25,6 +25,49 @@ bun run build            # Build entire monorepo
 
 ---
 
+## 📝 Changelog Guidelines
+
+### MANDATORY: Update CHANGELOG.md After Every Task
+
+**CRITICAL**: After completing ANY task (bug fix, feature, refactor, documentation), you MUST update `CHANGELOG.md` before committing.
+
+**Format**: Follow [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format:
+
+- Use categories: `Added`, `Fixed`, `Changed`, `Security`, etc.
+- Include date in version header: `## [0.x.x] - YYYY-MM-DD`
+- Write clear, concise descriptions
+- Link to relevant files/docs where applicable
+
+**Versioning**:
+
+- Format: `x.y.z` (Semantic Versioning)
+- `x.y` (MAJOR.MINOR): Manual updates only
+- `z` (PATCH): Auto-increment per commit (0.0.1 → 0.0.2 → 0.0.3)
+- Example: After 0.0.9, next commit is 0.0.10 (NOT 0.1.0)
+
+**When to Update**:
+
+- ✅ After EVERY task completion
+- ✅ Before EVERY commit
+- ✅ Include date (YYYY-MM-DD format)
+- ❌ NEVER skip changelog updates
+
+**Entry Example**:
+
+```markdown
+## [0.0.3] - 2025-01-18
+
+### Fixed
+
+- **Component Name**: Brief description of fix ([path/to/file.ts](path/to/file.ts:123))
+
+### Added
+
+- **Feature Name**: Description of new feature
+```
+
+---
+
 ## Project Overview
 
 **SambungChat** - Open-source multi-model LLM client platform built as a Turborepo monorepo. Emphasizes type safety, privacy-first architecture, and self-hosting.

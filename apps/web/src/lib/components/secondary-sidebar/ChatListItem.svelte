@@ -163,19 +163,15 @@
   {#if showActions && !isRenaming}
     <DropdownMenu.Root>
       <DropdownMenu.Trigger
-        class="group/actions focus:ring-ring absolute right-1 rounded-sm opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
+        class={buttonVariants({
+          variant: 'ghost',
+          size: 'sm',
+          class:
+            'group/actions focus:ring-ring data-[state=open]:bg-accent absolute right-1 size-7 rounded-sm p-0 opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100',
+        })}
         onclick={(e) => e.stopPropagation()}
       >
-        <div
-          class={buttonVariants({
-            variant: 'ghost',
-            size: 'sm',
-            class: 'data-[state=open]:bg-accent size-7 p-0',
-          })}
-        >
-          <MoreVerticalIcon class="size-4" />
-          <span class="sr-only">Open menu</span>
-        </div>
+        <MoreVerticalIcon class="size-4" />
       </DropdownMenu.Trigger>
       <DropdownMenu.Content class="w-48">
         <DropdownMenu.Item onclick={(e) => handleMenuClick(e, onTogglePin)}>

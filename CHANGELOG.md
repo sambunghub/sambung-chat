@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **DropdownMenu Trigger**: Fix three-dot menu icon click in ChatListItem by removing snippet child pattern and using simple buttonVariants with onclick stopPropagation
+
+---
+
+## [0.0.2] - 2025-01-18
+
+### Fixed
+
+- **DropdownMenu Click Issue**: Fixed menu icon not clickable by simplifying Trigger component and removing snippet child pattern
+- **SubTrigger**: Simplified SubTrigger to use default icon rendering (no snippet child)
+
+### Documentation
+
+- Added changelog tracking requirement to CLAUDE.md
+- Added versioning guidelines (x.y manual, z auto-increment per commit)
+
+---
+
+## [0.0.1] - 2025-01-17
+
 ### Added
 
 - **AI Provider Integration**
@@ -161,19 +183,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Code Review Documentation**
   - Created comprehensive code review document documenting 50+ issues found during security audit ([plan-reference/code-review.md](plan-reference/code-review.md))
 
-### Changed
-
-- **API Router Organization**
-  - Moved example `todo` router to `_example/` folder with clear WARNING comments indicating it's for reference only and not production-ready ([packages/api/src/routers/\_example/todo.ts](packages/api/src/routers/_example/todo.ts))
-  - Removed todo router from production API exports ([packages/api/src/routers/index.ts](packages/api/src/routers/index.ts:8-11))
-
-- **Web Routes**
-  - Removed legacy `/ai` redirect page from web application (functionality moved to `/app/chat`)
-
-- **Tests**
-  - Updated ORPC tests to reflect folder router availability and note todo router move to examples ([apps/web/src/lib/**tests**/orpc.test.ts](apps/web/src/lib/__tests__/orpc.test.ts:41-43))
-  - Removed todo example page tests
-
 ### Fixed
 
 - **Husky Pre-commit Hook**
@@ -206,4 +215,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tailwind content path in apps/web includes packages/ui source for proper style scanning
 - Backend-first development approach prioritizes API and database design before UI implementation
 
+[0.0.2]: https://github.com/sambunghub/sambung-chat/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/sambunghub/sambung-chat/compare/v0.0.0...v0.0.1
