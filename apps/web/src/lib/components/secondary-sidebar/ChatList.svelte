@@ -284,6 +284,13 @@
     folderRenameValue = folderName;
   }
 
+  // Handle folder keyboard events (for accessibility)
+  function handleFolderKeyPress(folderId: string, folderName: string, e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+      startFolderRename(folderId, folderName);
+    }
+  }
+
   async function saveFolderRename() {
     if (!renamingFolderId || !folderRenameValue.trim()) {
       renamingFolderId = null;
@@ -483,6 +490,10 @@
                 <div
                   class="group/folder relative"
                   ondblclick={() => startFolderRename(folder.id, folder.name)}
+                  onkeydown={(e) => handleFolderKeyPress(folder.id, folder.name, e)}
+                  role="button"
+                  tabindex="0"
+                  aria-label={`Folder ${folder.name}, double-click to rename`}
                 >
                   {#if renamingFolderId === folder.id}
                     <!-- Inline Rename Input -->
@@ -497,10 +508,19 @@
                   {:else}
                     <!-- Folder Display -->
                     <div
+                      role="button"
+                      tabindex="0"
+                      aria-label={`Toggle folder ${folder.name}`}
                       onclick={(e) => {
                         // Only toggle if not clicking on actions
                         if ((e.target as HTMLElement).closest('[data-action]')) return;
                         toggleFolder(folder.id);
+                      }}
+                      onkeydown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          toggleFolder(folder.id);
+                        }
                       }}
                       class="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex w-full cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-semibold uppercase transition-colors"
                     >
@@ -519,9 +539,16 @@
                         <div
                           data-action
                           onclick={() => startFolderRename(folder.id, folder.name)}
+                          onkeydown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              startFolderRename(folder.id, folder.name);
+                            }
+                          }}
                           class="text-muted-foreground hover:text-foreground hover:bg-accent cursor-pointer rounded p-0.5"
                           role="button"
                           tabindex="0"
+                          aria-label={`Rename folder ${folder.name}`}
                           title="Rename folder"
                         >
                           <PencilIcon class="size-3" />
@@ -529,9 +556,16 @@
                         <div
                           data-action
                           onclick={() => deleteFolder(folder.id, folder.name)}
+                          onkeydown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              deleteFolder(folder.id, folder.name);
+                            }
+                          }}
                           class="text-muted-foreground hover:text-destructive hover:bg-accent cursor-pointer rounded p-0.5"
                           role="button"
                           tabindex="0"
+                          aria-label={`Delete folder ${folder.name}`}
                           title="Delete folder"
                         >
                           <Trash2Icon class="size-3" />

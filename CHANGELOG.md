@@ -25,6 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Infinite Loop**: Fix sidebar blink issue caused by $effect triggering on every state change; now only triggers on actual filter value changes
 - **Nested Button Error**: Fix HTML validation error by replacing nested `<button>` with `<div role="button">` for folder action icons
 - **Search Debounce**: Removed 300ms auto-debounce; search now requires explicit Enter key press
+- **Accessibility Warnings**: Add full keyboard support and ARIA attributes to folder UI
+  - All interactive elements have `role="button"` and `tabindex="0"` for keyboard navigation
+  - Folder toggle supports Enter/Space key activation
+  - Folder rename can be triggered with Enter key on double-click area
+  - Folder action icons (pencil/trash) have keyboard handlers and proper `aria-label`
+  - Screen reader friendly with descriptive `aria-label` attributes
 
 ---
 
