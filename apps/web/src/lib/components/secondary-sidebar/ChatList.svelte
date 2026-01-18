@@ -86,29 +86,46 @@
   // Group chats by folder and time period
   let groupedChats = $derived(() => {
     const pinnedChats: Chat[] = [];
-    const folderGroups: Record<string, { folder: Folder; chats: Chat[] }> = {};
+    const folderGroupsArray: Array<{ folder: Folder; chats: Chat[] }> = [];
     const noFolderChats: Chat[] = [];
 
-    // Initialize folder groups
-    for (const folder of folders) {
-      folderGroups[folder.id] = { folder, chats: [] };
-    }
+    // Build folder groups array
+    if (folders && folders.length > 0) {
+      const folderMap = new Map<string, Chat[]>();
 
-    for (const chat of filteredChats()) {
-      if (chat.pinned) {
-        pinnedChats.push(chat);
-      } else if (chat.folderId) {
-        if (folderGroups[chat.folderId]) {
-          folderGroups[chat.folderId].chats.push(chat);
+      // Initialize folder map
+      for (const folder of folders) {
+        folderMap.set(folder.id, []);
+      }
+
+      // Group chats by folder
+      for (const chat of filteredChats()) {
+        if (chat.pinned) {
+          pinnedChats.push(chat);
+        } else if (chat.folderId && folderMap.has(chat.folderId)) {
+          folderMap.get(chat.folderId)!.push(chat);
         } else {
           noFolderChats.push(chat);
         }
-      } else {
-        noFolderChats.push(chat);
+      }
+
+      // Convert to array
+      for (const folder of folders) {
+        const chats = folderMap.get(folder.id) || [];
+        folderGroupsArray.push({ folder, chats });
+      }
+    } else {
+      // No folders - all chats go to noFolderChats
+      for (const chat of filteredChats()) {
+        if (chat.pinned) {
+          pinnedChats.push(chat);
+        } else {
+          noFolderChats.push(chat);
+        }
       }
     }
 
-    return { pinnedChats, folderGroups, noFolderChats };
+    return { pinnedChats, folderGroups: folderGroupsArray, noFolderChats };
   });
 
   // Debounced search
@@ -372,7 +389,7 @@
           {/if}
 
           <!-- Folders Section -->
-          {#each Object.values(groupedChats().folderGroups) as { folder, chats: folderChats } (folder.id)}
+          {#each groupedChats().folderGroups as { folder, chats: folderChats } (folder.id)}
             {#if folderChats.length > 0}
               <div class="mb-3">
                 <!-- Collapsible Folder Header -->
