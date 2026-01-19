@@ -42,7 +42,9 @@
   // Token tracking for streaming
   let streamingMessageId = $state<string | null>(null);
   let streamingTokenCount = $state(0);
-  let messageTokenData = $state<Map<string, { exactTokens?: number; promptTokens?: number }>>(new Map());
+  let messageTokenData = $state<Map<string, { exactTokens?: number; promptTokens?: number }>>(
+    new Map()
+  );
 
   // Custom fetch wrapper to include credentials (cookies)
   const authenticatedFetch = (input: RequestInfo | URL, init?: RequestInit) => {
@@ -141,7 +143,10 @@
   }
 
   // Helper function to categorize errors
-  function categorizeError(errorMsg: string, errorObj?: Error & { code?: string }): {
+  function categorizeError(
+    errorMsg: string,
+    errorObj?: Error & { code?: string }
+  ): {
     code: string | undefined;
     type: 'error' | 'warning' | 'info';
     message: string;
@@ -179,16 +184,14 @@
     if (
       msg.includes('not found') ||
       msg.includes('404') ||
-      msg.includes('model') &&
-      (msg.includes('not available') || msg.includes('does not exist'))
+      (msg.includes('model') && (msg.includes('not available') || msg.includes('does not exist')))
     ) {
       return { code: 'NOT_FOUND', type: 'error', message: errorMsg };
     }
     if (
       msg.includes('context') ||
       msg.includes('too long') ||
-      msg.includes('maximum') &&
-      msg.includes('length')
+      (msg.includes('maximum') && msg.includes('length'))
     ) {
       return { code: 'BAD_REQUEST', type: 'warning', message: errorMsg };
     }
@@ -287,7 +290,10 @@
     } catch (err) {
       console.error('Failed to load chat:', err);
       const errorObj = err instanceof Error ? err : new Error('Failed to load chat');
-      const categorized = categorizeError('Failed to load chat. Please try refreshing the page.', errorObj as any);
+      const categorized = categorizeError(
+        'Failed to load chat. Please try refreshing the page.',
+        errorObj as any
+      );
       errorMessage = categorized.message;
       errorCode = categorized.code;
       errorType = categorized.type;
@@ -358,23 +364,28 @@
             assistantTextPart && 'text' in assistantTextPart ? assistantTextPart.text : '';
 
           // Create the message and get the database record with metadata
-          const createdMessages = await orpc.message.create({
+          const createdMessage = await orpc.message.create({
             chatId: chatId()!,
             content: assistantContent,
             role: 'assistant',
           });
 
           // Extract token data from the saved message metadata
-          if (createdMessages && createdMessages.length > 0) {
-            const savedMessage = createdMessages[0];
-            if (savedMessage.metadata && typeof savedMessage.metadata === 'object') {
-              const metadata = savedMessage.metadata as any;
-              if (metadata.tokens || metadata.promptTokens || metadata.completionTokens) {
-                messageTokenData.set(assistantMessage.id || savedMessage.id, {
-                  exactTokens: metadata.completionTokens || metadata.tokens,
-                  promptTokens: metadata.promptTokens,
-                });
-              }
+          if (
+            createdMessage &&
+            createdMessage.metadata &&
+            typeof createdMessage.metadata === 'object'
+          ) {
+            const metadata = createdMessage.metadata as {
+              tokens?: number;
+              promptTokens?: number;
+              completionTokens?: number;
+            };
+            if (metadata.tokens || metadata.promptTokens || metadata.completionTokens) {
+              messageTokenData.set(assistantMessage.id || createdMessage.id, {
+                exactTokens: metadata.completionTokens || metadata.tokens,
+                promptTokens: metadata.promptTokens,
+              });
             }
           }
         }
@@ -442,23 +453,28 @@
                 assistantTextPart && 'text' in assistantTextPart ? assistantTextPart.text : '';
 
               // Create the message and get the database record with metadata
-              const createdMessages = await orpc.message.create({
+              const createdMessage = await orpc.message.create({
                 chatId: chatId()!,
                 content: assistantContent,
                 role: 'assistant',
               });
 
               // Extract token data from the saved message metadata
-              if (createdMessages && createdMessages.length > 0) {
-                const savedMessage = createdMessages[0];
-                if (savedMessage.metadata && typeof savedMessage.metadata === 'object') {
-                  const metadata = savedMessage.metadata as any;
-                  if (metadata.tokens || metadata.promptTokens || metadata.completionTokens) {
-                    messageTokenData.set(assistantMessage.id || savedMessage.id, {
-                      exactTokens: metadata.completionTokens || metadata.tokens,
-                      promptTokens: metadata.promptTokens,
-                    });
-                  }
+              if (
+                createdMessage &&
+                createdMessage.metadata &&
+                typeof createdMessage.metadata === 'object'
+              ) {
+                const metadata = createdMessage.metadata as {
+                  tokens?: number;
+                  promptTokens?: number;
+                  completionTokens?: number;
+                };
+                if (metadata.tokens || metadata.promptTokens || metadata.completionTokens) {
+                  messageTokenData.set(assistantMessage.id || createdMessage.id, {
+                    exactTokens: metadata.completionTokens || metadata.tokens,
+                    promptTokens: metadata.promptTokens,
+                  });
                 }
               }
             }
@@ -696,10 +712,7 @@
                 <!-- Token display for assistant messages -->
                 <div class="mt-2">
                   {#if isStreamingResponse && streamingMessageId === message.id}
-                    <TokenDisplay
-                      currentTokens={streamingTokenCount}
-                      isStreaming={true}
-                    />
+                    <TokenDisplay currentTokens={streamingTokenCount} isStreaming={true} />
                   {:else}
                     {@const tokenData = getMessageTokenData(message.id)}
                     {#if tokenData}

@@ -14,7 +14,10 @@
     updatedAt: Date;
   };
 
-  let { onSelectModel, selectedModelId }: { onSelectModel: (model: Model) => void; selectedModelId?: string } = $props();
+  let {
+    onSelectModel,
+    selectedModelId,
+  }: { onSelectModel: (model: Model) => void; selectedModelId?: string } = $props();
 
   let models = $state<Model[]>([]);
   let loading = $state(true);
@@ -69,7 +72,9 @@
 </script>
 
 {#if errorMessage}
-  <div class="bg-destructive/10 border-destructive text-destructive rounded border px-3 py-2 text-sm">
+  <div
+    class="bg-destructive/10 border-destructive text-destructive rounded border px-3 py-2 text-sm"
+  >
     {errorMessage}
   </div>
 {:else if loading}
@@ -82,12 +87,19 @@
   </div>
 {:else}
   <DropdownMenu.Root bind:open={isOpen}>
-    <DropdownMenu.Trigger let:child>
-      {@render child({
-        class: 'bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md border px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-        onclick: () => (isOpen = !isOpen)
-      })}
-    </DropdownMenu.Trigger>
+    <button
+      class="bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-9 items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none disabled:opacity-50"
+      onclick={() => (isOpen = !isOpen)}
+      type="button"
+    >
+      {#if selectedModel}
+        <span class="mr-2 text-lg">{getProviderIcon(selectedModel.provider)}</span>
+        <span class="font-medium">{selectedModel.name}</span>
+        <span class="text-muted-foreground text-xs">{selectedModel.modelId}</span>
+      {:else}
+        <span>Select Model</span>
+      {/if}
+    </button>
     <DropdownMenu.Content class="w-56" align="start">
       <DropdownMenu.Label class="px-2 py-1.5 text-sm font-semibold">
         Select Model
@@ -99,7 +111,7 @@
             onSelectModel(model);
             isOpen = false;
           }}
-          class="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+          class="focus:bg-accent focus:text-accent-foreground relative flex cursor-pointer items-center rounded-sm px-2 py-1.5 text-sm transition-colors outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
         >
           <span class="mr-2 text-lg">{getProviderIcon(model.provider)}</span>
           <div class="flex flex-1 flex-col">

@@ -23,6 +23,8 @@ export default [
       '*VERIFICATION*.md',
       'github-compatibility-report.json',
       'mermaid-validation-report.json',
+      'test-*.js',
+      'test-*.sh',
     ],
   },
   js.configs.recommended,

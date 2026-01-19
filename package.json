@@ -69,6 +69,7 @@
     "docker:prod:down": "docker-compose -f docker-compose.prod.yml down"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^3.0.12",
     "@ai-sdk/openai-compatible": "^2.0.4",
     "@sambung-chat/env": "workspace:*",
     "dotenv": "catalog:",
