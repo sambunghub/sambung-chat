@@ -5,7 +5,75 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.6] - 2026-01-19
+## [0.0.7] - 2026-01-19
+
+### Added
+
+- **OpenAI Provider Integration**: Complete integration of OpenAI provider with support for GPT-4, GPT-4 Turbo, and GPT-3.5 Turbo models ([packages/api/src/routers/ai.ts](packages/api/src/routers/ai.ts:57-320), [apps/server/src/index.ts](apps/server/src/index.ts:127-215))
+  - Full chat completion route with proper error handling
+  - Server-Sent Events (SSE) streaming for real-time token delivery
+  - Comprehensive error handling for 9 error categories (rate limits, authentication, model not found, context exceeded, content policy, invalid requests, network errors, service unavailable, payment errors)
+  - API key sanitization to prevent sensitive data leakage in logs
+  - Chat history persistence with proper database integration
+  - Authentication middleware integration with Better Auth
+  - Support for OpenAI-compatible providers with custom base URLs
+
+- **OpenAI Models**: Add database schema and model configuration for OpenAI model family ([packages/db/src/schema/model.ts](packages/db/src/schema/model.ts), [packages/api/src/routers/model.ts](packages/api/src/routers/model.ts))
+  - GPT-4 Turbo (gpt-4-turbo, gpt-4-turbo-2024-04-09)
+  - GPT-4 (gpt-4, gpt-4-0613)
+  - GPT-3.5 Turbo (gpt-3.5-turbo, gpt-3.5-turbo-0125, gpt-3.5-turbo-1106)
+  - GPT-4O (gpt-4o, gpt-4o-2024-08-06)
+  - Model capabilities tracking (streaming, function calling, vision)
+  - Provider configuration with OpenAI-specific settings
+
+- **Frontend Chat Integration**: Add streaming UI components with real-time token display ([apps/web/src/routes/app/chat/+page.svelte](apps/web/src/routes/app/chat/+page.svelte))
+  - AI SDK Chat component integration with DefaultChatTransport
+  - Streaming state management with visual indicators (animated dots)
+  - Stop/abort functionality with AbortController
+  - Auto-scroll during streaming responses
+  - Error state handling with user-friendly messages
+  - Message persistence after streaming completes
+
+- **Model Selector**: Add OpenAI models to model selector dropdown with proper categorization ([apps/web/src/routes/app/chat/+page.svelte](apps/web/src/routes/app/chat/+page.svelte))
+  - OpenAI model group with all supported models
+  - Model capability indicators (streaming, tools, vision)
+  - Dynamic model loading from API
+
+### Changed
+
+- **AI Endpoint Architecture**: Refactor AI endpoint to use AI SDK v6 streaming architecture ([apps/server/src/index.ts](apps/server/src/index.ts:127-215))
+  - Migrate from custom streaming to AI SDK's streamText() function
+  - Implement toUIMessageStreamResponse() for frontend integration
+  - Add devToolsMiddleware for development debugging
+  - Unified message format conversion (UI messages to model messages)
+
+### Security
+
+- **API Key Management**: Add database schema for encrypted API key storage ([packages/db/src/schema/api-key.ts](packages/db/src/schema/api-key.ts))
+  - apiKeys table with encryptedKey field for AES-256 encryption
+  - keyLast4 field for secure display (last 4 characters only)
+  - Provider-specific key management (openai, anthropic, google, groq, ollama)
+  - User ownership with cascade delete on user removal
+  - Note: Encryption implementation pending (infrastructure ready)
+
+### Tested
+
+- **Type Checking**: All packages pass TypeScript type checking with zero errors ([build-progress.txt](.auto-claude/specs/001-complete-openai-provider-integration/build-progress.txt:376-429))
+- **Hydration Validation**: SSR hydration validation passes with clean console ([build-progress.txt](.auto-claude/specs/001-complete-openai-provider-integration/build-progress.txt:1-11))
+- **Streaming Functionality**: Comprehensive manual testing of streaming with real OpenAI API ([streaming-test-results.md](.auto-claude/specs/001-complete-openai-provider-integration/streaming-test-results.md))
+- **Error Handling**: Code review and automated testing of all 9 error categories ([error-handling-verification.md](.auto-claude/specs/001-complete-openai-provider-integration/error-handling-verification.md))
+- **Build Verification**: Production build passes with clean console and no hydration issues ([build-progress.txt](.auto-claude/specs/001-complete-openai-provider-integration/build-progress.txt:614-821))
+
+### Technical Notes
+
+- OpenAI provider uses AI SDK v6 with streaming support via Server-Sent Events
+- Environment variable configuration: OPENAI_API_KEY, OPENAI_BASE_URL (optional)
+- API keys can be stored per-user in database with encryption (infrastructure ready, implementation pending)
+- Model configuration supports custom capabilities (streaming, function calling, vision)
+- Error handling includes automatic retry logic for transient failures
+- Chat history is automatically persisted to database with message-thread relationships
+
+---
 
 ### Added
 
