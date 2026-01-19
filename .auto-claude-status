@@ -3,8 +3,8 @@
   "spec": "002-complete-anthropic-claude-provider-integration",
   "state": "building",
   "subtasks": {
-    "completed": 0,
-    "total": 0,
+    "completed": 1,
+    "total": 16,
     "in_progress": 1,
     "failed": 0
   },
@@ -18,8 +18,8 @@
     "max": 1
   },
   "session": {
-    "number": 2,
+    "number": 3,
     "started_at": "2026-01-19T13:12:02.334027"
   },
-  "last_update": "2026-01-19T13:16:26.277133"
+  "last_update": "2026-01-19T13:18:36.401378"
 }
