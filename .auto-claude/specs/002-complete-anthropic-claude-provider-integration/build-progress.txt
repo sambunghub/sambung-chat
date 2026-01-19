@@ -1,0 +1,167 @@
+# Build Progress: Anthropic Claude Provider Integration
+**Task ID:** 002-complete-anthropic-claude-provider-integration
+**Status:** Planning Complete
+**Last Updated:** 2025-01-19
+
+---
+
+## Summary
+
+Implementing full Anthropic/Claude provider integration to support Claude 3.5 Sonnet, Claude 3.5 Haiku, Claude 3 Opus, and other Claude models with streaming support, error handling, and encrypted API key storage.
+
+---
+
+## Current State
+
+### ✅ What's Already in Place
+
+1. **Phase 1, Subtask 1.1**: ✅ Completed
+   - @ai-sdk/anthropic package installed
+
+2. **Phase 1, Subtask 1.2**: ✅ Completed (2025-01-19)
+   - Verified ANTHROPIC_* environment variables in packages/env/src/server.ts
+   - All required variables properly configured with JSDoc documentation
+   - Documentation verified in .env.example with usage examples
+
+3. **Database Schema** (`packages/db/src/schema/model.ts`)
+   - `models` table supports `provider: "anthropic"`
+   - Settings JSONB supports Anthropic-specific parameters (topK)
+   - API key references with encrypted storage
+
+4. **Environment Configuration** (`packages/env/src/server.ts`)
+   - `ANTHROPIC_API_KEY` ✅ (z.string().min(1).optional())
+   - `ANTHROPIC_MODEL` ✅ (z.string().optional())
+   - `ANTHROPIC_BASE_URL` ✅ (z.string().url().optional())
+   - `ANTHROPIC_VERSION` ✅ (z.string().optional())
+
+3. **Model Router** (`packages/api/src/routers/model.ts`)
+   - CRUD operations for models
+   - Provider enum includes "anthropic"
+   - Settings schema supports topK parameter
+
+4. **Chat & Message Infrastructure**
+   - Chat creation and management
+   - Message storage and retrieval
+   - User authentication and session handling
+
+5. **Reference Implementation** (`examples/anthropic-integration/`)
+   - Complete standalone Anthropic server example
+   - Error handling patterns
+   - Streaming implementation
+
+### ❌ What Needs to Be Built
+
+1. **Phase 1 Complete** - Ready for Phase 2
+
+2. **Provider Factory Architecture** ✅ **COMPLETED** (2025-01-19)
+   - Created `packages/api/src/lib/ai-provider-factory.ts`
+   - Implemented provider instantiation for:
+     - OpenAI (via createOpenAICompatible)
+     - Anthropic (via @ai-sdk/anthropic)
+     - Google (via @ai-sdk/google - optional dependency)
+     - Groq (via createOpenAICompatible)
+     - Ollama (via createOpenAICompatible)
+     - Custom OpenAI-compatible endpoints
+   - API key injection with fallback to environment variables
+   - Custom base URL support
+   - Helper functions: isProviderConfigured, getConfiguredProviders
+   - Comprehensive JSDoc documentation with usage examples
+   - Unit tests with 100% pass rate (12/12 tests passing)
+
+3. **AI Endpoint Enhancement** (`apps/server/src/index.ts`)
+   - Currently only supports OpenAI via `createOpenAICompatible()`
+   - Need to add Anthropic support
+   - Implement model selection from user's active model
+   - Add Anthropic-specific error handling
+
+4. **Model Catalog**
+   - Create `packages/api/src/lib/anthropic-models.ts`
+   - Define available Claude models with metadata
+   - Include: maxTokens, contextWindow, capabilities
+
+5. **Model Metadata Endpoint**
+   - Add `getAvailableModels` procedure to model router
+   - Return grouped models by provider
+
+---
+
+## Architecture Notes
+
+### Current AI Endpoint Flow
+```
+Request → /ai → Authentication → OpenAI Provider → Stream Response
+```
+
+### Target AI Endpoint Flow
+```
+Request → /ai → Authentication → Get User's Active Model
+                                ↓
+                         Provider Factory
+                                ↓
+                    ┌───────────┴───────────┐
+                    ↓                       ↓
+              OpenAI Provider       Anthropic Provider
+                    ↓                       ↓
+              Stream Response       Stream Response
+```
+
+### Key Technical Decisions
+
+1. **Provider Factory Pattern**: Centralized provider creation to support multiple AI providers
+2. **Model-Based Routing**: Use user's active model configuration to determine provider
+3. **Error Handling**: Provider-specific error messages with actionable guidance
+4. **Streaming**: Maintain existing streaming architecture for all providers
+
+---
+
+## Implementation Phases
+
+1. **Phase 1**: Dependencies & Environment Setup
+   - Install @ai-sdk/anthropic
+   - Verify environment variables
+
+2. **Phase 2**: Backend - Multi-Provider Architecture
+   - Create provider factory
+   - Integrate Anthropic into AI endpoint
+   - Implement model selection logic
+
+3. **Phase 3**: Backend - Error Handling & Validation
+   - Add Anthropic-specific error handling
+   - Implement parameter validation
+
+4. **Phase 4**: Database & Model Management
+   - Create Anthropic model catalog
+   - Update model router
+   - Add model metadata endpoint
+
+5. **Phase 5**: Testing & Quality Assurance
+   - Test streaming
+   - Test error scenarios
+   - Type checking
+   - Full build test
+
+6. **Phase 6**: Documentation & Changelog
+   - Update CHANGELOG.md
+   - Update documentation
+
+---
+
+## Next Steps
+
+**Phase 1 Complete** ✅
+
+**Phase 2 In Progress** 🚧
+
+- ✅ Subtask 2.1: Create provider factory/registry (COMPLETED)
+- ⏳ Subtask 2.2: Add Anthropic provider to AI endpoint (NEXT)
+- ⏳ Subtask 2.3: Implement model selection logic (PENDING)
+
+---
+
+## Notes
+
+- Reference implementation available in `./examples/anthropic-integration/server.ts`
+- Environment variables already configured
+- Database schema already supports Anthropic
+- Model router already accepts "anthropic" as provider
+- Main work needed: Provider factory and AI endpoint integration
