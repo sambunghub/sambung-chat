@@ -1,6 +1,6 @@
 # Build Progress: Anthropic Claude Provider Integration
 **Task ID:** 002-complete-anthropic-claude-provider-integration
-**Status:** Planning Complete
+**Status:** Phase 4 In Progress
 **Last Updated:** 2025-01-19
 
 ---
@@ -75,14 +75,16 @@ Implementing full Anthropic/Claude provider integration to support Claude 3.5 So
    - Fixed type issues in provider factory
    - All type checks and build passing
 
-4. **Model Catalog**
-   - Create `packages/api/src/lib/anthropic-models.ts`
-   - Define available Claude models with metadata
-   - Include: maxTokens, contextWindow, capabilities
+4. **Model Catalog** ✅ **COMPLETED** (2025-01-19)
+   - Created `packages/api/src/lib/anthropic-models.ts`
+   - Defined all 5 Claude models with full metadata
+   - Includes helper functions for model validation and retrieval
+   - Type checking and linting passed
 
-5. **Model Metadata Endpoint**
+5. **Model Metadata Endpoint** ⏳ **PENDING**
    - Add `getAvailableModels` procedure to model router
    - Return grouped models by provider
+   - Update model creation router to validate Anthropic models
 
 ---
 
@@ -157,7 +159,7 @@ Request → /ai → Authentication → Get User's Active Model
 - ✅ Subtask 2.2: Add Anthropic provider to AI endpoint (COMPLETED)
 - ✅ Subtask 2.3: Implement model selection logic (COMPLETED - 2025-01-19)
 
-**Phase 3 In Progress** 🚧
+**Phase 3 Complete** ✅
 
 - ✅ Subtask 3.1: Add Anthropic error handling (COMPLETED - 2025-01-19)
   - Enhanced authentication error messages with Settings guidance
@@ -174,6 +176,34 @@ Request → /ai → Authentication → Get User's Active Model
   - Clear error messages with parameter details
   - Type checking for all parameters (must be number)
   - Provider-specific validation (only applies to Anthropic)
+
+**Phase 4 In Progress** 🚧
+
+- ✅ Subtask 4.1: Create Anthropic model catalog (COMPLETED - 2025-01-19)
+  - Created `packages/api/src/lib/anthropic-models.ts`
+  - Defined all 5 Claude models with full metadata:
+    - Claude 3.5 Sonnet (claude-3-5-sonnet-20241022)
+    - Claude 3.5 Haiku (claude-3-5-haiku-20241022)
+    - Claude 3 Opus (claude-3-opus-20240229)
+    - Claude 3 Sonnet (claude-3-sonnet-20240229)
+    - Claude 3 Haiku (claude-3-haiku-20240307)
+  - Each model includes: id, name, maxTokens, contextWindow, bestFor, cost
+  - Helper functions: getAnthropicModel(), isValidAnthropicModel(), getAnthropicModelIds(), getDefaultAnthropicModel()
+  - Full TypeScript types and JSDoc documentation
+  - Type checking and linting passed
+- ✅ Subtask 4.2: Update model creation router (COMPLETED - 2025-01-19)
+  - Updated model router (packages/api/src/routers/model.ts)
+  - Added import for validation functions from anthropic-models catalog
+  - Implemented model ID validation in create procedure
+  - Validates Anthropic model IDs against catalog (isValidAnthropicModel)
+  - Returns helpful error with list of valid model IDs on validation failure
+  - All acceptance criteria met:
+    * ✅ 'anthropic' accepted as valid provider (already present in providerEnum)
+    * ✅ Anthropic model IDs validated against catalog
+    * ✅ Settings schema supports Anthropic-specific parameters (topK)
+  - Fixed type issue in getDefaultAnthropicModel() function
+  - Type checking passed
+- ⏳ Subtask 4.3: Add model metadata endpoint (PENDING)
 
 ---
 
