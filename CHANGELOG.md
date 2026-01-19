@@ -5,6 +5,76 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.5] - 2026-01-19
+
+### Added
+
+- **Anthropic Provider Integration**: Complete Claude AI provider support with multi-provider architecture ([packages/api/src/lib/ai-provider-factory.ts](packages/api/src/lib/ai-provider-factory.ts))
+  - Provider factory pattern supporting OpenAI, Anthropic, Google, Groq, Ollama, and custom providers
+  - Automatic provider selection based on user's active model configuration
+  - API key injection with fallback to environment variables
+  - Custom base URL support for enterprise deployments
+
+- **Claude Model Support**: Full support for Claude 3 and Claude 3.5 model families ([packages/api/src/lib/anthropic-models.ts](packages/api/src/lib/anthropic-models.ts))
+  - Claude 3.5 Sonnet (claude-3-5-sonnet-20241022) - 200K context, optimized for complex tasks
+  - Claude 3.5 Haiku (claude-3-5-haiku-20241022) - 200K context, fastest response times
+  - Claude 3 Opus (claude-3-opus-20240229) - 200K context, highest quality reasoning
+  - Claude 3 Sonnet (claude-3-sonnet-20240229) - 200K context, balanced performance
+  - Claude 3 Haiku (claude-3-haiku-20240307) - 200K context, fastest Claude 3 model
+
+- **Streaming Support**: Real-time token streaming for Claude models ([apps/server/src/index.ts](apps/server/src/index.ts:132-332))
+  - Maintains existing streaming architecture for consistent UX across providers
+  - Proper stream closure and error handling
+  - UI message stream format compatibility
+
+- **Error Handling**: Comprehensive Anthropic-specific error handling ([apps/server/src/index.ts](apps/server/src/index.ts:247-332))
+  - Clear authentication error messages with Settings guidance
+  - Rate limit errors with retry information (retryAfter: '60s')
+  - Model not found errors with available models list
+  - Context window exceeded errors with limit information (maxTokens: 200000)
+  - Content policy violation messages with actionable guidance
+  - Generic error troubleshooting with 4-step resolution guide
+
+- **Parameter Validation**: Anthropic-specific parameter validation ([apps/server/src/index.ts](apps/server/src/index.ts:192-245))
+  - Temperature validation (0-1 range)
+  - Max tokens validation (1-8192 range)
+  - Top-k validation (0-40 range)
+  - Top-p validation (0-1 range)
+  - Clear error messages with parameter details and allowed ranges
+
+- **Model Metadata Endpoint**: Provider-agnostic model catalog endpoint ([packages/api/src/routers/model.ts](packages/api/src/routers/model.ts))
+  - `GET /rpc/model.getAvailableModels` returns all models grouped by provider
+  - Model catalogs for OpenAI (5 models), Anthropic (5 models), Google (4 models), Groq (4 models), Ollama (5 models)
+  - Each model includes id, name, maxTokens, contextWindow, bestFor, and cost information
+  - Validation helpers for all providers
+
+- **Model Router Enhancement**: Anthropic provider validation in model creation ([packages/api/src/routers/model.ts](packages/api/src/routers/model.ts:85-91))
+  - Validates Anthropic model IDs against official catalog
+  - Returns helpful error with list of valid model IDs
+  - Support for Anthropic-specific parameters (topK, topP)
+
+- **Test Coverage**: Comprehensive test suites for Anthropic integration
+  - Streaming tests: 9 tests covering real-time delivery, stream closure, error handling ([tests/unit/anthropic-streaming.test.ts](tests/unit/anthropic-streaming.test.ts))
+  - Error handling tests: 11 tests covering all error scenarios ([tests/unit/anthropic-error-handling.test.ts](tests/unit/anthropic-error-handling.test.ts))
+  - Manual verification scripts for practical testing
+
+### Changed
+
+- **AI Endpoint Architecture**: Refactored to support multi-provider model selection ([apps/server/src/index.ts](apps/server/src/index.ts:132-332))
+  - Query user's active model from database before processing request
+  - Extract provider and modelId from model configuration
+  - Route request to appropriate provider via provider factory
+  - Fallback to default OpenAI model when no active model set
+
+- **Environment Configuration**: Added Anthropic environment variables ([packages/env/src/server.ts](packages/env/src/server.ts))
+  - ANTHROPIC_API_KEY (z.string().min(1).optional())
+  - ANTHROPIC_MODEL (z.string().optional())
+  - ANTHROPIC_BASE_URL (z.string().url().optional())
+  - ANTHROPIC_VERSION (z.string().optional())
+  - Documented in .env.example with usage examples
+
+---
+
 ## [0.0.4] - 2026-01-19
 
 ### Fixed
@@ -247,5 +317,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tailwind content path in apps/web includes packages/ui source for proper style scanning
 - Backend-first development approach prioritizes API and database design before UI implementation
 
+[0.0.5]: https://github.com/sambunghub/sambung-chat/compare/v0.0.4...v0.0.5
+[0.0.4]: https://github.com/sambunghub/sambung-chat/compare/v0.0.3...v0.0.4
+[0.0.3]: https://github.com/sambunghub/sambung-chat/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/sambunghub/sambung-chat/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/sambunghub/sambung-chat/compare/v0.0.0...v0.0.1
