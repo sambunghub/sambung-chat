@@ -81,10 +81,12 @@ Implementing full Anthropic/Claude provider integration to support Claude 3.5 So
    - Includes helper functions for model validation and retrieval
    - Type checking and linting passed
 
-5. **Model Metadata Endpoint** ⏳ **PENDING**
-   - Add `getAvailableModels` procedure to model router
-   - Return grouped models by provider
-   - Update model creation router to validate Anthropic models
+5. **Model Metadata Endpoint** ✅ **COMPLETED** (2025-01-19)
+   - Created model catalogs for all providers (OpenAI, Google, Groq, Ollama)
+   - Added `getAvailableModels` procedure to model router
+   - Returns grouped models by provider with full metadata
+   - Type checking and build passed
+   - Committed: 942402a
 
 ---
 
@@ -203,7 +205,22 @@ Request → /ai → Authentication → Get User's Active Model
     * ✅ Settings schema supports Anthropic-specific parameters (topK)
   - Fixed type issue in getDefaultAnthropicModel() function
   - Type checking passed
-- ⏳ Subtask 4.3: Add model metadata endpoint (PENDING)
+- ✅ Subtask 4.3: Add model metadata endpoint (COMPLETED - 2025-01-19)
+  - Created model catalog files for all providers:
+    * packages/api/src/lib/openai-models.ts (5 models)
+    * packages/api/src/lib/google-models.ts (4 models)
+    * packages/api/src/lib/groq-models.ts (4 models)
+    * packages/api/src/lib/ollama-models.ts (5 models)
+  - Added getAvailableModels public procedure to model router
+  - Returns all models grouped by provider: openai, anthropic, google, groq, ollama, custom
+  - Each model includes: id, name, maxTokens, contextWindow, bestFor, cost
+  - All model catalogs include helper functions: getModel(), isValidModel(), getModelIds(), getDefaultModel()
+  - All acceptance criteria met:
+    * ✅ GET /rpc/model.getAvailableModels returns all models
+    * ✅ Models are grouped by provider
+    * ✅ Each model includes name, ID, context window, and capabilities (bestFor)
+  - Type checking and build passed successfully
+  - Committed: 942402a
 
 ---
 
