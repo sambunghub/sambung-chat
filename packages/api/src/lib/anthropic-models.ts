@@ -145,7 +145,12 @@ export function getAnthropicModelIds(): string[] {
  * Currently Claude 3.5 Sonnet is the recommended default.
  *
  * @returns Default model metadata
+ * @throws Error if model catalog is empty
  */
 export function getDefaultAnthropicModel(): AnthropicModel {
-	return anthropicModels[0]; // Claude 3.5 Sonnet
+	const model = anthropicModels[0];
+	if (!model) {
+		throw new Error('Anthropic model catalog is empty');
+	}
+	return model; // Claude 3.5 Sonnet
 }

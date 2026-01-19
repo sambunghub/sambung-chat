@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { ORPCError } from '@orpc/server';
 import { protectedProcedure } from '../index';
 import { ulidSchema } from '../utils/validation';
+import { isValidAnthropicModel, getAnthropicModelIds } from '../lib/anthropic-models';
 
 // Provider enum for validation
 const providerEnum = z.enum(['openai', 'anthropic', 'google', 'groq', 'ollama', 'custom']);
@@ -80,6 +81,14 @@ export const modelRouter = {
     )
     .handler(async ({ input, context }) => {
       const userId = context.session.user.id;
+
+      // Validate Anthropic model IDs against catalog
+      if (input.provider === 'anthropic' && !isValidAnthropicModel(input.modelId)) {
+        const validModelIds = getAnthropicModelIds().join(', ');
+        throw new ORPCError('BAD_REQUEST', {
+          message: `Invalid Anthropic model ID: "${input.modelId}". Valid models: ${validModelIds}`,
+        });
+      }
 
       // If setting as active, deactivate all other models for this user
       if (input.isActive) {
