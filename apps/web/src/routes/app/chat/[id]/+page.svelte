@@ -17,6 +17,7 @@
   import MessageCircleIcon from '@lucide/svelte/icons/message-circle';
   import AlignLeftIcon from '@lucide/svelte/icons/align-left';
   import ClockIcon from '@lucide/svelte/icons/clock';
+  import TokenDisplay from '$lib/components/token-display.svelte';
 
   // Use PUBLIC_URL for AI endpoint (backend)
   const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:3000';
@@ -34,6 +35,11 @@
   let chatData = $state<Awaited<ReturnType<typeof orpc.chat.getById>> | null>(null);
   let loading = $state(true);
   const MAX_RETRIES = 3;
+
+  // Token tracking for streaming
+  let streamingMessageId = $state<string | null>(null);
+  let streamingTokenCount = $state(0);
+  let messageTokenData = $state<Map<string, { exactTokens?: number; promptTokens?: number }>>(new Map());
 
   // Custom fetch wrapper to include credentials (cookies)
   const authenticatedFetch = (input: RequestInfo | URL, init?: RequestInit) => {
@@ -124,6 +130,25 @@
     }
   });
 
+  // Track tokens during streaming
+  $effect(() => {
+    if (isStreamingResponse && chat.messages.length > 0) {
+      const lastMessage = chat.messages[chat.messages.length - 1];
+      if (lastMessage && lastMessage.role === 'assistant') {
+        streamingMessageId = lastMessage.id || null;
+        const textPart = lastMessage.parts?.find(
+          (p): p is Extract<typeof p, { type: 'text' }> => p.type === 'text'
+        );
+        const content = textPart && 'text' in textPart ? textPart.text : '';
+        streamingTokenCount = estimateTokens(content);
+      }
+    } else if (!isStreamingResponse && streamingMessageId) {
+      // Streaming just ended, keep the last token count
+      streamingMessageId = null;
+      streamingTokenCount = 0;
+    }
+  });
+
   // Track current chat ID to prevent double loading
   let currentLoadedChatId = $state<string | null>(null);
 
@@ -145,23 +170,41 @@
       if (data) {
         chatData = data;
 
-        // Clear existing messages before loading new ones
+        // Clear existing messages and token data before loading new ones
         chat.messages = [];
+        messageTokenData.clear();
 
         // Load existing messages into Chat SDK
         if (data.messages && data.messages.length > 0) {
           // Convert database messages to Chat SDK format
           for (const msg of data.messages) {
+            let messageObj;
+
             if (msg.role === 'user') {
-              chat.messages.push({
+              messageObj = {
                 role: 'user',
                 parts: [{ type: 'text', text: msg.content }],
-              } as any);
+              } as any;
             } else if (msg.role === 'assistant') {
-              chat.messages.push({
+              messageObj = {
                 role: 'assistant',
                 parts: [{ type: 'text', text: msg.content }],
-              } as any);
+              } as any;
+
+              // Extract token data from metadata if available
+              if (msg.metadata && typeof msg.metadata === 'object') {
+                const metadata = msg.metadata as any;
+                if (metadata.tokens || metadata.promptTokens || metadata.completionTokens) {
+                  messageTokenData.set(msg.id, {
+                    exactTokens: metadata.completionTokens || metadata.tokens,
+                    promptTokens: metadata.promptTokens,
+                  });
+                }
+              }
+            }
+
+            if (messageObj) {
+              chat.messages.push(messageObj);
             }
           }
         }
@@ -234,11 +277,27 @@
           );
           const assistantContent =
             assistantTextPart && 'text' in assistantTextPart ? assistantTextPart.text : '';
-          await orpc.message.create({
+
+          // Create the message and get the database record with metadata
+          const createdMessages = await orpc.message.create({
             chatId: chatId()!,
             content: assistantContent,
             role: 'assistant',
           });
+
+          // Extract token data from the saved message metadata
+          if (createdMessages && createdMessages.length > 0) {
+            const savedMessage = createdMessages[0];
+            if (savedMessage.metadata && typeof savedMessage.metadata === 'object') {
+              const metadata = savedMessage.metadata as any;
+              if (metadata.tokens || metadata.promptTokens || metadata.completionTokens) {
+                messageTokenData.set(assistantMessage.id || savedMessage.id, {
+                  exactTokens: metadata.completionTokens || metadata.tokens,
+                  promptTokens: metadata.promptTokens,
+                });
+              }
+            }
+          }
         }
       }
     } catch (error) {
@@ -294,11 +353,27 @@
               );
               const assistantContent =
                 assistantTextPart && 'text' in assistantTextPart ? assistantTextPart.text : '';
-              await orpc.message.create({
+
+              // Create the message and get the database record with metadata
+              const createdMessages = await orpc.message.create({
                 chatId: chatId()!,
                 content: assistantContent,
                 role: 'assistant',
               });
+
+              // Extract token data from the saved message metadata
+              if (createdMessages && createdMessages.length > 0) {
+                const savedMessage = createdMessages[0];
+                if (savedMessage.metadata && typeof savedMessage.metadata === 'object') {
+                  const metadata = savedMessage.metadata as any;
+                  if (metadata.tokens || metadata.promptTokens || metadata.completionTokens) {
+                    messageTokenData.set(assistantMessage.id || savedMessage.id, {
+                      exactTokens: metadata.completionTokens || metadata.tokens,
+                      promptTokens: metadata.promptTokens,
+                    });
+                  }
+                }
+              }
             }
           }
         } catch (retryError) {
@@ -398,6 +473,17 @@
     textarea.style.height = 'auto';
     textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
   }
+
+  // Estimate token count from text (approximately 4 characters per token for OpenAI)
+  function estimateTokens(text: string): number {
+    if (!text) return 0;
+    return Math.ceil(text.length / 4);
+  }
+
+  // Get token data for a message
+  function getMessageTokenData(messageId: string) {
+    return messageTokenData.get(messageId);
+  }
 </script>
 
 <div class="flex h-screen flex-col overflow-hidden">
@@ -488,6 +574,24 @@
                       (p): p is Extract<typeof p, { type: 'text' }> => p.type === 'text'
                     )?.text as string) || ''
                   )}
+                </div>
+                <!-- Token display for assistant messages -->
+                <div class="mt-2">
+                  {#if isStreamingResponse && streamingMessageId === message.id}
+                    <TokenDisplay
+                      currentTokens={streamingTokenCount}
+                      isStreaming={true}
+                    />
+                  {:else}
+                    {@const tokenData = getMessageTokenData(message.id)}
+                    {#if tokenData}
+                      <TokenDisplay
+                        exactTokens={tokenData.exactTokens}
+                        promptTokens={tokenData.promptTokens}
+                        isStreaming={false}
+                      />
+                    {/if}
+                  {/if}
                 </div>
               {:else}
                 <div class="whitespace-pre-wrap">
