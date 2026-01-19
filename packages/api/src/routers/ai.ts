@@ -86,6 +86,36 @@ async function getDecryptedApiKey(apiKeyId: string): Promise<string> {
 }
 
 /**
+ * Helper function to check if a message already exists
+ *
+ * This prevents duplicate messages from being saved when the client
+ * retries a request or pre-saves messages before calling the API.
+ *
+ * @param chatId - The chat ID
+ * @param role - The message role (user/assistant)
+ * @param content - The message content
+ * @returns True if message exists, false otherwise
+ */
+async function messageExists(
+  chatId: string,
+  role: 'user' | 'assistant' | 'system',
+  content: string
+): Promise<boolean> {
+  const existingMessages = await db
+    .select()
+    .from(messages)
+    .where(and(eq(messages.chatId, chatId), eq(messages.role, role)))
+    .orderBy(messages.createdAt)
+    .limit(1);
+
+  // Check if the most recent message with this role has the same content
+  return (
+    existingMessages.length > 0 &&
+    existingMessages[0]?.content === content
+  );
+}
+
+/**
  * Helper function to get model configuration from database
  *
  * @param modelId - The model ID from the database
@@ -151,13 +181,6 @@ const ERROR_PATTERNS = {
   SERVICE_UNAVAILABLE: ['503', 'service unavailable', 'maintenance', 'overloaded', 'temporarily unavailable'],
   PAYMENT_REQUIRED: ['payment', 'billing', 'insufficient', '402', 'quota exceeded'],
 } as const;
-
-/**
- * Type guard to check if error has a message property
- */
-function hasMessage(error: unknown): error is { message: string } {
-  return typeof error === 'object' && error !== null && 'message' in error && typeof (error as any).message === 'string';
-}
 
 /**
  * Type guard to check if error is an AI SDK error with additional properties
@@ -366,14 +389,22 @@ export const aiRouter = {
             // Save user message if it's the last message and not already saved
             const lastMessage = input.messages[input.messages.length - 1];
             if (lastMessage && lastMessage.role === 'user') {
-              await db.insert(messages).values({
-                chatId: input.chatId,
-                role: 'user',
-                content: lastMessage.content,
-              });
+              const userMsgExists = await messageExists(
+                input.chatId,
+                'user',
+                lastMessage.content
+              );
+
+              if (!userMsgExists) {
+                await db.insert(messages).values({
+                  chatId: input.chatId,
+                  role: 'user',
+                  content: lastMessage.content,
+                });
+              }
             }
 
-            // Save assistant response
+            // Save assistant response with standardized metadata
             await db.insert(messages).values({
               chatId: input.chatId,
               role: 'assistant',
@@ -500,14 +531,22 @@ export const aiRouter = {
             .where(and(eq(chats.id, input.chatId), eq(chats.userId, userId)));
 
           if (chatResults.length > 0) {
-            // Save user message
+            // Save user message if not already saved
             const lastMessage = input.messages[input.messages.length - 1];
             if (lastMessage && lastMessage.role === 'user') {
-              await db.insert(messages).values({
-                chatId: input.chatId,
-                role: 'user',
-                content: lastMessage.content,
-              });
+              const userMsgExists = await messageExists(
+                input.chatId,
+                'user',
+                lastMessage.content
+              );
+
+              if (!userMsgExists) {
+                await db.insert(messages).values({
+                  chatId: input.chatId,
+                  role: 'user',
+                  content: lastMessage.content,
+                });
+              }
             }
 
             // Create a placeholder message for the assistant
@@ -546,6 +585,10 @@ export const aiRouter = {
           } as const;
         }
 
+        // Await the final usage and finish reason
+        const finalUsage = await result.usage;
+        const finalFinishReason = await result.finishReason;
+
         // After streaming completes, save the complete message to database
         if (assistantMessageId && input.chatId) {
           await db
@@ -554,8 +597,8 @@ export const aiRouter = {
               content: fullText,
               metadata: {
                 model: modelConfig.model,
-                finishReason: result.finishReason,
-                usage: result.usage,
+                tokens: finalUsage?.totalTokens,
+                finishReason: finalFinishReason,
               },
             })
             .where(eq(messages.id, assistantMessageId));
@@ -570,10 +613,20 @@ export const aiRouter = {
         // Send final completion message
         yield {
           type: 'finish',
-          finishReason: result.finishReason,
-          usage: result.usage,
+          finishReason: finalFinishReason,
+          usage: finalUsage,
         } as const;
       } catch (error) {
+        // Clean up placeholder message if streaming failed
+        if (assistantMessageId && input.chatId && fullText.length === 0) {
+          try {
+            await db.delete(messages).where(eq(messages.id, assistantMessageId));
+          } catch (deleteError) {
+            // Log but don't throw - we still need to yield the error to client
+            console.error('[AI Router] Failed to clean up placeholder message:', deleteError);
+          }
+        }
+
         // Handle errors and yield error message to client
         if (error instanceof ORPCError) {
           yield {
