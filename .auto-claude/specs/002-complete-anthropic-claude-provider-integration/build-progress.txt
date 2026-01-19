@@ -151,11 +151,22 @@ Request → /ai → Authentication → Get User's Active Model
 
 **Phase 1 Complete** ✅
 
-**Phase 2 In Progress** 🚧
+**Phase 2 Complete** ✅
 
 - ✅ Subtask 2.1: Create provider factory/registry (COMPLETED)
 - ✅ Subtask 2.2: Add Anthropic provider to AI endpoint (COMPLETED)
 - ✅ Subtask 2.3: Implement model selection logic (COMPLETED - 2025-01-19)
+
+**Phase 3 In Progress** 🚧
+
+- ✅ Subtask 3.1: Add Anthropic error handling (COMPLETED - 2025-01-19)
+  - Enhanced authentication error messages with Settings guidance
+  - Added retryAfter field to rate limit errors
+  - Improved content policy violation messages
+  - Added availableModels array to model not found errors
+  - Included maxTokens field in context window exceeded errors
+  - Added troubleshooting array for generic errors
+- ⏳ Subtask 3.2: Add request validation for Anthropic (PENDING)
 
 ---
 

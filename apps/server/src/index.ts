@@ -207,12 +207,138 @@ app.post('/ai', async (c) => {
       };
     }
 
+    // Validate request parameters based on provider
+    if (providerConfig.provider === 'anthropic') {
+      // Anthropic-specific parameter validation
+
+      // Validate temperature (0-1 for Anthropic)
+      if (body.temperature !== undefined) {
+        if (typeof body.temperature !== 'number') {
+          return c.json(
+            {
+              error: 'Invalid parameter',
+              details: 'Temperature must be a number',
+            },
+            400
+          );
+        }
+        if (body.temperature < 0 || body.temperature > 1) {
+          return c.json(
+            {
+              error: 'Invalid temperature',
+              details: 'Temperature must be between 0 and 1 for Anthropic models',
+              parameter: 'temperature',
+              min: 0,
+              max: 1,
+              provided: body.temperature,
+            },
+            400
+          );
+        }
+      }
+
+      // Validate maxTokens (1-8192 for most Anthropic models)
+      if (body.maxTokens !== undefined) {
+        if (typeof body.maxTokens !== 'number') {
+          return c.json(
+            {
+              error: 'Invalid parameter',
+              details: 'maxTokens must be a number',
+            },
+            400
+          );
+        }
+        if (body.maxTokens < 1 || body.maxTokens > 8192) {
+          return c.json(
+            {
+              error: 'Invalid maxTokens',
+              details: 'maxTokens must be between 1 and 8192 for Anthropic models',
+              parameter: 'maxTokens',
+              min: 1,
+              max: 8192,
+              provided: body.maxTokens,
+            },
+            400
+          );
+        }
+      }
+
+      // Validate topK (0-40 for Anthropic)
+      if (body.topK !== undefined) {
+        if (typeof body.topK !== 'number') {
+          return c.json(
+            {
+              error: 'Invalid parameter',
+              details: 'topK must be a number',
+            },
+            400
+          );
+        }
+        if (body.topK < 0 || body.topK > 40) {
+          return c.json(
+            {
+              error: 'Invalid topK',
+              details: 'topK must be between 0 and 40 for Anthropic models',
+              parameter: 'topK',
+              min: 0,
+              max: 40,
+              provided: body.topK,
+            },
+            400
+          );
+        }
+      }
+
+      // Validate topP (0-1 for Anthropic, same as OpenAI)
+      if (body.topP !== undefined) {
+        if (typeof body.topP !== 'number') {
+          return c.json(
+            {
+              error: 'Invalid parameter',
+              details: 'topP must be a number',
+            },
+            400
+          );
+        }
+        if (body.topP < 0 || body.topP > 1) {
+          return c.json(
+            {
+              error: 'Invalid topP',
+              details: 'topP must be between 0 and 1',
+              parameter: 'topP',
+              min: 0,
+              max: 1,
+              provided: body.topP,
+            },
+            400
+          );
+        }
+      }
+    }
+
     // Create AI model using provider factory
     const model = createAIProvider(providerConfig);
+
+    // Build generation options with validated parameters
+    const generationOptions: Record<string, any> = {};
+
+    if (body.temperature !== undefined) {
+      generationOptions.temperature = body.temperature;
+    }
+    if (body.maxTokens !== undefined) {
+      generationOptions.maxTokens = body.maxTokens;
+    }
+    if (body.topP !== undefined) {
+      generationOptions.topP = body.topP;
+    }
+    if (body.topK !== undefined) {
+      generationOptions.topK = body.topK;
+    }
 
     const result = streamText({
       model,
       messages: await convertToModelMessages(uiMessages),
+      ...generationOptions,
     });
 
     // Use Hono's streaming API with AI SDK
