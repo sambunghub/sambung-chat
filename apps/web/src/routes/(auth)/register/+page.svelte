@@ -1,35 +1,55 @@
 <script lang="ts">
-  import { SignInForm, SignUpForm } from '@sambung-chat/ui';
-  import { authClient } from '$lib/auth-client';
+  import RegisterForm from '$lib/components/register-form.svelte';
+  import { authClient } from '../../../lib/auth-client';
   import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
 
-  let showSignUp = $state(true);
-
-  async function handleSignIn(credentials: { email: string; password: string }) {
-    const result = await authClient.signIn.email(credentials);
-
-    if (result.error) {
-      console.error('Sign in error:', result.error);
-      return;
-    }
-
-    goto('/dashboard');
+  interface PageData {
+    showSSO: boolean;
+    showEmailPassword: boolean;
   }
 
+  export let data: PageData;
+
   async function handleSignUp(credentials: { name: string; email: string; password: string }) {
-    const result = await authClient.signUp.email(credentials);
+    try {
+      const result = await authClient.signUp.email(credentials);
 
-    if (result.error) {
-      console.error('Sign up error:', result.error);
-      return;
+      if (result.error) {
+        type AuthError = { message?: string };
+        const errorMsg = (result.error as AuthError)?.message || 'Unknown error';
+        alert('Sign up failed: ' + errorMsg);
+        return;
+      }
+
+      // After successful signup, redirect to app
+      // Server-side will handle auth check on next request
+      const redirectTo = new URLSearchParams($page.url.search).get('redirect') || '/app/chat';
+      goto(redirectTo);
+    } catch {
+      alert('An unexpected error occurred');
     }
+  }
 
-    goto('/dashboard');
+  async function handleSSO() {
+    try {
+      const callbackURL = `${$page.url.origin}/app/chat`;
+      // Use oauth2 for generic OAuth providers like Keycloak
+      await authClient.signIn.oauth2({
+        providerId: 'keycloak',
+        callbackURL,
+      });
+    } catch {
+      alert('SSO failed: Please try again');
+    }
   }
 </script>
 
-{#if showSignUp}
-  <SignUpForm onSubmit={handleSignUp} switchToSignIn={() => (showSignUp = false)} />
-{:else}
-  <SignInForm onSubmit={handleSignIn} switchToSignUp={() => (showSignUp = true)} />
-{/if}
+<div class="w-full max-w-sm">
+  <RegisterForm
+    onSignUp={data?.showEmailPassword ? handleSignUp : undefined}
+    onSSO={data?.showSSO ? handleSSO : undefined}
+    showSSO={data?.showSSO ?? false}
+    showEmailPassword={data?.showEmailPassword ?? true}
+  />
+</div>

@@ -22,6 +22,21 @@
 
 **SambungChat** is an open-source multi-model LLM client platform that puts you in control of your AI interactions. Built with a privacy-first philosophy, SambungChat lets you connect to any AI model while keeping your data secure on your own infrastructure.
 
+### Tech Stack
+
+- **TypeScript** - For type safety and improved developer experience
+- **SvelteKit** - Web framework for building Svelte apps
+- **TailwindCSS** - Utility-first CSS for rapid UI development
+- **shadcn/ui** - Reusable UI components
+- **Hono** - Lightweight, performant server framework
+- **oRPC** - End-to-end type-safe APIs with OpenAPI integration
+- **Bun** - Runtime environment
+- **Drizzle** - TypeScript-first ORM
+- **PostgreSQL** - Database engine
+- **Authentication** - Better-Auth
+- **Turborepo** - Optimized monorepo build system
+- **Multi-Provider AI Support** - Integration with multiple AI providers (OpenAI, Anthropic, Google, Groq, Ollama) using AI SDK
+
 ### Key Features
 
 - **Multi-Model Support**: Connect to OpenAI, Anthropic, Google, Groq, Ollama, and more
@@ -31,21 +46,6 @@
 - **API Key Management**: Securely store and manage your AI provider keys
 - **Modern UI**: Beautiful, responsive interface built with Svelte 5 and shadcn-svelte
 - **Type-Safe**: Full-stack TypeScript with end-to-end type safety via ORPC
-
-### Tech Stack
-
-| Layer              | Technology                               |
-| ------------------ | ---------------------------------------- |
-| **Frontend**       | SvelteKit 5, Svelte 5 Runes, TailwindCSS |
-| **UI Components**  | shadcn-svelte, bits-ui, Lucide Icons     |
-| **Backend**        | Hono (TypeScript)                        |
-| **API Layer**      | ORPC (OpenAPI-compatible RPC)            |
-| **Database**       | PostgreSQL + Drizzle ORM                 |
-| **Authentication** | Better Auth                              |
-| **Validation**     | Zod                                      |
-| **Query**          | TanStack Query                           |
-| **Runtime**        | Bun                                      |
-| **Monorepo**       | Turborepo                                |
 
 ---
 
@@ -108,6 +108,53 @@ bun run dev
 
 ---
 
+## AI Provider Integration
+
+This project supports multiple AI providers out of the box, making it easy to switch between different AI models or use multiple providers simultaneously. Currently supported providers include:
+
+- **OpenAI** - GPT-4, GPT-4o, GPT-4o-mini, and more
+- **Anthropic** - Claude 3.5 Sonnet, Claude 3 Opus, and Haiku
+- **Google** - Gemini 2.5 Flash, Gemini Pro, and more
+- **Groq** - Ultra-fast inference with Llama, Mixtral, and Groq models
+- **Ollama** - Local AI with 100+ open-source models (Llama, Mistral, Gemma, etc.)
+
+### Adding a New AI Provider
+
+We provide a comprehensive integration guide that walks you through adding new AI providers to the project:
+
+📘 **[AI Provider Integration Guide](./docs/ai-provider-integration-guide.md)**
+
+The guide covers:
+
+- Step-by-step integration instructions for any AI provider
+- Environment configuration patterns
+- Code examples for all major providers
+- Testing and troubleshooting procedures
+- Best practices for production deployments
+
+### Quick Setup
+
+To configure an AI provider, update your `.env` file with the appropriate API key:
+
+```bash
+# OpenAI
+OPENAI_API_KEY=sk-...
+
+# Anthropic
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Google
+GOOGLE_GENERATIVE_AI_API_KEY=...
+
+# Groq
+GROQ_API_KEY=gsk_...
+
+# Ollama (local - no API key needed)
+OLLAMA_BASE_URL=http://localhost:11434
+```
+
+For detailed setup instructions and provider-specific configurations, see the [AI Provider Integration Guide](./docs/ai-provider-integration-guide.md).
+
 ## Project Structure
 
 ```
@@ -133,10 +180,11 @@ sambung-chat/
 ├── plan-reference/          # Project documentation
 │   ├── PRD-OpenSource.md    # Product requirements
 │   ├── ROADMAP.md           # Development timeline
-│   ├── UI-UX-DESIGN.md      # Frontend design
-│   └── AGENTS.md            # AI agent reference
+│   ├── ui-ux-design.md      # Frontend design
+│   └── agents.md            # AI agent reference
 │
 ├── docs/                    # Public documentation
+├── examples/                # AI provider integration examples
 ├── .github/                 # GitHub workflows & templates
 ├── LICENSE                  # AGPL-3.0 license
 └── README.md                # This file
@@ -176,64 +224,16 @@ sambung-chat/
 
 ---
 
-## Supported AI Providers
-
-| Provider              | Status       | Models                         |
-| --------------------- | ------------ | ------------------------------ |
-| **OpenAI**            | ✅ Supported | GPT-4, GPT-3.5-turbo           |
-| **OpenAI-Compatible** | ✅ Supported | Any OpenAI-compatible endpoint |
-| **Anthropic**         | 🚧 Planned   | Claude 3 Opus, Sonnet, Haiku   |
-| **Google**            | 🚧 Planned   | Gemini Pro, Ultra              |
-| **Groq**              | 🚧 Planned   | Llama 3, Mixtral               |
-| **Ollama**            | 🚧 Planned   | Local models                   |
-
----
-
-## Roadmap
-
-### v0.1.0 - MVP Foundation (Q1 2026)
-
-- [x] Project infrastructure setup
-- [x] Authentication & user management
-- [ ] Multi-model chat interface
-- [ ] Chat history management
-- [ ] Prompt templates
-- [ ] Settings & preferences
-
-### v0.2.0 - Ecosystem Expansion (Q2 2026)
-
-- [ ] Plugin system
-- [ ] SDK development
-- [ ] UI library extraction
-
-### v0.3.0 - Advanced Features (Q3 2026)
-
-- [ ] Conversation branching
-- [ ] RAG implementation
-- [ ] Analytics dashboard
-
-### v1.0.0 - Stable Release (2027)
-
-- [ ] Mobile app (React Native)
-- [ ] Desktop app (Electron/Tauri)
-- [ ] Enterprise features
-
-See [ROADMAP.md](plan-reference/ROADMAP.md) for full details.
-
----
-
 ## Documentation
 
-| Document                                       | Description                                 |
-| ---------------------------------------------- | ------------------------------------------- |
-| [PRD](plan-reference/PRD-OpenSource.md)        | Product Requirements Document               |
-| [Roadmap](plan-reference/ROADMAP.md)           | Development timeline and milestones         |
-| [UI/UX Design](plan-reference/UI-UX-DESIGN.md) | Frontend design system and components       |
-| [Agents Reference](plan-reference/AGENTS.md)   | Guide for AI agents working on this project |
-| [Getting Started](docs/getting-started.md)     | Detailed setup guide                        |
-| [Architecture](docs/architecture.md)           | System architecture overview                |
-| [API Reference](docs/api-reference.md)         | API documentation                           |
-| [Deployment](docs/deployment.md)               | Deployment guides                           |
+| Document                                                                 | Description                                 |
+| ------------------------------------------------------------------------ | ------------------------------------------- |
+| [AI Provider Integration Guide](./docs/ai-provider-integration-guide.md) | Comprehensive guide for adding AI providers |
+| [Architecture](./docs/architecture.md)                                   | System architecture overview with diagrams  |
+| [PRD](plan-reference/PRD-OpenSource.md)                                  | Product Requirements Document               |
+| [Roadmap](plan-reference/ROADMAP.md)                                     | Development timeline and milestones         |
+| [UI/UX Design](plan-reference/ui-ux-design.md)                           | Frontend design system and components       |
+| [Agents Reference](plan-reference/agents.md)                             | Guide for AI agents working on this project |
 
 ---
 

@@ -1,23 +1,187 @@
 # SambungChat Documentation
 
-Welcome to the SambungChat documentation. This documentation is prepared to help developers contribute to and develop the SambungChat project.
-
----
+Welcome to the SambungChat documentation! This hub provides comprehensive guides for integrating AI providers, extending functionality, troubleshooting issues, and contributing to the project.
 
 ## Quick Links
 
-| Document                                     | Description                                      |
-| -------------------------------------------- | ------------------------------------------------ |
-| [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)   | Troubleshooting guide for common issues          |
-| [UI-PACKAGE-GUIDE.md](./UI-PACKAGE-GUIDE.md) | Development guide for `@sambung-chat/ui` package |
+| Document                                                            | Description                                |
+| ------------------------------------------------------------------- | ------------------------------------------ |
+| [Teams Concept](./teams-concept.md)                                 | Team model, access control, workspaces     |
+| [Routes Structure](./routes.md)                                     | Complete URL structure and routing         |
+| [Database Schema](./database.md)                                    | Database tables and relationships          |
+| [Internationalization](./i18n.md)                                   | Multi-language support guide (svelte-i18n) |
+| [AI Provider Integration Guide](./ai-provider-integration-guide.md) | Complete guide for adding AI providers     |
+| [troubleshooting](./troubleshooting.md)                             | Common issues and solutions                |
+| [ui-package-guide](./ui-package-guide.md)                           | UI package development guide               |
+| [Architecture](./architecture.md)                                   | System architecture with diagrams          |
 
 ---
 
-## Documentation Categories
+## Team & Organization
 
-### Troubleshooting
+### Team Documentation
 
-**[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - List of common problems found and their solutions:
+**[Teams Concept](./teams-concept.md)** - Team Model & Access Control
+
+Complete guide to team-based collaboration in SambungChat:
+
+- **Team Model**: Team = Organization (single-level grouping for MVP)
+- **Workspaces**: Personal (`/app/*`) vs Team (`/team/[slug]/*`)
+- **Roles & Permissions**: Admin (manage members) and Member (view/contribute)
+- **Access Control**: Membership validation and data isolation patterns
+- **Slug Management**: User-selectable with validation and redirect support
+- **Extensibility**: Points for future RBAC, SSO, and multi-level hierarchy
+
+**📖 [Read Teams Concept →](./teams-concept.md)**
+
+### Route Structure
+
+**[Routes Structure](./routes.md)** - Complete URL Structure
+
+Comprehensive routing documentation for all workspace types:
+
+- **Route Groups**: `(app)`, `(team)`, `(auth)`, `(admin)`, `(public)`, `(models)`
+- **Personal Workspace**: `/app/*` routes (chat, chats, folders, tags, settings)
+- **Team Workspace**: `/team/[slug]/*` routes (chats, members, agents, plugins)
+- **Public Shares**: `/p/[token]` for externally shared chats
+- **Platform Admin**: `/admin/*` for superadmin features
+- **Migration Guide**: Old routes → New routes mapping
+
+**📖 [Read Routes Structure →](./routes.md)**
+
+### Database Schema
+
+**[Database Schema](./database.md)** - Database Tables & Relationships
+
+Complete database schema documentation:
+
+- **Team Tables**: teams, team_members, team_invites, slug_redirects
+- **Core Tables**: users, chats, messages, api_keys, prompts
+- **Organization**: folders, tags, chat_tags for categorization
+- **Relationships**: Foreign keys, indexes, and constraints
+- **Access Patterns**: SQL queries for team data isolation
+- **ERD**: Entity relationship diagrams
+
+**📖 [Read Database Schema →](./database.md)**
+
+### Quick Reference
+
+| Workspace Type | URL Pattern      | Description                        |
+| -------------- | ---------------- | ---------------------------------- |
+| **Personal**   | `/app/*`         | User's private workspace           |
+| **Team**       | `/team/[slug]/*` | Shared workspace for collaboration |
+| **Public**     | `/p/[token]`     | Publicly accessible shared chats   |
+| **Admin**      | `/admin/*`       | Platform superadmin features       |
+| **Models**     | `/models/*`      | Centralized model configuration    |
+
+---
+
+## AI Provider Integration
+
+### AI Provider Integration Guide
+
+**[AI Provider Integration Guide](./ai-provider-integration-guide.md)** - _Complete Guide_
+
+The comprehensive guide for adding new AI providers to SambungChat. Covers everything from basic setup to advanced multi-provider patterns.
+
+- **What's Inside:**
+  - Step-by-step integration workflow
+  - Provider-specific configurations (OpenAI, Anthropic, Google, Groq, Ollama)
+  - Environment variable patterns and best practices
+  - Testing procedures and validation
+  - Troubleshooting common issues
+  - Multi-provider setup and optimization
+
+- **Who Should Read This:**
+  - Contributors adding new AI providers
+  - Developers extending AI functionality
+  - DevOps engineers configuring AI environments
+
+**📖 [Read the Guide →](./ai-provider-integration-guide.md)**
+
+### Quick Start Guides
+
+#### OpenAI Integration
+
+Get started with OpenAI's GPT models (GPT-4o, GPT-4o-mini, o1-series).
+
+- **Example:** [examples/openai-integration/](../examples/openai-integration/)
+- **Best For:** General-purpose AI, vision tasks, coding assistance
+- **Cost:** Low-Medium
+- **Speed:** Fast (~500ms to first token)
+
+#### Anthropic Integration
+
+Integrate Anthropic's Claude models with extended context windows.
+
+- **Example:** [examples/anthropic-integration/](../examples/anthropic-integration/)
+- **Best For:** Complex reasoning, long conversations, analysis
+- **Cost:** Medium-High
+- **Special Feature:** 200K token context window
+
+#### Groq Integration
+
+Ultra-fast inference with Groq's LPU acceleration.
+
+- **Example:** [examples/groq-integration/](../examples/groq-integration/)
+- **Best For:** Real-time responses, high-volume applications
+- **Cost:** Very Low
+- **Special Feature:** 10-20x faster than other providers (~50ms to first token)
+
+#### Ollama Integration
+
+100% local AI with zero API costs.
+
+- **Example:** [examples/ollama-integration/](../examples/ollama-integration/)
+- **Best For:** Privacy, offline use, cost optimization
+- **Cost:** Free (local inference)
+- **Special Feature:** 100+ models, complete data privacy
+
+#### Multi-Provider Integration
+
+Provider abstraction with fallback chains and zero-code switching.
+
+- **Example:** [examples/multi-provider-integration/](../examples/multi-provider-integration/)
+- **Best For:** Production reliability, cost optimization, flexibility
+- **Features:** Automatic failover, load balancing, cost-based routing
+
+### Testing
+
+**[Test Templates](../examples/test-templates/)**
+
+Comprehensive test templates for validating AI provider integrations.
+
+- **Unit Tests:** Provider initialization, model creation, validation
+- **Integration Tests:** API endpoints, streaming responses
+- **E2E Tests:** Complete user flows, UI interactions
+- **Test Fixtures:** Reusable test data and mocks
+
+**📖 [View Test Templates →](../examples/test-templates/README.md)**
+
+---
+
+## Architecture Documentation
+
+The primary architecture documentation is located at [../architecture.md](../architecture.md) and includes:
+
+- Comprehensive system architecture with Mermaid diagrams
+- Component relationships and data flow
+- Authentication flow visualization
+- AI provider abstraction patterns
+
+### Diagrams Directory
+
+The [diagrams/](./diagrams/) directory contains:
+
+- Source files for architecture diagrams
+- Exported diagram images
+- Diagram-related resources
+
+---
+
+## Troubleshooting
+
+**[troubleshooting.md](./troubleshooting.md)** - List of common problems found and their solutions:
 
 - Build errors
 - Svelte 5 runes issues
@@ -26,9 +190,11 @@ Welcome to the SambungChat documentation. This documentation is prepared to help
 - Import/export issues
 - TypeScript problems
 
-### UI Development
+---
 
-**[UI-PACKAGE-GUIDE.md](./UI-PACKAGE-GUIDE.md)** - Complete guide for UI package development:
+## UI Development
+
+**[ui-package-guide.md](./ui-package-guide.md)** - Complete guide for UI package development:
 
 - Package structure and golden rules
 - Creating new components
@@ -48,49 +214,61 @@ sambung-chat/
 │   ├── web/              # Frontend SvelteKit application
 │   └── server/           # Backend Hono API server
 ├── packages/
-│   ├── ui/               # UI component library → [UI Guide](./UI-PACKAGE-GUIDE.md)
+│   ├── ui/               # UI component library → [UI Guide](./ui-package-guide.md)
 │   ├── api/              # API routers
 │   ├── auth/             # Authentication module
 │   ├── db/               # Database schemas
 │   ├── env/              # Environment variables
 │   └── config/           # Shared configuration
 ├── docs/                 # Documentation
+│   └── diagrams/         # Architecture diagrams
+├── examples/             # AI provider integration examples
 ├── plan-reference/       # Planning documents
 └── scripts/              # Utility scripts
 ```
 
 ---
 
-## Quick Start
+## Getting Started
 
-### Prerequisites
+### New to AI Provider Integration?
 
-- [Bun](https://bun.sh/) >= 1.0.0
-- [Node.js](https://nodejs.org/) >= 20.0.0
-- PostgreSQL >= 15
+1. **Start Here:** Read the [AI Provider Integration Guide](./ai-provider-integration-guide.md)
+2. **Pick a Provider:** Choose from OpenAI, Anthropic, Google, Groq, or Ollama
+3. **Try an Example:** Run the corresponding example in the `examples/` directory
+4. **Test Thoroughly:** Use the test templates to validate your integration
 
-### Installation
+### Adding a New Provider?
 
-```bash
-# Install dependencies
-bun install
+Follow this workflow:
 
-# Setup database
-bun run db:push
-
-# Start development servers
-bun run dev
+```
+1. Research → Read Section 2 of the Integration Guide
+2. Plan → Review the provider-specific examples
+3. Implement → Follow the Step-by-Step Integration Guide
+4. Test → Use test templates and follow testing procedures
+5. Deploy → Follow production deployment checklist
 ```
 
-### Build
+**📖 [Complete Integration Guide →](./ai-provider-integration-guide.md)**
 
-```bash
-# Build entire monorepo
-bun run build
+---
 
-# Build specific package
-cd packages/ui && bun run build
-```
+## Provider Comparison
+
+| Provider      | Best For                   | Cost   | Speed      | Context | Local? |
+| ------------- | -------------------------- | ------ | ---------- | ------- | ------ |
+| **OpenAI**    | General purpose, vision    | 💰💰   | ⚡⚡⚡     | 128K    | ❌     |
+| **Anthropic** | Complex reasoning          | 💰💰💰 | ⚡⚡⚡     | 200K    | ❌     |
+| **Google**    | Multimodal, cost-effective | 💰     | ⚡⚡⚡     | 1M      | ❌     |
+| **Groq**      | Ultra-fast responses       | 💰     | ⚡⚡⚡⚡⚡ | 131K    | ❌     |
+| **Ollama**    | Privacy, free              | 💰     | ⚡⚡       | Varies  | ✅     |
+
+**Key:**
+
+- 💰 = Cost (💰 = Very Low, 💰💰💰 = High)
+- ⚡ = Speed (⚡ = Medium, ⚡⚡⚡⚡⚡ = Ultra-fast)
+- Context = Maximum context window size
 
 ---
 
@@ -111,7 +289,7 @@ bun run dev:server   # Backend only
 
 ```bash
 # Type check entire monorepo
-bun run check:types
+bun run check-types
 
 # Type check specific package
 cd packages/ui && bun run check
@@ -128,6 +306,32 @@ bun run db:push
 
 # Open database studio
 bun run db:studio
+```
+
+---
+
+## Environment Variables Quick Reference
+
+```bash
+# OpenAI
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL_ID=gpt-4o-mini
+
+# Anthropic
+ANTHROPIC_API_KEY=sk-ant-...
+ANTHROPIC_MODEL_ID=claude-3-5-sonnet-20241022
+
+# Google
+GOOGLE_GENERATIVE_AI_API_KEY=...
+GOOGLE_MODEL_ID=gemini-2.5-flash
+
+# Groq
+GROQ_API_KEY=gsk-...
+GROQ_MODEL_ID=llama-3.3-70b-versatile
+
+# Ollama (no API key needed)
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL_ID=llama3.2
 ```
 
 ---
@@ -160,35 +364,20 @@ bun run db:studio
 
 ---
 
-## Conventions
+## Documentation Guidelines
 
-### Code Style
+- ✅ **Comprehensive:** Covers all aspects from setup to deployment
+- ✅ **Practical:** Includes real code examples from actual implementations
+- ✅ **Tested:** All examples have been validated and tested
+- ✅ **Current:** Kept up-to-date with the latest AI SDK versions
+- ✅ **Clear:** Written for developers with clear, actionable steps
 
-- **TypeScript**: Strict mode enabled
-- **Components**: PascalCase for components
-- **Functions**: camelCase for functions
-- **Constants**: UPPER_SNAKE_CASE for constants
-- **Files**: kebab-case for file names
+### Diagram Guidelines
 
-### Commit Messages
-
-Using conventional commits:
-
-```
-feat: add new feature
-fix: fix bug
-docs: update documentation
-refactor: code refactoring
-test: add tests
-chore: maintenance tasks
-```
-
-### Branch Strategy
-
-- `main` - Production branch
-- `develop` - Development branch
-- `feature/*` - Feature branches
-- `fix/*` - Bug fix branches
+- All diagrams should use formats compatible with GitHub Markdown (preferred: Mermaid.js)
+- Keep diagrams in source control alongside code
+- Include text descriptions for accessibility
+- Use consistent notation across all diagrams
 
 ---
 
@@ -196,25 +385,14 @@ chore: maintenance tasks
 
 If you encounter issues:
 
-1. Check [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for common solutions
-2. Check [UI-PACKAGE-GUIDE.md](./UI-PACKAGE-GUIDE.md) for UI package issues
-3. Search existing issues on GitHub
-4. Create a new issue with error details and steps to reproduce
+1. Check [troubleshooting.md](./troubleshooting.md) for common solutions
+2. Check [ui-package-guide.md](./ui-package-guide.md) for UI package issues
+3. Read [AI Provider Integration Guide](./ai-provider-integration-guide.md) for AI issues
+4. Search existing issues on GitHub
+5. Create a new issue with error details and steps to reproduce
 
 ---
 
-## Contributing
-
-Before contributing:
-
-1. Read the documentation in this folder
-2. Ensure build passes: `bun run build`
-3. Ensure type check passes: `bun run check:types`
-4. Follow the established conventions
-5. Create a pull request with a clear description
-
----
-
-## License
-
-AGPL-3.0 - See [LICENSE](../LICENSE) file for details
+**Last Updated:** 2026-01-12
+**Documentation Version:** 3.0
+**Maintained By:** SambungChat Team

@@ -532,11 +532,11 @@ sambung-chat/
 - [API Reference](../docs/api-reference.md)
 - [Testing Guide](../docs/TESTING.md)
 - [Database Docs](../docs/DATABASE.md)
-- [Backend-First Dev Plan](../plan-reference/BACKEND-FIRST-DEVELOPMENT.md)
+- [Backend-First Dev Plan](../plan-reference/backend-first-development.md)
 
 ### AGENTS Reference
 
-- [Main AGENTS.md](../plan-reference/AGENTS.md) - Project overview
+- [Main agents.md](../plan-reference/agents.md) - Project overview
 - [ORPC Reference](../plan-reference/generated/orpc-todo-reference.md) - ORPC patterns
 
 ### Communication

@@ -1,0 +1,80 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-01-16",
+  "menuItems": [
+    {
+      "id": "chat",
+      "label": "Chat",
+      "icon": "MessageSquare",
+      "path": "/app/chat",
+      "description": "Chat with AI models",
+      "keyboardShortcut": "Alt+C",
+      "enabled": true,
+      "order": 1
+    },
+    {
+      "id": "agents",
+      "label": "Agents",
+      "icon": "Bot",
+      "path": "/app/agents",
+      "description": "AI Agents library",
+      "keyboardShortcut": "Alt+A",
+      "enabled": true,
+      "order": 2
+    },
+    {
+      "id": "prompts",
+      "label": "Prompts",
+      "icon": "Sparkles",
+      "path": "/app/prompts",
+      "description": "Prompt templates",
+      "keyboardShortcut": "Alt+P",
+      "enabled": true,
+      "order": 3
+    },
+    {
+      "id": "team",
+      "label": "Team",
+      "icon": "Users",
+      "path": "/team",
+      "description": "Team workspace",
+      "keyboardShortcut": "Alt+T",
+      "enabled": false,
+      "requiresTeam": true,
+      "order": 4
+    }
+  ],
+  "userMenu": {
+    "id": "user",
+    "label": "User Menu",
+    "icon": "User",
+    "position": "bottom",
+    "items": [
+      {
+        "id": "settings",
+        "label": "Settings",
+        "icon": "Settings",
+        "path": "/app/settings",
+        "description": "Application settings"
+      },
+      {
+        "id": "theme",
+        "label": "Toggle Theme",
+        "icon": "Sun",
+        "action": "toggleTheme",
+        "description": "Switch between light and dark theme"
+      },
+      {
+        "id": "logout",
+        "label": "Logout",
+        "icon": "LogOut",
+        "path": "/logout",
+        "description": "Sign out of your account"
+      }
+    ]
+  },
+  "metadata": {
+    "displayName": "NavigationRail Menu",
+    "description": "Primary navigation menu with icon-based navigation items"
+  }
+}

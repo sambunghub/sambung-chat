@@ -13,11 +13,10 @@ const config = {
     // See https://svelte.dev/docs/kit/adapters for more information about adapters.
     adapter: adapter(),
 
+    // Path aliases for cleaner imports
     alias: {
-      $lib: '../../packages/ui/src/lib',
-      '$lib/*': '../../packages/ui/src/lib/*',
-      $components: '../../packages/ui/src/components',
-      '$components/*': '../../packages/ui/src/components/*',
+      $lib: 'src/lib',
+      $components: 'src/components',
     },
   },
 };

@@ -101,11 +101,11 @@ export async function load(event) {
 
 ---
 
-## Using @sambung-chat/ui
+## Using Components from $lib
 
 ```svelte
 <script lang="ts">
-  import { Button, Input } from '@sambung-chat/ui';
+  import { Button, Input } from '$lib/components/ui';
 </script>
 
 <Button>Click me</Button>
@@ -117,11 +117,11 @@ export async function load(event) {
 ## ORPC Integration
 
 ```typescript
-import { orpc } from '@sambung-chat/orpc';
+import { orpc } from '@sambung-chat/api';
 
 // Type-safe API calls
-const todos = await orpc.todos.getAll.query();
-const newTodo = await orpc.todos.create.mutate({ title: 'New todo' });
+const chats = await orpc.chat.getAll.query();
+const newChat = await orpc.chat.create.mutate({ title: 'New Chat' });
 ```
 
 ---
@@ -152,7 +152,7 @@ const newTodo = await orpc.todos.create.mutate({ title: 'New todo' });
 ```svelte
 <!-- +layout.svelte -->
 <script lang="ts">
-  import { ThemeProvider } from '@sambung-chat/ui';
+  import { ThemeProvider } from '$lib/components/theme';
   import { onMount } from 'svelte';
 
   let { children } = $props();

@@ -1,0 +1,43 @@
+{
+  "name": "ai-provider-test-templates",
+  "version": "1.0.0",
+  "description": "Comprehensive test templates for AI provider integrations",
+  "private": true,
+  "scripts": {
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "vitest run -c setup/vitest.config.ts --dir integration",
+    "test:unit": "vitest run -c setup/vitest.config.ts --dir unit",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:watch": "vitest -w",
+    "test:benchmark": "vitest bench",
+    "test:all": "npm run test:unit && npm run test:integration && npm run test:e2e"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@vitest/coverage-v8": "^1.0.0",
+    "supertest": "^6.3.3",
+    "vitest": "^1.0.0",
+    "typescript": "^5.3.0"
+  },
+  "peerDependencies": {
+    "@ai-sdk/openai": "^1.0.0",
+    "@ai-sdk/anthropic": "^1.0.0",
+    "@ai-sdk/google": "^1.0.0",
+    "@ai-sdk/groq": "^1.0.0",
+    "ai": "^3.0.0"
+  },
+  "keywords": [
+    "testing",
+    "ai-sdk",
+    "vitest",
+    "playwright",
+    "e2e",
+    "integration-tests",
+    "unit-tests"
+  ],
+  "author": "SambungChat Contributors",
+  "license": "MIT"
+}

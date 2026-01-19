@@ -1,0 +1,130 @@
+# Docker Compose for SambaChat
+#
+# *** DEVELOPMENT MODE ***
+#   - Database: Docker
+#   - Server:  Docker
+#   - Web:     Local (bun run dev:web)
+#
+# Start services:
+#   1. docker-compose up postgres server
+#   2. bun run dev:web
+#
+# Environment variables are loaded from .env file in the root
+
+services:
+  # ============================================================
+  # PostgreSQL Database (RUNNING IN DOCKER)
+  # ============================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: sambungchat-db-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sambungchat}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sambungchat_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-sambungchat_dev}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-sambungchat} -d ${POSTGRES_DB:-sambungchat_dev}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sambungchat-network
+
+  # ============================================================
+  # Server (Hono API) - RUNNING IN DOCKER
+  # ============================================================
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+      target: development
+    container_name: sambungchat-server-dev
+    restart: unless-stopped
+    ports:
+      - '${SERVER_PORT:-3000}:3000'
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3000
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sambungchat:sambungchat_dev@postgres:5432/sambungchat_dev}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-sambungchat-dev-secret-key-at-least-32-chars-long}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+      EMAIL_PASSWORD_ENABLED: ${EMAIL_PASSWORD_ENABLED:-true}
+      KEYCLOAK_URL: ${KEYCLOAK_URL}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
+      AI_PROVIDER: ${AI_PROVIDER:-openai}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+      - server_dist:/app/apps/server/dist
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - sambungchat-network
+
+  # # Web (SvelteKit)
+  # # For development: bun run dev:web
+  # web:
+  #   build:
+  #     context: .
+  #     dockerfile: apps/web/Dockerfile
+  #     target: development
+  #   container_name: sambungchat-web-dev
+  #   restart: unless-stopped
+  #   ports:
+  #     - '${WEB_PORT:-5173}:5173'
+  #   environment:
+  #     NODE_ENV: ${NODE_ENV:-development}
+  #     PORT: 5173
+  #     DATABASE_URL: ${DATABASE_URL:-postgresql://sambungchat:sambungchat_dev@postgres:5432/sambungchat_dev}
+  #     BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-sambungchat-dev-secret-key-at-least-32-chars-long}
+  #     BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:5173}
+  #     CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+  #     AI_PROVIDER: ${AI_PROVIDER:-ollama}
+  #     PUBLIC_SERVER_URL: ${PUBLIC_SERVER_URL:-http://localhost:5173}
+  #     PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:3000}
+  #     PUBLIC_EMAIL_PASSWORD_ENABLED: ${PUBLIC_EMAIL_PASSWORD_ENABLED:-true}
+  #     EMAIL_PASSWORD_ENABLED: ${EMAIL_PASSWORD_ENABLED:-true}
+  #     PUBLIC_KEYCLOAK_ENABLED: ${PUBLIC_KEYCLOAK_ENABLED:-false}
+  #     KEYCLOAK_URL: ${KEYCLOAK_URL}
+  #     KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+  #     KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+  #     KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+  #     KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
+  #   volumes:
+  #     - .:/app
+  #     - web_build:/app/apps/web/build
+  #     - web_sveltekit:/app/apps/web/.svelte-kit
+  #   depends_on:
+  #     - server
+  #   networks:
+  #     - sambungchat-network
+
+volumes:
+  postgres_data:
+    driver: local
+  # Unused in local development (apps use host node_modules)
+  node_modules:
+    driver: local
+  server_dist:
+    driver: local
+  web_build:
+    driver: local
+  web_sveltekit:
+    driver: local
+
+networks:
+  sambungchat-network:
+    driver: bridge

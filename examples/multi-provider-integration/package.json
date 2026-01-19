@@ -1,0 +1,28 @@
+{
+  "name": "multi-provider-integration",
+  "version": "1.0.0",
+  "description": "Multi-provider AI integration example with easy provider switching",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch server.ts",
+    "start": "node --loader tsx server.ts",
+    "test": "bash test.sh"
+  },
+  "dependencies": {
+    "ai": "^4.0.3",
+    "@ai-sdk/openai": "^1.1.0",
+    "@ai-sdk/anthropic": "^1.1.0",
+    "@ai-sdk/google": "^1.0.4",
+    "@ai-sdk/groq": "^1.0.9",
+    "@ai-sdk/devtools": "^0.0.2",
+    "hono": "^4.6.14",
+    "@hono/node-server": "^1.13.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,7 +1,7 @@
 # SAMBUNG CHAT: Development Roadmap
 
-**Version:** 1.0
-**Last Updated:** January 11, 2026
+**Version:** 1.1
+**Last Updated:** January 14, 2026
 **License:** AGPL-3.0
 
 ---
@@ -23,31 +23,34 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 - [x] Configure Better Auth
 - [x] Database setup (PostgreSQL + Docker Compose)
 - [x] Add LICENSE file (AGPL-3.0)
-- [ ] Create .github/ templates (CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md)
-- [ ] Setup CI/CD (GitHub Actions)
+- [x] Create .github/ templates (CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md)
+- [x] Setup CI/CD (GitHub Actions with typecheck, lint, build, test)
 - [x] Configure ESLint, Prettier, Husky pre-commit hooks
+- [x] Docker configuration (dev & production Dockerfiles for server & web)
 
 ### Week 3-4: Authentication & User Management
 
-- [ ] Complete Better Auth integration
-- [ ] User registration/login UI
-- [ ] Session management
-- [ ] Protected routes
+- [x] Complete Better Auth integration (backend configured with email/password)
+- [x] User registration/login UI components (SignInForm, SignUpForm exist)
+- [x] Session management implementation
+- [x] Protected routes implementation
 - [ ] User profile page
 
 ### Week 5-6: Multi-Model Chat Interface
 
-- [ ] Integrate LiteLLM or direct API calls
-- [ ] Support 5+ providers:
-  - [ ] OpenAI Compatible
+- [ ] Integrate LLM providers (direct API calls):
+  - [x] OpenAI Compatible (Z.AI integration working)
   - [ ] OpenAI (GPT-4, GPT-3.5)
   - [ ] Anthropic (Claude)
   - [ ] Google (Gemini)
   - [ ] Groq
   - [ ] Ollama (local models)
+- [x] Database schema for chats, messages, and apiKeys
+- [x] Basic API routes (chat, message CRUD via ORPC)
 - [ ] Model selector dropdown
-- [ ] Real-time streaming responses
-- [ ] Error handling & fallback mechanism
+- [x] Real-time streaming responses (AI SDK v6 streaming implemented)
+- [x] Error handling & fallback mechanism (retry with exponential backoff)
+- [x] API key database schema (apiKeys table ready)
 - [ ] API key management UI (encrypted storage)
 
 ### Week 7-8: Chat History Management
@@ -63,23 +66,33 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 ### Week 9: Prompt Templates
 
 - [ ] Built-in templates (Summarize, Translate, Code Gen)
-- [ ] Save/edit/delete custom prompts
+- [x] Database schema for prompts (prompts table ready)
+- [ ] Save/edit/delete custom prompts UI
 - [ ] Search/filter prompts
 - [ ] Variable substitution
 - [ ] Community prompts library UI
 
 ### Week 10: Settings & Preferences
 
-- [ ] Theme toggle (light/dark mode)
-- [ ] Language selection (English, Indonesian)
+- [x] Theme provider (ThemeProvider.svelte exists)
+- [ ] Settings page UI
 - [ ] Sidebar width adjustment
 - [ ] Font size adjustment
 - [ ] Privacy mode toggle
 
-### Week 11: Testing & Polish
+### Week 11: Internationalization & Testing
 
-- [ ] Unit tests (Vitest)
-- [ ] E2E tests (Playwright)
+- [ ] **Internationalization (i18n) setup**:
+  - [ ] Install and configure `svelte-i18n`
+  - [ ] Create locale files (en, id)
+  - [ ] Extract UI strings to translation files
+  - [ ] Add language selector to settings
+  - [ ] Store language preference in database
+
+- [x] Unit test framework configured (Vitest)
+- [x] E2E test framework configured (Playwright)
+- [ ] Unit tests written
+- [ ] E2E tests written
 - [ ] Performance optimization
 - [ ] Accessibility audit (WCAG 2.1 AA)
 - [ ] Security audit
@@ -249,16 +262,16 @@ This roadmap outlines the development milestones for Sambung Chat, an open-sourc
 
 ## Technology Stack
 
-| Layer     | Technology                      |
-| --------- | ------------------------------- |
-| Frontend  | Svelte 5 + ShadCN + TailwindCSS |
-| Backend   | Hono (TypeScript)               |
-| Database  | PostgreSQL + Drizzle ORM        |
-| Auth      | Better Auth                     |
-| Job Queue | Bull/BullMQ + Redis             |
-| Build     | Vite + Turborepo                |
-| Runtime   | Bun                             |
-| Testing   | Vitest + Playwright             |
+| Layer     | Technology                             |
+| --------- | -------------------------------------- |
+| Frontend  | Svelte 5 + ShadCN Svelte + TailwindCSS |
+| Backend   | Hono (TypeScript) + ORPC               |
+| Database  | PostgreSQL + Drizzle ORM               |
+| Auth      | Better Auth                            |
+| Build     | Vite + Turborepo                       |
+| Runtime   | Bun                                    |
+| Testing   | Vitest + Playwright                    |
+| Container | Docker + Docker Compose                |
 
 ---
 

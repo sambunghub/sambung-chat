@@ -1,0 +1,36 @@
+{
+  "name": "groq-integration-example",
+  "version": "1.0.0",
+  "description": "Complete Groq AI provider integration example for SambungChat",
+  "type": "module",
+  "main": "server.ts",
+  "scripts": {
+    "dev": "tsx watch server.ts",
+    "start": "node --loader tsx server.ts",
+    "test": "./test.sh"
+  },
+  "keywords": [
+    "groq",
+    "ai",
+    "llama",
+    "integration",
+    "example"
+  ],
+  "author": "SambungChat",
+  "license": "MIT",
+  "dependencies": {
+    "@ai-sdk/groq": "^1.0.0",
+    "@ai-sdk/devtools": "^0.0.2",
+    "ai": "^4.0.0",
+    "hono": "^4.6.0",
+    "dotenv": "^16.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

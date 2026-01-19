@@ -2,7 +2,7 @@
 
 **Version:** 0.1.0
 **Base URL:** `http://localhost:3000/rpc`
-**Last Updated:** January 11, 2026
+**Last Updated:** January 17, 2026
 
 > **⚠️ Important Notice**
 >
@@ -15,6 +15,12 @@
 ## Overview
 
 SambungChat uses **ORPC** (OpenAPI-compatible RPC) for type-safe API communication. All endpoints are POST requests to `/rpc/*` paths.
+
+> **Team & Organization API**
+>
+> For team-related API endpoints (team management, members, invitations), see **[Teams Concept](./teams-concept.md)** for the team model and access control patterns.
+>
+> Team endpoints follow the same ORPC patterns documented below, with additional team context validation.
 
 ### Authentication
 
@@ -46,6 +52,65 @@ Most endpoints require authentication via session cookies. Set by Better Auth du
 ---
 
 ## Endpoints
+
+### AI Streaming
+
+#### `POST /ai`
+
+Stream AI responses (Server-Sent Events). This endpoint provides direct access to AI streaming functionality and is used by the chat interface.
+
+**Authentication:** **Required** (via Better Auth session cookie)
+
+**Request:**
+
+```json
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hello, how are you?"
+    },
+    {
+      "role": "assistant",
+      "content": "I'm doing well!"
+    }
+  ]
+}
+```
+
+**Request Validation:**
+
+- `messages` must be an array
+- Minimum 1 message, maximum 100 messages
+- Each message must have `role` (user/assistant/system) and `content` (string, max 100,000 characters)
+
+**Response (SSE):**
+
+```
+data: {"type":"text","content":"Hello"}
+
+data: {"type":"text","content":" there"}
+
+data: {"type":"done"}
+```
+
+**Errors:**
+
+- `401 Unauthorized` - No valid session or user not authenticated
+- `400 Invalid request` - Messages must be an array
+- `400 Invalid request` - Messages cannot be empty
+- `400 Invalid request` - Too many messages (max 100)
+- `400 Invalid message format` - Each message must have role and content
+- `400 Invalid message role` - Role must be user, assistant, or system
+- `400 Invalid message content` - Content must be string and max 100,000 characters
+
+**Notes:**
+
+- This endpoint uses the AI SDK v6 for streaming
+- Supports OpenAI-compatible providers (configurable via OPENAI_BASE_URL)
+- Model configured via OPENAI_MODEL environment variable (default: gpt-4o-mini)
+
+---
 
 ### Health Check
 
@@ -753,7 +818,7 @@ type ChatGetAll = Router['chat']['getAll'];
 ### Using ORPC Client (TypeScript)
 
 ```typescript
-import { orpc } from '@sambung-chat/ui';
+import { orpc } from '@sambung-chat/api';
 
 // Query
 const chats = await orpc.chat.getAll({ limit: 50 });
@@ -793,13 +858,15 @@ Current implementation status of each endpoint group:
 | -------------- | -------------------------------- | ---------- |
 | `healthCheck`  | ✅ Implemented                   | Foundation |
 | `auth.*`       | ✅ Implemented (via Better Auth) | Foundation |
-| `todo.*`       | ✅ Implemented (Example)         | Foundation |
 | `privateData`  | ✅ Implemented                   | Foundation |
+| `chat.*`       | ✅ Implemented                   | Foundation |
+| `message.*`    | ✅ Implemented                   | Foundation |
+| `folder.*`     | ✅ Implemented                   | Foundation |
 | `user.*`       | ⏳ Planned                       | MVP        |
-| `chat.*`       | ⏳ Planned                       | MVP        |
-| `message.*`    | ⏳ Planned                       | MVP        |
 | `prompt.*`     | ⏳ Planned                       | MVP        |
 | `apiKey.*`     | ⏳ Planned                       | MVP        |
+
+**Note:** The `todo.*` router has been moved to `_example/` folder for reference purposes only. It demonstrates ORPC patterns but is not production-ready. See `packages/api/src/routers/_example/todo.ts`.
 
 See [ROADMAP](../plan-reference/ROADMAP.md) for detailed timeline.
 

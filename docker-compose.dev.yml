@@ -1,0 +1,207 @@
+# =============================================================================
+# Docker Compose - Development with Hot Reload
+# =============================================================================
+# Simplified approach: Mount entire project directory for hot reload
+# This ensures Bun workspace symlinks work correctly without complex volume setups
+#
+# Services:
+# - postgres: PostgreSQL database
+# - server: API server with hot reload (via Bun watch mode)
+# - web: Web frontend with hot reload (via Vite HMR)
+#
+# Usage:
+# 1. Install deps first: bun install
+# 2. Configure environment: cp .env.example .env
+# 3. Start all services: bun run docker:dev
+# 4. View logs: bun run docker:dev:logs
+# 5. Stop all: bun run docker:dev:down
+#
+# Environment variables are loaded from .env file in the root
+#
+# =============================================================================
+
+networks:
+  sambungchat-network:
+    driver: bridge
+
+name: sambungchat-dev
+
+services:
+  # ==========================================================================
+  # PostgreSQL Database
+  # ==========================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: sambungchat-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-sambungchat_dev}
+      POSTGRES_INITDB_ARGS: '--encoding=UTF-8 --lc-collate=C --lc-ctype=C'
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sambungchat-network
+
+  # ==========================================================================
+  # API Server (with Hot Reload)
+  # ==========================================================================
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: sambungchat-server
+    restart: unless-stopped
+    ports:
+      - '${SERVER_PORT:-3000}:3000'
+    environment:
+      # Application
+      NODE_ENV: development
+      PORT: 3000
+
+      # Database (uses Docker service name)
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-sambungchat_dev}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-sambungchat_dev}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+
+      # Better Auth
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-sambungchat-dev-secret-key-at-least-32-chars-long-for-dev-only}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5174,http://localhost:3000}
+      EMAIL_PASSWORD_ENABLED: ${EMAIL_PASSWORD_ENABLED:-true}
+
+      # Keycloak (optional)
+      KEYCLOAK_URL: ${KEYCLOAK_URL}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
+
+      # AI Provider Configuration
+      AI_PROVIDER: ${AI_PROVIDER:-openai}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL}
+      GOOGLE_GENERATIVE_AI_API_KEY: ${GOOGLE_GENERATIVE_AI_API_KEY}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      GOOGLE_MODEL: ${GOOGLE_MODEL}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      GROQ_BASE_URL: ${GROQ_BASE_URL}
+      GROQ_MODEL: ${GROQ_MODEL}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
+      OLLAMA_MODEL: ${OLLAMA_MODEL}
+    volumes:
+      # Mount entire project (includes node_modules with symlinks)
+      - ./:/app
+      # Cache bun for faster builds (optional, comment out on Windows)
+      - ~/.bun:/root/.bun
+      - ~/.cache:/root/.cache
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - sambungchat-network
+    # Keep container running for development
+    tty: true
+    stdin_open: true
+    command: ["sh", "-c", "cd /app/apps/server && bun run --hot src/index.ts"]
+
+  # ==========================================================================
+  # Web Frontend (with Hot Reload)
+  # ==========================================================================
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: sambungchat-web
+    restart: unless-stopped
+    ports:
+      - '${WEB_PORT:-5174}:5174'
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 5174
+
+      # Database (uses Docker service name for SSR)
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-sambungchat_dev}
+
+      # Better Auth (for SSR and OAuth callbacks)
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-sambungchat-dev-secret-key-at-least-32-chars-long-for-dev-only}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:5174}
+
+      # CORS Configuration
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5174,http://localhost:3000}
+
+      # Email/password auth
+      EMAIL_PASSWORD_ENABLED: ${EMAIL_PASSWORD_ENABLED:-true}
+      PUBLIC_EMAIL_PASSWORD_ENABLED: ${PUBLIC_EMAIL_PASSWORD_ENABLED:-true}
+
+      # Public variables (for client-side)
+      PUBLIC_SERVER_URL: ${PUBLIC_SERVER_URL:-http://localhost:3000}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:3000}
+
+      # AI Provider (for client-side)
+      AI_PROVIDER: ${AI_PROVIDER:-openai}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL}
+      GOOGLE_GENERATIVE_AI_API_KEY: ${GOOGLE_GENERATIVE_AI_API_KEY}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      GOOGLE_MODEL: ${GOOGLE_MODEL}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      GROQ_BASE_URL: ${GROQ_BASE_URL}
+      GROQ_MODEL: ${GROQ_MODEL}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
+      OLLAMA_MODEL: ${OLLAMA_MODEL}
+
+      # Keycloak (optional)
+      PUBLIC_KEYCLOAK_ENABLED: ${PUBLIC_KEYCLOAK_ENABLED:-false}
+      KEYCLOAK_URL: ${KEYCLOAK_URL}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
+    volumes:
+      # Mount entire apps/web folder for configs and src
+      - ./apps/web:/app/apps/web
+      # Prevent container's node_modules from overriding host's
+      - /app/apps/web/node_modules
+      # Mount packages (shared dependencies)
+      - ./packages:/app/packages
+      - /app/packages/node_modules
+      # Mount root package.json for workspace
+      - ./package.json:/app/package.json
+      # Cache bun for faster builds
+      - ~/.bun:/root/.bun
+      - ~/.cache:/root/.cache
+    depends_on:
+      - server
+    networks:
+      - sambungchat-network
+    # Keep container running for development
+    tty: true
+    stdin_open: true
+    # Install deps in container, then run vite
+    command: ["sh", "-c", "cd /app/apps/web && bun install && bun run dev -- --host 0.0.0.0 --port 5174"]
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  postgres_data:
+    driver: local
