@@ -16,6 +16,46 @@ const envSchema = createEnv({
     PORT: z.coerce.number().default(3000),
 
     // ═══════════════════════════════════════════════════════════════════
+    // ENCRYPTION CONFIGURATION
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Encryption key for API key storage (AES-256-GCM).
+     *
+     * This key is used to encrypt API keys at rest in the database.
+     * Must be a 32-byte base64-encoded key (256 bits).
+     *
+     * Generate one with:
+     * - OpenSSL: openssl rand -base64 32
+     * - Node.js: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+     * - Bun: bun -e "console.log(crypto.randomBytes(32).toString('base64'))"
+     *
+     * SECURITY: Keep this key secret! Rotate it only with proper migration.
+     * Losing this key will make all encrypted API keys permanently unreadable.
+     *
+     * @example "dGhpc2lzYW5leGFtcGxlb2ZhMzJieXRlYmFzZTY0ZW5jb2RlZGtleQ=="
+     */
+    ENCRYPTION_KEY: z
+      .string()
+      .min(1, 'ENCRYPTION_KEY is required for API key encryption')
+      .refine(
+        (val) => {
+          try {
+            const decoded = Buffer.from(val, 'base64');
+            // Check if it's valid base64 and exactly 32 bytes (256 bits)
+            return decoded.length === 32;
+          } catch {
+            return false;
+          }
+        },
+        {
+          message:
+            'ENCRYPTION_KEY must be a 32-byte base64-encoded key (256 bits). ' +
+            'Generate one with: openssl rand -base64 32',
+        }
+      ),
+
+    // ═══════════════════════════════════════════════════════════════════
     // AUTHENTICATION METHOD CONFIGURATION
     // ═══════════════════════════════════════════════════════════════════
 
