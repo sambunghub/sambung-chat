@@ -14,15 +14,19 @@ describe('ORPC Client Configuration', () => {
 
   it('should have PUBLIC_SERVER_URL defined for frontend URL', () => {
     expect(process.env.PUBLIC_SERVER_URL).toBeDefined();
-    // PUBLIC_SERVER_URL can be either port 3000 or 5173 depending on environment
-    expect(['http://localhost:3000', 'http://localhost:5173']).toContain(
+    // PUBLIC_SERVER_URL can be either port 3000, 5173, or 5174 depending on environment
+    expect(['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174']).toContain(
       process.env.PUBLIC_SERVER_URL!
     );
   });
 
   it('should match CORS_ORIGIN with frontend', () => {
-    // CORS_ORIGIN can be either port 3000 or 5173 depending on environment
-    const frontendUrls = ['http://localhost:3000', 'http://localhost:5173'];
+    // CORS_ORIGIN can be either port 3000, 5173, or 5174 depending on environment
+    const frontendUrls = [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'http://localhost:5174',
+    ];
     expect(process.env.CORS_ORIGIN).toBeDefined();
     expect(frontendUrls).toContain(process.env.CORS_ORIGIN!);
   });
