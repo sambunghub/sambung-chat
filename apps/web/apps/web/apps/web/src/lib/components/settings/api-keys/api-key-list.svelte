@@ -1,16 +1,4 @@
-<script lang="ts">
-  import { Button } from '$lib/components/ui/button/index.js';
-  import {
-    Card,
-    CardContent,
-    CardHeader,
-  } from '$lib/components/ui/card/index.js';
-  import PlusIcon from '@lucide/svelte/icons/plus';
-  import KeyIcon from '@lucide/svelte/icons/key';
-  import ShieldIcon from '@lucide/svelte/icons/shield';
-  import ApiKeyCard from './api-key-card.svelte';
-  import { Skeleton } from '$lib/components/ui/skeleton/index.js';
-
+<script module lang="ts">
   /**
    * API Key data structure (same as card)
    */
@@ -23,6 +11,19 @@
     createdAt: Date | string;
     updatedAt: Date | string;
   }
+</script>
+
+<script lang="ts">
+  import { Button } from '$lib/components/ui/button/index.js';
+  import {
+    Card,
+    CardContent,
+  } from '$lib/components/ui/card/index.js';
+  import PlusIcon from '@lucide/svelte/icons/plus';
+  import KeyIcon from '@lucide/svelte/icons/key';
+  import ShieldIcon from '@lucide/svelte/icons/shield';
+  import ApiKeyCard from './api-key-card.svelte';
+  import type { ApiKeyData } from './api-key-list.svelte';
 
   /**
    * Props for the API key list component
@@ -32,6 +33,8 @@
     apiKeys: ApiKeyData[];
     /** Whether the list is currently loading */
     loading?: boolean;
+    /** Error message to display */
+    errorMessage?: string;
     /** Record of visible keys (id -> full key) */
     visibleKeys?: Record<string, string>;
     /** Callback when add button is clicked */
@@ -49,6 +52,7 @@
   let {
     apiKeys,
     loading = false,
+    errorMessage = '',
     visibleKeys = {},
     onadd,
     onedit,
@@ -74,27 +78,14 @@
     {/if}
   </div>
 
-  {#if loading}
-    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {#each Array(3) as _, i (i)}
-        <Card>
-          <CardHeader class="space-y-2">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <Skeleton class="size-8 rounded-full" />
-                <Skeleton class="h-5 w-32" />
-              </div>
-              <Skeleton class="size-8" />
-            </div>
-            <Skeleton class="h-4 w-24" />
-          </CardHeader>
-          <CardContent class="space-y-2">
-            <Skeleton class="h-8 w-full" />
-            <Skeleton class="h-4 w-48" />
-          </CardContent>
-        </Card>
-      {/each}
+  {#if errorMessage}
+    <div class="bg-destructive/10 border-destructive text-destructive rounded border p-3 text-sm">
+      {errorMessage}
     </div>
+  {/if}
+
+  {#if loading}
+    <div class="text-muted-foreground py-8 text-center">Loading API keys...</div>
   {:else if apiKeys.length === 0}
     <Card>
       <CardContent class="py-12">

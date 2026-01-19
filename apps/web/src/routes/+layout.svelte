@@ -2,6 +2,7 @@
   import { browser } from '$app/environment';
   import { onMount } from 'svelte';
   import { ModeWatcher } from 'mode-watcher';
+  import { Toaster } from 'svelte-sonner';
   import '../app.css';
 
   const { children } = $props();
@@ -21,3 +22,5 @@
 {/if}
 
 {@render children()}
+
+<Toaster richColors position="top-right" />

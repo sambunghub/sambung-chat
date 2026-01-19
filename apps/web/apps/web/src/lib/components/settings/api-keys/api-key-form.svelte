@@ -1,10 +1,30 @@
+<script module lang="ts">
+  // Provider options for API keys
+  export const providers = [
+    { value: 'openai', label: 'OpenAI' },
+    { value: 'anthropic', label: 'Anthropic' },
+    { value: 'google', label: 'Google' },
+    { value: 'groq', label: 'Groq' },
+    { value: 'ollama', label: 'Ollama' },
+    { value: 'openrouter', label: 'OpenRouter' },
+    { value: 'other', label: 'Other' },
+  ] as const;
+
+  // Form data structure for API key
+  export interface ApiKeyFormData {
+    provider: (typeof providers)[number]['value'];
+    name: string;
+    key: string;
+    isActive: boolean;
+  }
+</script>
+
 <script lang="ts">
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import CheckIcon from '@lucide/svelte/icons/check';
-  import type { ApiKeyFormData } from './types.js';
-  import { providers } from './types.js';
+  import type { ApiKeyFormData } from './api-key-form.svelte';
 
   // Props for the API key form component
   interface Props {
@@ -21,15 +41,15 @@
   }
 
   let {
-    data = $bindable(),
+    data,
     isEdit = false,
     submitting = false,
     onsubmit,
     oncancel,
   }: Props = $props();
 
-  // Local form state - use $derived to react to data changes
-  let formData = $state<ApiKeyFormData>({
+  // Local mutable state for form inputs
+  let localForm = $state<ApiKeyFormData>({
     provider: data.provider,
     name: data.name,
     key: data.key,
@@ -38,15 +58,15 @@
 
   // Update local state when data prop changes
   $effect(() => {
-    formData.provider = data.provider;
-    formData.name = data.name;
-    formData.key = data.key;
-    formData.isActive = data.isActive;
+    localForm.provider = data.provider;
+    localForm.name = data.name;
+    localForm.key = data.key;
+    localForm.isActive = data.isActive;
   });
 
   // Validate form data
   function validateForm(): boolean {
-    return Boolean(formData.name.trim() && (isEdit || formData.key.trim()));
+    return Boolean(localForm.name.trim() && (isEdit || localForm.key.trim()));
   }
 
   // Handle form submission
@@ -54,15 +74,10 @@
     if (!validateForm() || submitting) return;
 
     try {
-      await onsubmit(formData);
+      await onsubmit(localForm);
     } catch (error) {
       // Error is handled by parent component
     }
-  }
-
-  // Get provider label from value
-  function getProviderLabel(provider: string): string {
-    return providers.find((p) => p.value === provider)?.label || provider;
   }
 </script>
 
@@ -71,7 +86,7 @@
     <Label for={isEdit ? 'edit-provider' : 'provider'}>Provider</Label>
     <select
       id={isEdit ? 'edit-provider' : 'provider'}
-      bind:value={formData.provider}
+      bind:value={localForm.provider}
       disabled={submitting}
       class="border-input bg-background focus:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
     >
@@ -85,7 +100,7 @@
     <Label for={isEdit ? 'edit-name' : 'name'}>Name</Label>
     <Input
       id={isEdit ? 'edit-name' : 'name'}
-      bind:value={formData.name}
+      bind:value={localForm.name}
       placeholder="e.g., My OpenAI Key"
       required
       disabled={submitting}
@@ -98,7 +113,7 @@
     <Label for={isEdit ? 'edit-key' : 'key'}>API Key</Label>
     <Input
       id={isEdit ? 'edit-key' : 'key'}
-      bind:value={formData.key}
+      bind:value={localForm.key}
       placeholder={isEdit ? 'Leave empty to keep current key' : 'sk-...'}
       type="password"
       autocomplete="off"
@@ -118,7 +133,7 @@
       <input
         type="checkbox"
         id="edit-active"
-        bind:checked={formData.isActive}
+        bind:checked={localForm.isActive}
         disabled={submitting}
         class="border-input bg-background focus:ring-ring rounded border px-2 py-1 text-sm focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
       />

@@ -11,6 +11,7 @@
   import { Separator } from '$lib/components/ui/separator/index.js';
   import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
   import { ApiKeyForm, ApiKeyList, type ApiKeyFormData } from '$lib/components/settings/api-keys';
+  import { toast } from 'svelte-sonner';
 
   // Type assertion for apiKey router (temporary workaround until types are regenerated)
   const apiKeyClient = orpc as any & {
@@ -35,7 +36,6 @@
 
   let apiKeys = $state<ApiKey[]>([]);
   let loading = $state(false);
-  let errorMessage = $state('');
   let showAddDialog = $state(false);
   let showEditDialog = $state(false);
   let submitting = $state(false);
@@ -56,12 +56,17 @@
 
   async function loadApiKeys() {
     loading = true;
-    errorMessage = '';
     try {
       const result = await apiKeyClient.apiKey.getAll();
       apiKeys = result as ApiKey[];
     } catch (error) {
-      errorMessage = 'Failed to load API keys';
+      toast.error('Failed to load API keys', {
+        description: error instanceof Error ? error.message : 'Please try again later',
+        action: {
+          label: 'Retry',
+          onClick: () => loadApiKeys()
+        }
+      });
     } finally {
       loading = false;
     }
@@ -78,7 +83,6 @@
   }
 
   async function openEditDialog(id: string) {
-    errorMessage = '';
     submitting = true;
     try {
       const result = await apiKeyClient.apiKey.getById({ id });
@@ -91,25 +95,65 @@
       };
       showEditDialog = true;
     } catch (error) {
-      errorMessage = 'Failed to load API key details';
+      toast.error('Failed to load API key details', {
+        description: error instanceof Error ? error.message : 'Please try again',
+        action: {
+          label: 'Retry',
+          onClick: () => openEditDialog(id)
+        }
+      });
     } finally {
       submitting = false;
     }
   }
 
   async function handleCreate(data: ApiKeyFormData) {
-    errorMessage = '';
     submitting = true;
+
+    // Optimistic update: Create temporary key
+    const tempId = crypto.randomUUID();
+    const optimisticKey: ApiKey = {
+      id: tempId,
+      provider: data.provider,
+      name: data.name,
+      keyLast4: data.key.slice(-4),
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // Add optimistically to the list
+    const previousKeys = [...apiKeys];
+    apiKeys = [optimisticKey, ...apiKeys];
+    showAddDialog = false;
+
     try {
-      await apiKeyClient.apiKey.create({
+      const result = await apiKeyClient.apiKey.create({
         provider: data.provider,
         name: data.name,
         key: data.key,
       });
-      showAddDialog = false;
-      await loadApiKeys();
+
+      // Replace optimistic key with real key
+      apiKeys = apiKeys.map(key =>
+        key.id === tempId ? (result as ApiKey) : key
+      );
+
+      toast.success('API key created successfully', {
+        description: `"${data.name}" has been added to your keys`
+      });
     } catch (error) {
-      errorMessage = error instanceof Error ? error.message : 'Failed to create API key';
+      // Revert optimistic update on error
+      apiKeys = previousKeys;
+      showAddDialog = true;
+
+      toast.error('Failed to create API key', {
+        description: error instanceof Error ? error.message : 'Please try again',
+        action: {
+          label: 'Retry',
+          onClick: () => handleCreate(data)
+        }
+      });
     } finally {
       submitting = false;
     }
@@ -118,59 +162,113 @@
   async function handleUpdate(data: ApiKeyFormData) {
     if (!editingKey) return;
 
-    errorMessage = '';
     submitting = true;
+
+    // Store previous state for rollback
+    const previousKeys = [...apiKeys];
+    const editingKeyId = editingKey.id;
+
+    // Optimistic update: Update key in place
+    apiKeys = apiKeys.map(key =>
+      key.id === editingKeyId
+        ? {
+            ...key,
+            provider: data.provider,
+            name: data.name,
+            isActive: data.isActive,
+            updatedAt: new Date(),
+          }
+        : key
+    );
+    showEditDialog = false;
+
     try {
       await apiKeyClient.apiKey.update({
-        id: editingKey.id,
+        id: editingKeyId,
         provider: data.provider,
         name: data.name,
         key: data.key || undefined,
         isActive: data.isActive,
       });
-      showEditDialog = false;
-      editingKey = null;
-      await loadApiKeys();
+
+      toast.success('API key updated successfully', {
+        description: `"${data.name}" has been updated`
+      });
     } catch (error) {
-      errorMessage = error instanceof Error ? error.message : 'Failed to update API key';
+      // Revert optimistic update on error
+      apiKeys = previousKeys;
+      showEditDialog = true;
+
+      toast.error('Failed to update API key', {
+        description: error instanceof Error ? error.message : 'Please try again',
+        action: {
+          label: 'Retry',
+          onClick: () => handleUpdate(data)
+        }
+      });
     } finally {
       submitting = false;
     }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Are you sure you want to delete this API key? This action cannot be undone.')) {
+    const keyToDelete = apiKeys.find(k => k.id === id);
+
+    if (!confirm(`Are you sure you want to delete "${keyToDelete?.name}"? This action cannot be undone.`)) {
       return;
     }
 
-    errorMessage = '';
+    // Optimistic update: Remove key from list
+    const previousKeys = [...apiKeys];
+    apiKeys = apiKeys.filter(key => key.id !== id);
+
     try {
       await apiKeyClient.apiKey.delete({ id });
-      await loadApiKeys();
+
+      toast.success('API key deleted successfully', {
+        description: `"${keyToDelete?.name}" has been removed`
+      });
     } catch (error) {
-      errorMessage = 'Failed to delete API key';
+      // Revert optimistic update on error
+      apiKeys = previousKeys;
+
+      toast.error('Failed to delete API key', {
+        description: error instanceof Error ? error.message : 'Please try again',
+        action: {
+          label: 'Retry',
+          onClick: () => handleDelete(id)
+        }
+      });
     }
   }
 
   async function toggleKeyVisibility(id: string) {
     if (visibleKeys[id]) {
       delete visibleKeys[id];
+      visibleKeys = { ...visibleKeys };
     } else {
       try {
         const result = await apiKeyClient.apiKey.getById({ id });
         visibleKeys[id] = (result as any).key;
+        visibleKeys = { ...visibleKeys };
       } catch (error) {
-        errorMessage = 'Failed to retrieve API key';
+        toast.error('Failed to retrieve API key', {
+          description: error instanceof Error ? error.message : 'Please try again'
+        });
       }
     }
-    visibleKeys = { ...visibleKeys };
   }
 
   async function copyToClipboard(text: string) {
     try {
       await navigator.clipboard.writeText(text);
+      toast.success('Copied to clipboard', {
+        description: 'API key has been copied to your clipboard'
+      });
     } catch (error) {
-      errorMessage = 'Failed to copy to clipboard';
+      toast.error('Failed to copy to clipboard', {
+        description: 'Please check your browser permissions'
+      });
     }
   }
 </script>
@@ -267,7 +365,6 @@
       <ApiKeyList
         {apiKeys}
         {loading}
-        {errorMessage}
         {visibleKeys}
         onadd={openAddDialog}
         onedit={openEditDialog}

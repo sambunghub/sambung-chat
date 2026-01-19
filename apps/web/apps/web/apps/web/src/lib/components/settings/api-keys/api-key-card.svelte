@@ -1,3 +1,31 @@
+<script module lang="ts">
+  /**
+   * Provider options
+   */
+  export const providers = [
+    { value: 'openai', label: 'OpenAI' },
+    { value: 'anthropic', label: 'Anthropic' },
+    { value: 'google', label: 'Google' },
+    { value: 'groq', label: 'Groq' },
+    { value: 'ollama', label: 'Ollama' },
+    { value: 'openrouter', label: 'OpenRouter' },
+    { value: 'other', label: 'Other' },
+  ] as const;
+
+  /**
+   * API Key data structure
+   */
+  export interface ApiKeyData {
+    id: string;
+    provider: string;
+    name: string;
+    keyLast4: string;
+    isActive: boolean;
+    createdAt: Date | string;
+    updatedAt: Date | string;
+  }
+</script>
+
 <script lang="ts">
   import {
     Card,
@@ -13,20 +41,7 @@
   import EyeIcon from '@lucide/svelte/icons/eye';
   import EyeOffIcon from '@lucide/svelte/icons/eye-off';
   import CopyIcon from '@lucide/svelte/icons/copy';
-  import { providers } from './types.js';
-
-  /**
-   * API Key data structure
-   */
-  export interface ApiKeyData {
-    id: string;
-    provider: string;
-    name: string;
-    keyLast4: string;
-    isActive: boolean;
-    createdAt: Date | string;
-    updatedAt: Date | string;
-  }
+  import type { ApiKeyData } from './api-key-card.svelte';
 
   /**
    * Props for the API key card component
