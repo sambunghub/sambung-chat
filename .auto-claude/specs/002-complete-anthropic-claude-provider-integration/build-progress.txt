@@ -155,7 +155,7 @@ Request → /ai → Authentication → Get User's Active Model
 
 - ✅ Subtask 2.1: Create provider factory/registry (COMPLETED)
 - ✅ Subtask 2.2: Add Anthropic provider to AI endpoint (COMPLETED)
-- ⏳ Subtask 2.3: Implement model selection logic (NEXT)
+- ✅ Subtask 2.3: Implement model selection logic (COMPLETED - 2025-01-19)
 
 ---
 

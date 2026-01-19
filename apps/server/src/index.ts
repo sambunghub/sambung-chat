@@ -278,6 +278,13 @@ app.post('/ai', async (c) => {
           {
             error: 'Model not found',
             details: 'The configured model was not found. Please check your model settings.',
+            availableModels: [
+              'claude-3-5-sonnet-20241022',
+              'claude-3-5-haiku-20241022',
+              'claude-3-opus-20240229',
+              'claude-3-sonnet-20240229',
+              'claude-3-haiku-20240307',
+            ],
           },
           404
         );
@@ -295,6 +302,7 @@ app.post('/ai', async (c) => {
           {
             error: 'Message too long',
             details: 'The conversation exceeds the model context limit. Please start a new chat.',
+            maxTokens: 200000, // Claude 3.5 Sonnet context window
           },
           400
         );
@@ -305,7 +313,7 @@ app.post('/ai', async (c) => {
         return c.json(
           {
             error: 'Content policy violation',
-            details: 'The request content was flagged by content filters. Please modify your message.',
+            details: 'The request content was flagged by Anthropic content filters. Please modify your message and try again.',
           },
           400
         );
@@ -330,8 +338,14 @@ app.post('/ai', async (c) => {
     // Generic error response
     return c.json(
       {
-        error: 'Failed to process AI request',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        error: 'Internal server error',
+        details: 'An error occurred while processing your request. Please try again.',
+        troubleshooting: [
+          'Check your API key configuration in Settings',
+          'Verify your network connection',
+          'Try selecting a different model',
+          'Contact support if the issue persists',
+        ],
       },
       500
     );
