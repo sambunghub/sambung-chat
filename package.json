@@ -17,6 +17,7 @@
       "better-auth": "^1.4.9",
       "ai": "^6.0.3",
       "@ai-sdk/openai-compatible": "^2.0.3",
+      "@ai-sdk/anthropic": "^3.0.15",
       "@orpc/client": "^1.12.2",
       "drizzle-orm": "^0.45.1",
       "@types/pg": "^8.15.6",
@@ -69,6 +70,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2.0.4",
+    "@ai-sdk/anthropic": "^3.0.15",
     "@sambung-chat/env": "workspace:*",
     "dotenv": "catalog:",
     "zod": "catalog:"
