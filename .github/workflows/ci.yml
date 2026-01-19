@@ -132,6 +132,14 @@ jobs:
 
       - name: Run unit tests
         run: bun run test:unit
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+          BETTER_AUTH_SECRET: test-secret-minimum-32-characters-long
+          BETTER_AUTH_URL: http://localhost:3000
+          BETTER_AUTH_CLIENT_ID: test-client-id
+          CORS_ORIGIN: http://localhost:5174
+          PUBLIC_SERVER_URL: http://localhost:3000
+          PUBLIC_API_URL: http://localhost:3000
 
   # E2E tests
   test-e2e:
