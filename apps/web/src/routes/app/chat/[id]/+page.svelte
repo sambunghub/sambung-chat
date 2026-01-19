@@ -18,12 +18,15 @@
   import AlignLeftIcon from '@lucide/svelte/icons/align-left';
   import ClockIcon from '@lucide/svelte/icons/clock';
   import TokenDisplay from '$lib/components/token-display.svelte';
+  import ErrorDisplay from '$lib/components/error-display.svelte';
 
   // Use PUBLIC_URL for AI endpoint (backend)
   const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:3000';
 
   let input = $state('');
   let errorMessage = $state('');
+  let errorCode = $state<string | undefined>(undefined);
+  let errorType: 'error' | 'warning' | 'info' = $state('error');
   let isRetrying = $state(false);
   let retryCount = $state(0);
   let abortController = $state<AbortController | null>(null);
@@ -123,12 +126,84 @@
     }
   });
 
-  // Clear error when not streaming
+  // Clear error when not streaming and when user starts typing
   $effect(() => {
-    if (chat.messages.length > 0 && !isStreaming()) {
-      errorMessage = '';
+    if (chat.messages.length > 0 && !isStreaming() && input.length > 0) {
+      clearError();
     }
   });
+
+  // Helper function to clear error state
+  function clearError() {
+    errorMessage = '';
+    errorCode = undefined;
+    errorType = 'error';
+  }
+
+  // Helper function to categorize errors
+  function categorizeError(errorMsg: string, errorObj?: Error & { code?: string }): {
+    code: string | undefined;
+    type: 'error' | 'warning' | 'info';
+    message: string;
+  } {
+    const msg = errorMsg.toLowerCase();
+
+    // Check for error code first
+    if (errorObj?.code) {
+      switch (errorObj.code) {
+        case 'TOO_MANY_REQUESTS':
+          return { code: errorObj.code, type: 'warning', message: errorMsg };
+        case 'UNAUTHORIZED':
+          return { code: errorObj.code, type: 'error', message: errorMsg };
+        case 'NOT_FOUND':
+          return { code: errorObj.code, type: 'error', message: errorMsg };
+        case 'SERVICE_UNAVAILABLE':
+          return { code: errorObj.code, type: 'warning', message: errorMsg };
+        default:
+          return { code: errorObj.code, type: 'error', message: errorMsg };
+      }
+    }
+
+    // Categorize based on message content
+    if (msg.includes('rate limit') || msg.includes('429') || msg.includes('quota')) {
+      return { code: 'TOO_MANY_REQUESTS', type: 'warning', message: errorMsg };
+    }
+    if (
+      msg.includes('api key') ||
+      msg.includes('unauthorized') ||
+      msg.includes('401') ||
+      msg.includes('authentication')
+    ) {
+      return { code: 'UNAUTHORIZED', type: 'error', message: errorMsg };
+    }
+    if (
+      msg.includes('not found') ||
+      msg.includes('404') ||
+      msg.includes('model') &&
+      (msg.includes('not available') || msg.includes('does not exist'))
+    ) {
+      return { code: 'NOT_FOUND', type: 'error', message: errorMsg };
+    }
+    if (
+      msg.includes('context') ||
+      msg.includes('too long') ||
+      msg.includes('maximum') &&
+      msg.includes('length')
+    ) {
+      return { code: 'BAD_REQUEST', type: 'warning', message: errorMsg };
+    }
+    if (
+      msg.includes('network') ||
+      msg.includes('connection') ||
+      msg.includes('timeout') ||
+      msg.includes('fetch')
+    ) {
+      return { code: 'SERVICE_UNAVAILABLE', type: 'warning', message: errorMsg };
+    }
+
+    // Default error
+    return { code: 'INTERNAL_SERVER_ERROR', type: 'error', message: errorMsg };
+  }
 
   // Track tokens during streaming
   $effect(() => {
@@ -211,7 +286,11 @@
       }
     } catch (err) {
       console.error('Failed to load chat:', err);
-      errorMessage = 'Failed to load chat';
+      const errorObj = err instanceof Error ? err : new Error('Failed to load chat');
+      const categorized = categorizeError('Failed to load chat. Please try refreshing the page.', errorObj as any);
+      errorMessage = categorized.message;
+      errorCode = categorized.code;
+      errorType = categorized.type;
     } finally {
       loading = false;
     }
@@ -226,7 +305,7 @@
     const text = input.trim();
     if (!text || isRetrying || isStreamingResponse || isSubmitting) return;
 
-    errorMessage = '';
+    clearError();
     retryCount = 0;
     wasStopped = false;
     stoppedMessageId = null;
@@ -306,6 +385,8 @@
 
       if (errorObj.name === 'AbortError') {
         errorMessage = wasStopped ? 'Generation was stopped' : 'Request was interrupted';
+        errorCode = undefined;
+        errorType = 'info';
       } else if (
         errorObj.message.includes('ERR_INCOMPLETE_CHUNKED_ENCODING') ||
         errorObj.message.includes('chunked') ||
@@ -313,9 +394,15 @@
         errorObj.message.includes('fetch') ||
         errorObj.message.includes('No assistant response')
       ) {
-        errorMessage = 'Connection interrupted. Please try again.';
+        const categorized = categorizeError('Connection interrupted. Please try again.', errorObj);
+        errorMessage = categorized.message;
+        errorCode = categorized.code;
+        errorType = categorized.type;
       } else {
-        errorMessage = errorObj.message;
+        const categorized = categorizeError(errorObj.message, errorObj as any);
+        errorMessage = categorized.message;
+        errorCode = categorized.code;
+        errorType = categorized.type;
       }
 
       // Retry logic with save to database after success
@@ -418,7 +505,7 @@
       chat.messages.pop();
     }
 
-    errorMessage = '';
+    clearError();
     isStreamingResponse = true;
     abortController = new AbortController();
 
@@ -430,11 +517,42 @@
       await chat.sendMessage({ text: content });
     } catch (error) {
       console.error('Failed to regenerate:', error);
-      errorMessage = 'Failed to regenerate response';
+      const errorObj = error instanceof Error ? error : new Error('Failed to regenerate response');
+      const categorized = categorizeError(errorObj.message, errorObj as any);
+      errorMessage = categorized.message;
+      errorCode = categorized.code;
+      errorType = categorized.type;
     } finally {
       isStreamingResponse = false;
       abortController = null;
     }
+  }
+
+  // Handle retry action from error display
+  function handleRetry() {
+    if (!input.trim() && chat.messages.length > 0) {
+      // If no input, retry the last user message
+      const lastUserMessage = [...chat.messages].reverse().find((m) => m.role === 'user');
+      if (lastUserMessage) {
+        _handleRegenerate();
+      }
+    } else {
+      // Otherwise, submit the current input
+      handleSubmit(new Event('submit'));
+    }
+  }
+
+  // Handle settings action from error display
+  function handleSettings() {
+    // Navigate to settings or open settings modal
+    // For now, just clear the error
+    // TODO: Implement proper navigation to settings
+    clearError();
+  }
+
+  // Handle dismiss action from error display
+  function handleDismiss() {
+    clearError();
   }
 
   async function handleExport(format: 'json' | 'md' | 'txt') {
@@ -608,10 +726,14 @@
 
     {#if errorMessage}
       <div class="mx-auto mt-4 max-w-3xl">
-        <div class="bg-destructive/10 border-destructive text-destructive rounded-lg border p-4">
-          <p class="text-sm font-medium">Error</p>
-          <p class="text-sm">{errorMessage}</p>
-        </div>
+        <ErrorDisplay
+          message={errorMessage}
+          code={errorCode}
+          type={errorType}
+          onRetry={handleRetry}
+          onSettings={handleSettings}
+          onDismiss={handleDismiss}
+        />
       </div>
     {/if}
   </div>
