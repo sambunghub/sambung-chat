@@ -422,6 +422,11 @@
               <ClockIcon class="size-3" />
               {chatStats().lastActivity || 'N/A'}
             </span>
+            {#if chatData.modelId}
+              <span class="text-muted-foreground flex items-center gap-1">
+                <span class="font-masonic text-xs">{chatData.modelId}</span>
+              </span>
+            {/if}
           </p>
         {/if}
       </div>

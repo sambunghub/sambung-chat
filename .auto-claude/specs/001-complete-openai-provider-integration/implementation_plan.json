@@ -2,7 +2,7 @@
   "feature": "Complete OpenAI Provider Integration",
   "description": "# Complete OpenAI Provider Integration\n\nImplement full OpenAI provider integration with support for GPT-4, GPT-4 Turbo, GPT-3.5 Turbo, and other OpenAI models. Includes proper error handling, streaming support, and configuration options.\n\n## Rationale\nOpenAI is the most widely used AI provider and essential for any multi-model platform. Completing this integration allows users to access GPT models through SambungChat, reducing interface fragmentation and vendor lock-in (addresses pain-5-1: interface fragmentation across proprietary platforms).\n\n## User Stories\n- As a developer, I want to use GPT-4 through SambungChat so that I don't have to switch to ChatGPT's interface\n- As a privacy-conscious user, I want my OpenAI conversations stored locally so that I have full data ownership\n- As a researcher, I want to compare GPT-4 outputs with other models in a single interface\n\n## Acceptance Criteria\n- [ ] Users can select OpenAI models from the model selector dropdown\n- [ ] GPT-4, GPT-4 Turbo, and GPT-3.5 Turbo models are available\n- [ ] Streaming responses work correctly with real-time token delivery\n- [ ] Error messages are clear and actionable (rate limits, invalid API keys, etc.)\n- [ ] Chat history is properly saved for OpenAI conversations\n- [ ] API key authentication works with encrypted storage\n",
   "created_at": "2026-01-19T04:35:53.632Z",
-  "updated_at": "2026-01-19T05:10:27.976Z",
+  "updated_at": "2026-01-19T05:18:02.233Z",
   "status": "in_progress",
   "phases": [
     {
@@ -101,12 +101,12 @@
     {
       "id": "phase-3",
       "title": "Frontend Integration",
-      "status": "pending",
+      "status": "in_progress",
       "subtasks": [
         {
           "id": "3.1",
           "title": "Add OpenAI to model selector",
-          "status": "pending",
+          "status": "completed",
           "description": "Update model selector dropdown to include OpenAI models",
           "estimatedMinutes": 20,
           "dependencies": [

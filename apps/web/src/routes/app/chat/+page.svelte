@@ -7,6 +7,7 @@
   import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
   import { orpc } from '$lib/orpc';
   import { goto } from '$app/navigation';
+  import ModelSelector from '$lib/components/model-selector.svelte';
 
   // Use PUBLIC_URL for AI endpoint (backend)
   const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:3000';
@@ -33,6 +34,9 @@
   let stoppedMessageContent = $state<string | null>(null);
   let isSubmitting = $state(false);
   let currentChatId = $state<string | null>(null);
+  let selectedModel:
+    | { id: string; provider: string; modelId: string; name: string; isActive: boolean }
+    | undefined = $state(undefined);
   const MAX_RETRIES = 3;
 
   const chat = new Chat({
@@ -96,9 +100,10 @@
     try {
       // Create chat if doesn't exist
       if (!currentChatId) {
+        const modelId = selectedModel?.modelId || selectedModel?.id || 'gpt-4o-mini';
         const newChat = await orpc.chat.create({
           title: messageToSend.slice(0, 50) + (messageToSend.length > 50 ? '...' : ''),
-          modelId: 'gpt-4',
+          modelId: modelId,
         });
         currentChatId = newChat.id;
       }
@@ -221,7 +226,7 @@
   }
 </script>
 
-<header class="bg-background sticky top-0 z-10 flex shrink-0 items-center gap-2 border-b p-4">
+<header class="bg-background sticky top-0 z-10 flex shrink-0 items-center justify-between gap-2 border-b p-4">
   <Breadcrumb.Root>
     <Breadcrumb.List>
       <Breadcrumb.Item>
@@ -229,6 +234,15 @@
       </Breadcrumb.Item>
     </Breadcrumb.List>
   </Breadcrumb.Root>
+
+  <div class="flex items-center gap-2">
+    <ModelSelector
+      onSelectModel={(model) => {
+        selectedModel = model;
+      }}
+      selectedModelId={selectedModel?.id}
+    />
+  </div>
 </header>
 
 <div class="flex h-[calc(100vh-61px)] flex-col">
