@@ -1,4 +1,4 @@
-import { anthropic } from '@ai-sdk/anthropic';
+import { createAnthropic } from '@ai-sdk/anthropic';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { wrapLanguageModel } from 'ai';
 import { devToolsMiddleware } from '@ai-sdk/devtools';
@@ -56,11 +56,14 @@ function createAnthropicProvider(config: ProviderConfig): LanguageModel {
 		throw new Error('Anthropic API key is required. Set ANTHROPIC_API_KEY environment variable or provide apiKey in config.');
 	}
 
-	// Create Anthropic model instance
-	const model = anthropic(config.modelId, {
+	// Create Anthropic provider instance with custom settings
+	const anthropicProvider = createAnthropic({
 		apiKey,
 		baseURL: config.baseURL || env.ANTHROPIC_BASE_URL,
 	});
+
+	// Create the model from the provider
+	const model = anthropicProvider(config.modelId);
 
 	return wrapLanguageModel({
 		model,

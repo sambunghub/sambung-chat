@@ -130,6 +130,7 @@
   "stack_commands": [
     "bun",
     "bunx",
+    "composer",
     "createdb",
     "createuser",
     "dive",
@@ -141,18 +142,29 @@
     "dropuser",
     "eslint",
     "initdb",
+    "ipython",
+    "jupyter",
     "node",
+    "notebook",
     "npm",
     "npx",
+    "pdb",
     "pg_ctl",
     "pg_dump",
     "pg_dumpall",
     "pg_isready",
     "pg_restore",
+    "php",
+    "pip",
+    "pip3",
+    "pipx",
     "playwright",
     "postgres",
     "prettier",
     "psql",
+    "pudb",
+    "python",
+    "python3",
     "ts-node",
     "tsc",
     "tsx",
@@ -169,8 +181,10 @@
   "custom_commands": [],
   "detected_stack": {
     "languages": [
+      "python",
       "javascript",
-      "typescript"
+      "typescript",
+      "php"
     ],
     "package_managers": [
       "bun"
@@ -240,6 +254,6 @@
     ]
   },
   "project_dir": "/Users/mis-puragroup/development/riset-ai/sambung-chat/.auto-claude/worktrees/tasks/002-complete-anthropic-claude-provider-integration",
-  "created_at": "2026-01-19T13:12:20.958303",
-  "project_hash": "378527c473158e197784e520ef47a82b"
+  "created_at": "2026-01-19T13:23:39.099079",
+  "project_hash": "de2bdba082d834f9735fe2c8322b509c"
 }
