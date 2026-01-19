@@ -89,7 +89,7 @@
         {
           "id": "2.4",
           "title": "Add chat history persistence",
-          "status": "pending",
+          "status": "completed",
           "description": "Ensure OpenAI conversations are properly saved to database",
           "estimatedMinutes": 25,
           "dependencies": [
