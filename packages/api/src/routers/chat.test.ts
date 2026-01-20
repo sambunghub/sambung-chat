@@ -31,7 +31,7 @@ const PERFORMANCE_THRESHOLDS = {
 
 describe('Chat Search Performance Tests', () => {
   let testUserId: string;
-  let testModelIds: string[] = [];
+  const testModelIds: string[] = [];
   let createdChatIds: string[] = [];
 
   beforeAll(async () => {
