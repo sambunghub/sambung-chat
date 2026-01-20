@@ -1,7 +1,7 @@
 {
   "active": true,
   "spec": "014-remove-verbose-logging-of-sensitive-session-and-au",
-  "state": "building",
+  "state": "complete",
   "subtasks": {
     "completed": 0,
     "total": 0,
@@ -18,8 +18,8 @@
     "max": 1
   },
   "session": {
-    "number": 12,
+    "number": 14,
     "started_at": "2026-01-20T12:53:59.378492"
   },
-  "last_update": "2026-01-20T13:13:59.373944"
+  "last_update": "2026-01-20T13:28:06.364578"
 }
