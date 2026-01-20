@@ -2,7 +2,6 @@ import { createAnthropic } from '@ai-sdk/anthropic';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { wrapLanguageModel } from 'ai';
 import { devToolsMiddleware } from '@ai-sdk/devtools';
-import { env } from '@sambung-chat/env/server';
 
 // Type for the language model (inferred from AI SDK)
 type LanguageModel = ReturnType<typeof wrapLanguageModel>;
@@ -78,7 +77,7 @@ export function sanitizeBaseURL(baseURL: string | undefined): string | undefined
 export interface ProviderConfig {
   provider: AIProvider;
   modelId: string;
-  apiKey?: string;
+  apiKey: string;
   baseURL?: string;
 }
 
@@ -91,11 +90,8 @@ export interface ProviderConfig {
 function createOpenAIProvider(config: ProviderConfig): LanguageModel {
   const openai = createOpenAICompatible({
     name: config.provider === 'custom' ? 'custom' : config.provider,
-    baseURL:
-      sanitizeBaseURL(config.baseURL) ||
-      sanitizeBaseURL(env.OPENAI_BASE_URL) ||
-      'https://api.openai.com/v1',
-    apiKey: config.apiKey || env.OPENAI_API_KEY || '',
+    baseURL: sanitizeBaseURL(config.baseURL) || 'https://api.openai.com/v1',
+    apiKey: config.apiKey,
   });
 
   const model = openai(config.modelId);
@@ -113,18 +109,10 @@ function createOpenAIProvider(config: ProviderConfig): LanguageModel {
  * @returns Wrapped language model with dev tools middleware
  */
 function createAnthropicProvider(config: ProviderConfig): LanguageModel {
-  const apiKey = config.apiKey || env.ANTHROPIC_API_KEY;
-
-  if (!apiKey) {
-    throw new Error(
-      'Anthropic API key is required. Set ANTHROPIC_API_KEY environment variable or provide apiKey in config.'
-    );
-  }
-
   // Create Anthropic provider instance with custom settings
   const anthropicProvider = createAnthropic({
-    apiKey,
-    baseURL: sanitizeBaseURL(config.baseURL) || sanitizeBaseURL(env.ANTHROPIC_BASE_URL),
+    apiKey: config.apiKey,
+    baseURL: sanitizeBaseURL(config.baseURL) || 'https://api.anthropic.com',
   });
 
   // Create the model from the provider
@@ -150,16 +138,8 @@ function createGoogleProvider(config: ProviderConfig): LanguageModel {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { google } = require('@ai-sdk/google');
 
-    const apiKey = config.apiKey || env.GOOGLE_GENERATIVE_AI_API_KEY || env.GOOGLE_API_KEY;
-
-    if (!apiKey) {
-      throw new Error(
-        'Google API key is required. Set GOOGLE_GENERATIVE_AI_API_KEY environment variable or provide apiKey in config.'
-      );
-    }
-
     const model = google(config.modelId, {
-      apiKey,
+      apiKey: config.apiKey,
     });
 
     return wrapLanguageModel({
@@ -185,11 +165,8 @@ function createGoogleProvider(config: ProviderConfig): LanguageModel {
 function createGroqProvider(config: ProviderConfig): LanguageModel {
   const groq = createOpenAICompatible({
     name: 'groq',
-    baseURL:
-      sanitizeBaseURL(config.baseURL) ||
-      sanitizeBaseURL(env.GROQ_BASE_URL) ||
-      'https://api.groq.com/openai/v1',
-    apiKey: config.apiKey || env.GROQ_API_KEY || '',
+    baseURL: sanitizeBaseURL(config.baseURL) || 'https://api.groq.com/openai/v1',
+    apiKey: config.apiKey,
   });
 
   const model = groq(config.modelId);
@@ -209,10 +186,7 @@ function createGroqProvider(config: ProviderConfig): LanguageModel {
 function createOllamaProvider(config: ProviderConfig): LanguageModel {
   const ollama = createOpenAICompatible({
     name: 'ollama',
-    baseURL:
-      sanitizeBaseURL(config.baseURL) ||
-      sanitizeBaseURL(env.OLLAMA_BASE_URL) ||
-      'http://localhost:11434/v1',
+    baseURL: sanitizeBaseURL(config.baseURL) || 'http://localhost:11434/v1',
     apiKey: config.apiKey || 'ollama', // Ollama doesn't require API key, but library expects one
   });
 
@@ -296,53 +270,4 @@ export function createAIProvider(config: ProviderConfig): LanguageModel {
       throw new Error(`Unsupported provider: ${_exhaustive}`);
     }
   }
-}
-
-/**
- * Validates if a provider has the required configuration
- *
- * @param provider - Provider type to validate
- * @returns True if provider has required API key or configuration
- */
-export function isProviderConfigured(provider: AIProvider): boolean {
-  switch (provider) {
-    case 'openai':
-      return !!env.OPENAI_API_KEY;
-
-    case 'anthropic':
-      return !!env.ANTHROPIC_API_KEY;
-
-    case 'google':
-      return !!(env.GOOGLE_GENERATIVE_AI_API_KEY || env.GOOGLE_API_KEY);
-
-    case 'groq':
-      return !!env.GROQ_API_KEY;
-
-    case 'ollama':
-      return true; // Ollama doesn't require API key
-
-    case 'openrouter':
-      // OpenRouter API key should be provided via model config
-      return true;
-
-    case 'custom':
-      return true; // Custom provider may use stored API keys
-
-    default: {
-      // TypeScript exhaustiveness check
-      const _exhaustive: never = provider;
-      throw new Error(`Unsupported provider: ${_exhaustive}`);
-    }
-  }
-}
-
-/**
- * Gets all configured providers
- *
- * @returns Array of provider types that have valid configuration
- */
-export function getConfiguredProviders(): AIProvider[] {
-  const providers: AIProvider[] = ['openai', 'anthropic', 'google', 'groq', 'ollama', 'custom'];
-
-  return providers.filter((provider) => isProviderConfigured(provider));
 }

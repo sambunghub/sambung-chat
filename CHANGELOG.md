@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.11] - 2026-01-20
+
+### Changed
+
+- **Environment-based Configuration Removed**: AI provider configuration is now exclusively managed through the web UI ([.env.example](.env.example:140-165), [packages/env/src/server.ts](packages/env/src/server.ts:71-80))
+  - Removed all AI provider API key environment variables (OPENAI_API_KEY, ANTHROPIC_API_KEY, etc.)
+  - Removed model ID environment variables (OPENAI_MODEL, ANTHROPIC_MODEL, etc.)
+  - Removed AI_PROVIDER and AI_MODEL environment variables
+  - Users must now configure models via Settings → Models in the web UI
+  - API keys are stored securely in the database with AES-256-GCM encryption
+
+- **API Keys Now Required**: Models must have an associated API key from the database ([packages/api/src/lib/ai-provider-factory.ts](packages/api/src/lib/ai-provider-factory.ts:77-82))
+  - Exception: Ollama provider doesn't require an API key (uses local inference)
+  - Clearer error messages when API key is missing from model configuration
+
+- **Improved Error Messages**: Better user guidance when configuration is incomplete ([apps/server/src/index.ts](apps/server/src/index.ts:210-221), [packages/api/src/routers/ai.ts](packages/api/src/routers/ai.ts:148-158))
+  - "No active model configured" - directs users to Settings → Models
+  - "Model is missing an API key" - instructs users to add API Key in Settings
+
+### Removed
+
+- **isProviderConfigured() function**: No longer needed since providers are configured via UI ([packages/api/src/lib/ai-provider-factory.ts](packages/api/src/lib/ai-provider-factory.ts))
+- **getConfiguredProviders() function**: No longer needed since providers are configured via UI ([packages/api/src/lib/ai-provider-factory.ts](packages/api/src/lib/ai-provider-factory.ts))
+- **validateAIProviders() function**: Environment validation removed since all config is in database ([packages/env/src/server.ts](packages/env/src/server.ts:122-123))
+
+### Security
+
+- **Enhanced Security**: Removing environment-based API keys reduces risk of credential exposure
+  - API keys are now encrypted at rest in the database
+  - No API keys in environment variables or configuration files
+  - Each user can manage their own API keys through the UI
+
+---
+
 ## [0.0.10] - 2026-01-20
 
 ### Fixed

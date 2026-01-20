@@ -205,57 +205,76 @@ app.post('/ai', async (c) => {
       .from(models)
       .where(and(eq(models.userId, userId), eq(models.isActive, true)));
 
-    let providerConfig: ProviderConfig;
+    const providerConfig: ProviderConfig = {} as ProviderConfig;
 
     if (activeModels.length === 0) {
-      // No active model set, use default OpenAI configuration
-      console.log('[AI] No active model found, using default OpenAI');
-      providerConfig = {
-        provider: 'openai' as const,
-        modelId: env.OPENAI_MODEL ?? 'gpt-4o-mini',
-      };
-    } else {
-      // Use user's active model
-      const activeModel = activeModels[0]!;
-      console.log(
-        '[AI] Using active model:',
-        activeModel.provider,
-        activeModel.modelId,
-        activeModel.name
+      // No active model set - user needs to configure a model via Settings
+      console.log('[AI] No active model found');
+      return c.json(
+        {
+          error: 'No active model configured',
+          details:
+            'Please configure and activate an AI model in Settings → Models. ' +
+            'You need to add an API Key first, then create a Model and set it as Active.',
+        },
+        400
       );
-
-      // Build provider config with decrypted API key
-      const config: ProviderConfig = {
-        provider: activeModel.provider as
-          | 'openai'
-          | 'anthropic'
-          | 'google'
-          | 'groq'
-          | 'ollama'
-          | 'custom',
-        modelId: activeModel.modelId,
-        baseURL: activeModel.baseUrl ?? undefined,
-      };
-
-      // Add decrypted API key if available
-      if (activeModel.apiKeyId) {
-        try {
-          config.apiKey = await getDecryptedApiKey(activeModel.apiKeyId);
-          console.log('[AI] API key loaded from database');
-        } catch (error) {
-          console.error('[AI] Failed to load API key:', error);
-          return c.json(
-            {
-              error: 'Configuration error',
-              details: 'Failed to decrypt API key. Please reconfigure your model.',
-            },
-            500
-          );
-        }
-      }
-
-      providerConfig = config;
     }
+
+    // Use user's active model
+    const activeModel = activeModels[0]!;
+    console.log(
+      '[AI] Using active model:',
+      activeModel.provider,
+      activeModel.modelId,
+      activeModel.name
+    );
+
+    // Build provider config with decrypted API key
+    const config: ProviderConfig = {
+      provider: activeModel.provider as
+        | 'openai'
+        | 'anthropic'
+        | 'google'
+        | 'groq'
+        | 'ollama'
+        | 'openrouter'
+        | 'custom',
+      modelId: activeModel.modelId,
+      apiKey: '', // Will be set from API key below
+      baseURL: activeModel.baseUrl ?? undefined,
+    };
+
+    // Get decrypted API key - this is now required
+    if (activeModel.apiKeyId) {
+      try {
+        config.apiKey = await getDecryptedApiKey(activeModel.apiKeyId);
+        console.log('[AI] API key loaded from database');
+      } catch (error) {
+        console.error('[AI] Failed to load API key:', error);
+        return c.json(
+          {
+            error: 'Configuration error',
+            details: 'Failed to decrypt API key. Please reconfigure your model.',
+          },
+          500
+        );
+      }
+    } else if (activeModel.provider !== 'ollama') {
+      // Ollama doesn't require API key, but other providers do
+      return c.json(
+        {
+          error: 'Configuration error',
+          details: `Model "${activeModel.name}" is missing an API key. Please add an API Key in Settings and assign it to this model.`,
+        },
+        400
+      );
+    } else {
+      config.apiKey = 'ollama'; // Placeholder for Ollama
+    }
+
+    // Assign to providerConfig
+    Object.assign(providerConfig, config);
 
     // Validate request parameters based on provider
     if (providerConfig.provider === 'anthropic') {

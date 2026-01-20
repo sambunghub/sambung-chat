@@ -80,6 +80,9 @@ services:
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5174,http://localhost:3000}
       EMAIL_PASSWORD_ENABLED: ${EMAIL_PASSWORD_ENABLED:-true}
 
+      # Encryption Key (for API key encryption)
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+
       # Keycloak (optional)
       KEYCLOAK_URL: ${KEYCLOAK_URL}
       KEYCLOAK_REALM: ${KEYCLOAK_REALM}

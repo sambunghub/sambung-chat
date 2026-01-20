@@ -142,15 +142,19 @@ async function getModelConfig(modelId: string, userId: string): Promise<Provider
   const config: ProviderConfig = {
     provider: model.provider as any,
     modelId: model.modelId,
+    apiKey: '', // Will be set below
   };
 
-  // Add API key if available
+  // API key is now required (except for Ollama)
   if (model.apiKeyId) {
     config.apiKey = await getDecryptedApiKey(model.apiKeyId);
+  } else if (model.provider !== 'ollama') {
+    // Ollama doesn't require API key, but other providers do
+    throw new ORPCError('BAD_REQUEST', {
+      message: `Model "${model.name}" is missing an API key. Please add an API Key in Settings and assign it to this model.`,
+    });
   } else {
-    // If no API key ID is provided, we'll rely on environment variables
-    // This is useful for development or when using server-side API keys
-    config.apiKey = process.env.OPENAI_API_KEY;
+    config.apiKey = 'ollama'; // Placeholder for Ollama
   }
 
   // Add custom base URL if specified
