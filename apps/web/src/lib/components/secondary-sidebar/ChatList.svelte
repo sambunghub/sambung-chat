@@ -8,6 +8,11 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { autofocus } from '$lib/actions/autofocus.js';
+  import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
+  import DownloadIcon from '@lucide/svelte/icons/download';
+  import FileJsonIcon from '@lucide/svelte/icons/file-json';
+  import CodeIcon from '@lucide/svelte/icons/code';
+  import PackageIcon from '@lucide/svelte/icons/package';
   import PlusIcon from '@lucide/svelte/icons/plus';
   import PanelLeftCloseIcon from '@lucide/svelte/icons/panel-left-close';
   import FolderIcon from '@lucide/svelte/icons/folder';
@@ -56,6 +61,10 @@
   // Folder rename state
   let renamingFolderId = $state<string | null>(null);
   let folderRenameValue = $state('');
+
+  // Export state
+  let exporting = $state(false);
+  let exportFormat = $state<'json' | 'md' | 'zip' | null>(null);
 
   // Computed - filtered chats (API handles filtering, just return chats)
   let filteredChats = $derived(() => chats);
@@ -353,6 +362,27 @@
       alert('Failed to delete folder. Please try again.');
     }
   }
+
+  // Handle export all chats
+  async function handleExportAll(format: 'json' | 'md' | 'zip') {
+    if (exporting) return;
+
+    exporting = true;
+    exportFormat = format;
+
+    try {
+      // Placeholder for subtask 3.2 implementation
+      // TODO: Fetch all chats with messages via orpc.chat.getChatsByFolder()
+      // TODO: Call exportAllChats() with appropriate format
+      console.log(`Export all chats as ${format}`);
+    } catch (err) {
+      console.error('Failed to export chats:', err);
+      alert('Failed to export chats. Please try again.');
+    } finally {
+      exporting = false;
+      exportFormat = null;
+    }
+  }
 </script>
 
 <div class="flex h-full flex-col">
@@ -372,6 +402,38 @@
             <PanelLeftCloseIcon class="size-4" />
           </Button>
         {/if}
+        <DropdownMenu.DropdownMenu>
+          <DropdownMenu.DropdownMenuTrigger
+            class="bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-8 items-center justify-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors"
+            disabled={exporting}
+            title="Export all chats"
+          >
+            <DownloadIcon class="size-4" />
+          </DropdownMenu.DropdownMenuTrigger>
+          <DropdownMenu.DropdownMenuContent>
+            <DropdownMenu.DropdownMenuItem
+              onclick={() => handleExportAll('json')}
+              disabled={exporting}
+            >
+              <FileJsonIcon class="mr-2 size-4" />
+              <span>Export All as JSON</span>
+            </DropdownMenu.DropdownMenuItem>
+            <DropdownMenu.DropdownMenuItem
+              onclick={() => handleExportAll('md')}
+              disabled={exporting}
+            >
+              <CodeIcon class="mr-2 size-4" />
+              <span>Export All as Markdown</span>
+            </DropdownMenu.DropdownMenuItem>
+            <DropdownMenu.DropdownMenuItem
+              onclick={() => handleExportAll('zip')}
+              disabled={exporting}
+            >
+              <PackageIcon class="mr-2 size-4" />
+              <span>Export All as ZIP</span>
+            </DropdownMenu.DropdownMenuItem>
+          </DropdownMenu.DropdownMenuContent>
+        </DropdownMenu.DropdownMenu>
         <Button size="sm" onclick={createNewChat} variant="default">
           <PlusIcon class="mr-1 size-4" />
           New Chat
