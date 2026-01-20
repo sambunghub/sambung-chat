@@ -16,6 +16,26 @@ const envSchema = createEnv({
     PORT: z.coerce.number().default(3000),
 
     // ═══════════════════════════════════════════════════════════════════
+    // SECURITY CONFIGURATION
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * SameSite attribute for session cookies.
+     *
+     * Security levels:
+     * - 'strict': Best security - cookies only sent in first-party context
+     * - 'lax': Moderate security - cookies sent with top-level navigations
+     * - 'none': Lowest security - cookies sent in all contexts (requires secure=true)
+     *
+     * Recommended: 'strict' for production, 'lax' for development
+     *
+     * @default 'strict' in production, 'lax' in development
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite
+     */
+    SAME_SITE_COOKIE: z.enum(['lax', 'strict', 'none']).optional(),
+
+    // ═══════════════════════════════════════════════════════════════════
     // AUTHENTICATION METHOD CONFIGURATION
     // ═══════════════════════════════════════════════════════════════════
 
@@ -224,6 +244,59 @@ const envSchema = createEnv({
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,
 });
+
+/**
+ * Validates and returns the SameSite cookie setting.
+ *
+ * Rules:
+ * - Defaults to 'strict' in production, 'lax' in development
+ * - 'none' is only allowed with secure cookies (production)
+ * - Logs the final setting for debugging
+ *
+ * @throws Error if 'none' is used without secure cookies
+ */
+export function getValidatedSameSiteSetting(): 'lax' | 'strict' | 'none' {
+  const isProduction = envSchema.NODE_ENV === 'production';
+  const isSecure = isProduction; // Secure cookies are only enabled in production
+
+  // Get the user-configured value or use default
+  const configuredValue = envSchema.SAME_SITE_COOKIE;
+  const defaultValue: 'lax' | 'strict' | 'none' = isProduction ? 'strict' : 'lax';
+  const sameSiteValue = configuredValue || defaultValue;
+
+  // Validate that 'none' is only used with secure cookies
+  if (sameSiteValue === 'none' && !isSecure) {
+    throw new Error(
+      'SAME_SITE_COOKIE=none requires secure cookies (NODE_ENV=production). ' +
+        'Either set NODE_ENV=production or use SAME_SITE_COOKIE=strict|lax'
+    );
+  }
+
+  // Log the final setting for security debugging
+  if (configuredValue) {
+    console.log(`[SECURITY] SAME_SITE_COOKIE explicitly set to: ${sameSiteValue}`);
+  } else {
+    console.log(`[SECURITY] SAME_SITE_COOKIE using default: ${sameSiteValue} (${isProduction ? 'production' : 'development'})`);
+  }
+
+  // Warn if using 'lax' in production
+  if (isProduction && sameSiteValue === 'lax') {
+    console.warn(
+      '[SECURITY] WARNING: SAME_SITE_COOKIE=lax in production allows link-based CSRF attacks. ' +
+        'Consider using SAME_SITE_COOKIE=strict for better security.'
+    );
+  }
+
+  // Warn if using 'none'
+  if (sameSiteValue === 'none') {
+    console.warn(
+      '[SECURITY] WARNING: SAME_SITE_COOKIE=none provides minimal CSRF protection. ' +
+        'Only use this if you have a specific requirement for cross-site cookie access.'
+    );
+  }
+
+  return sameSiteValue;
+}
 
 // Validate that at least one AI provider is configured
 function validateAIProviders(env: typeof envSchema): void {
