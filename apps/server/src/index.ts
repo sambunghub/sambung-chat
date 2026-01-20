@@ -195,7 +195,8 @@ app.post('/ai', async (c) => {
       },
     });
   } catch (error) {
-    console.error('[AI] Error:', error);
+    // Log generic error message without exposing stack traces or sensitive data
+    console.error('[AI] Error processing request');
     return c.json(
       {
         error: 'Failed to process AI request',
