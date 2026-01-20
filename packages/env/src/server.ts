@@ -220,6 +220,157 @@ const envSchema = createEnv({
      * Example: https://keycloak.example.com/realms/myrealm
      */
     KEYCLOAK_ISSUER: z.string().url().optional(),
+
+    // ═══════════════════════════════════════════════════════════════════
+    // SECURITY HEADERS CONFIGURATION
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Enable security headers in production.
+     * Set to "false" to disable security headers (useful for development/debugging).
+     *
+     * @default "true" in production, "false" in development
+     */
+    SECURITY_HEADERS_ENABLED: z.string().optional(),
+
+    /**
+     * Content Security Policy (CSP) header.
+     * Controls which resources the browser is allowed to load.
+     *
+     * Format: semicolon-separated directives
+     * Example: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'"
+     *
+     * Leave undefined to use default policy (enables necessary resources for the app).
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
+     */
+    CSP_HEADER: z.string().optional(),
+
+    /**
+     * Enable CSP Report-Only mode.
+     * When set to "true", CSP violations are reported but not enforced.
+     * Useful for testing CSP policies before enforcing them.
+     *
+     * @default "false"
+     */
+    CSP_REPORT_ONLY: z.string().optional(),
+
+    /**
+     * HTTP Strict Transport Security (HSTS) max-age in seconds.
+     * Tells browsers to only use HTTPS for the specified duration.
+     *
+     * Recommended values:
+     * - 31536000 (1 year) for production
+     * - 0 (disable) for development
+     *
+     * @default undefined (uses environment-based defaults)
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
+     */
+    HSTS_MAX_AGE: z.coerce.number().optional(),
+
+    /**
+     * HSTS includeSubDomains directive.
+     * When set to "true", HSTS applies to all subdomains.
+     *
+     * @default "true" in production
+     */
+    HSTS_INCLUDE_SUBDOMAINS: z.string().optional(),
+
+    /**
+     * HSTS preload directive.
+     * When set to "true", allows domain inclusion in HSTS preload list.
+     *
+     * @default "false"
+     *
+     * @see https://hstspreload.org/
+     */
+    HSTS_PRELOAD: z.string().optional(),
+
+    /**
+     * X-Frame-Options header.
+     * Controls whether the page can be embedded in frames/iframes.
+     *
+     * Options:
+     * - "DENY": No framing allowed
+     * - "SAMEORIGIN": Only allow framing from same origin
+     * - "ALLOW-FROM uri": Allow framing from specific URI (deprecated)
+     *
+     * @default "SAMEORIGIN"
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+     */
+    X_FRAME_OPTIONS: z.string().optional(),
+
+    /**
+     * X-Content-Type-Options header.
+     * Prevents MIME type sniffing.
+     *
+     * Set to "nosniff" to enable (recommended).
+     *
+     * @default "nosniff"
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
+     */
+    X_CONTENT_TYPE_OPTIONS: z.string().optional(),
+
+    /**
+     * Referrer-Policy header.
+     * Controls how much referrer information is sent.
+     *
+     * Options:
+     * - "no-referrer": No referrer information
+     * - "no-referrer-when-downgrade": Full URL when same protocol, otherwise no referrer
+     * - "strict-origin-when-cross-origin": Origin only when cross-origin (recommended)
+     * - "same-origin": Same origin only
+     *
+     * @default "strict-origin-when-cross-origin"
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
+     */
+    REFERRER_POLICY: z.string().optional(),
+
+    /**
+     * Permissions-Policy header.
+     * Controls which browser features/APIs can be used.
+     *
+     * Format: comma-separated feature=origin directives
+     * Example: "geolocation=(), camera=(self), microphone=()"
+     *
+     * Leave undefined to use default restrictive policy.
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy
+     */
+    PERMISSIONS_POLICY: z.string().optional(),
+
+    /**
+     * Cross-Origin-Embedder-Policy (COOP) header.
+     * Isolates the process from same-origin documents.
+     *
+     * Options:
+     * - "unsafe-none": No isolation (default)
+     * - "same-origin": Same-origin isolation
+     *
+     * @default "unsafe-none"
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy
+     */
+    CROSS_ORIGIN_OPENER_POLICY: z.string().optional(),
+
+    /**
+     * Cross-Origin-Resource-Policy (CORP) header.
+     * Controls how the resource can be shared across origins.
+     *
+     * Options:
+     * - "same-origin": Same origin only
+     * - "same-site": Same site only
+     * - "cross-origin": Any origin
+     *
+     * @default "same-origin"
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Resource-Policy
+     */
+    CROSS_ORIGIN_RESOURCE_POLICY: z.string().optional(),
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,
