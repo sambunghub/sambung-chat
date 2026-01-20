@@ -39,11 +39,12 @@ export function sanitizeBaseURL(baseURL: string | undefined): string | undefined
     let pathname = url.pathname;
 
     // Remove common endpoint paths that AI SDK adds automatically
+    // Sort by length descending to match longer paths first (e.g., '/v1/chat/completions' before '/chat/completions')
     const pathsToRemove = [
-      '/chat/completions',
-      '/completions',
       '/v1/chat/completions',
       '/v1/completions',
+      '/chat/completions',
+      '/completions',
     ];
 
     for (const pathToRemove of pathsToRemove) {

@@ -27,12 +27,21 @@ CREATE TABLE "models" (
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+-- Drop existing foreign key constraints before altering column types
+ALTER TABLE "messages" DROP CONSTRAINT IF EXISTS "messages_chat_id_chats_id_fk";--> statement-breakpoint
+ALTER TABLE "chats" DROP CONSTRAINT IF EXISTS "chats_folder_id_folders_id_fk";--> statement-breakpoint
+--> statement-breakpoint
+-- Alter column types from serial/integer to text
 ALTER TABLE "api_keys" ALTER COLUMN "id" SET DATA TYPE text;--> statement-breakpoint
 ALTER TABLE "chats" ALTER COLUMN "id" SET DATA TYPE text;--> statement-breakpoint
 ALTER TABLE "chats" ALTER COLUMN "folder_id" SET DATA TYPE text;--> statement-breakpoint
 ALTER TABLE "folders" ALTER COLUMN "id" SET DATA TYPE text;--> statement-breakpoint
 ALTER TABLE "messages" ALTER COLUMN "id" SET DATA TYPE text;--> statement-breakpoint
 ALTER TABLE "messages" ALTER COLUMN "chat_id" SET DATA TYPE text;--> statement-breakpoint
+--> statement-breakpoint
+-- Recreate foreign key constraints after column type changes
+ALTER TABLE "chats" ADD CONSTRAINT "chats_folder_id_folders_id_fk" FOREIGN KEY ("folder_id") REFERENCES "public"."folders"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "messages" ADD CONSTRAINT "messages_chat_id_chats_id_fk" FOREIGN KEY ("chat_id") REFERENCES "public"."chats"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "prompts" ALTER COLUMN "id" SET DATA TYPE text;--> statement-breakpoint
 ALTER TABLE "api_keys" ADD COLUMN "name" text;--> statement-breakpoint
 UPDATE "api_keys" SET "name" = CONCAT('API Key ', id) WHERE "name" IS NULL;--> statement-breakpoint

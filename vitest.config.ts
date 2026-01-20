@@ -7,6 +7,17 @@
  */
 
 import { defineConfig } from 'vitest/config';
+import { randomBytes } from 'node:crypto';
+
+// Generate a random 32-byte key for testing if not provided
+// This avoids storing hardcoded secrets in the repository
+const generateTestKey = (): string => {
+  if (process.env.ENCRYPTION_KEY) {
+    return process.env.ENCRYPTION_KEY;
+  }
+  // Generate 32 random bytes and encode as base64
+  return randomBytes(32).toString('base64');
+};
 
 export default defineConfig({
   test: {
@@ -46,7 +57,7 @@ export default defineConfig({
     env: {
       NODE_ENV: 'test',
       DATABASE_URL: 'postgresql://test:test@localhost:5432/test',
-      ENCRYPTION_KEY: '6zntUQJc/2ah8bfoSky0ttJmfBvAKHs1n+DGykcXW1E=',
+      ENCRYPTION_KEY: generateTestKey(),
       BETTER_AUTH_SECRET: 'test-secret-minimum-32-characters-long-for-test',
       BETTER_AUTH_URL: 'http://localhost:3000',
       BETTER_AUTH_CLIENT_ID: 'test-client-id',

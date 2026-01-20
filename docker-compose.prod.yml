@@ -46,6 +46,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-sambungchat}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sambungchat}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
     depends_on:
       postgres:
         condition: service_healthy

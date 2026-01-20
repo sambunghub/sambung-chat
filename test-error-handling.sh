@@ -83,7 +83,7 @@ echo "Note: This test requires temporarily setting OPENAI_API_KEY to an invalid 
 echo ""
 echo "Manual Test Steps:"
 echo "1. Stop the server"
-echo "2. Set OPENAI_API_KEY=sk-invalid-key-12345 in .env"
+echo "2. Set OPENAI_API_KEY=OPENAI_KEY_PLACEHOLDER in .env"
 echo "3. Restart server"
 echo "4. Run: curl -X POST $AI_ENDPOINT -H 'Content-Type: application/json' -d '{\"messages\":[{\"role\":\"user\",\"parts\":[{\"type\":\"text\",\"text\":\"Hello\"}]}]}'"
 echo "5. Expected: 401 or 500 with 'Invalid API key' or 'Unauthorized' message"
