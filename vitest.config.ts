@@ -45,6 +45,15 @@ export default defineConfig({
     // Pass environment variables to tests
     env: {
       NODE_ENV: 'test',
+      DATABASE_URL: 'postgresql://test:test@localhost:5432/test',
+      ENCRYPTION_KEY: '6zntUQJc/2ah8bfoSky0ttJmfBvAKHs1n+DGykcXW1E=',
+      BETTER_AUTH_SECRET: 'test-secret-minimum-32-characters-long-for-test',
+      BETTER_AUTH_URL: 'http://localhost:3000',
+      BETTER_AUTH_CLIENT_ID: 'test-client-id',
+      CORS_ORIGIN: 'http://localhost:5174',
+      PORT: '3000',
+      PUBLIC_SERVER_URL: 'http://localhost:3000',
+      PUBLIC_API_URL: 'http://localhost:3000',
     },
   },
 });

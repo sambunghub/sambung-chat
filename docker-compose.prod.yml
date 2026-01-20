@@ -79,22 +79,9 @@ services:
       NODE_ENV: production
       PORT: 3000
       PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:3000}
-      # AI Provider Configuration
-      AI_PROVIDER: ${AI_PROVIDER}
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      OPENAI_BASE_URL: ${OPENAI_BASE_URL}
-      OPENAI_MODEL: ${OPENAI_MODEL}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
-      ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL}
-      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL}
-      GOOGLE_GENERATIVE_AI_API_KEY: ${GOOGLE_GENERATIVE_AI_API_KEY}
-      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
-      GOOGLE_MODEL: ${GOOGLE_MODEL}
-      GROQ_API_KEY: ${GROQ_API_KEY}
-      GROQ_BASE_URL: ${GROQ_BASE_URL}
-      GROQ_MODEL: ${GROQ_MODEL}
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
-      OLLAMA_MODEL: ${OLLAMA_MODEL}
+      # Note: AI providers are now configured via the web UI (Settings → Models)
+      # No AI provider environment variables are needed here
+      # Each provider requires an API key which is stored securely in the database
     depends_on:
       - server
     networks:

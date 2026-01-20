@@ -117,7 +117,7 @@ jobs:
         run: bun run test:unit
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test
-          ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+          ENCRYPTION_KEY: 6zntUQJc/2ah8bfoSky0ttJmfBvAKHs1n+DGykcXW1E=
           BETTER_AUTH_SECRET: test-secret-minimum-32-characters-long
           BETTER_AUTH_URL: http://localhost:3000
           BETTER_AUTH_CLIENT_ID: test-client-id

@@ -90,22 +90,9 @@ services:
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
       KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
 
-      # AI Provider Configuration
-      AI_PROVIDER: ${AI_PROVIDER:-openai}
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
-      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
-      ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL}
-      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL}
-      GOOGLE_GENERATIVE_AI_API_KEY: ${GOOGLE_GENERATIVE_AI_API_KEY}
-      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
-      GOOGLE_MODEL: ${GOOGLE_MODEL}
-      GROQ_API_KEY: ${GROQ_API_KEY}
-      GROQ_BASE_URL: ${GROQ_BASE_URL}
-      GROQ_MODEL: ${GROQ_MODEL}
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
-      OLLAMA_MODEL: ${OLLAMA_MODEL}
+      # Note: AI providers are now configured via the web UI (Settings → Models)
+      # No AI provider environment variables are needed here
+      # Each provider requires an API key which is stored securely in the database
     volumes:
       # Mount entire project (includes node_modules with symlinks)
       - ./:/app
@@ -155,22 +142,9 @@ services:
       PUBLIC_SERVER_URL: ${PUBLIC_SERVER_URL:-http://localhost:3000}
       PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:3000}
 
-      # AI Provider (for client-side)
-      AI_PROVIDER: ${AI_PROVIDER:-openai}
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
-      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
-      ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL}
-      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL}
-      GOOGLE_GENERATIVE_AI_API_KEY: ${GOOGLE_GENERATIVE_AI_API_KEY}
-      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
-      GOOGLE_MODEL: ${GOOGLE_MODEL}
-      GROQ_API_KEY: ${GROQ_API_KEY}
-      GROQ_BASE_URL: ${GROQ_BASE_URL}
-      GROQ_MODEL: ${GROQ_MODEL}
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
-      OLLAMA_MODEL: ${OLLAMA_MODEL}
+      # Note: AI providers are now configured via the web UI (Settings → Models)
+      # No AI provider environment variables are needed here
+      # Each provider requires an API key which is stored securely in the database
 
       # Keycloak (optional)
       PUBLIC_KEYCLOAK_ENABLED: ${PUBLIC_KEYCLOAK_ENABLED:-false}

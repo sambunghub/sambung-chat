@@ -11,6 +11,16 @@ describe('Server Environment', () => {
     expect(process.env.DATABASE_URL).toContain('postgresql://');
   });
 
+  it('should have ENCRYPTION_KEY defined (valid base64)', () => {
+    expect(process.env.ENCRYPTION_KEY).toBeDefined();
+    // ENCRYPTION_KEY must be a valid 32-byte base64-encoded key
+    const key = process.env.ENCRYPTION_KEY!;
+    expect(key).toMatch(/^[A-Za-z0-9+/]+={0,2}$/);
+    // Base64 decode and check length
+    const decoded = Buffer.from(key, 'base64');
+    expect(decoded.length).toBe(32);
+  });
+
   it('should have BETTER_AUTH_SECRET defined (min 32 chars)', () => {
     expect(process.env.BETTER_AUTH_SECRET).toBeDefined();
     expect(process.env.BETTER_AUTH_SECRET!.length).toBeGreaterThanOrEqual(32);

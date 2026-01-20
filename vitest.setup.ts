@@ -1,9 +1,8 @@
 /**
  * Vitest Setup File
  *
- * Purpose: Load environment variables before tests run
+ * Purpose: Setup before tests run
+ *
+ * Note: Environment variables are set in vitest.config.ts to avoid
+ * conflicts with local .env file. Do not load .env here during tests.
  */
-import { config } from 'dotenv';
-
-// Load .env file from root directory
-config({ path: '.env' });

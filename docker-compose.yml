@@ -60,10 +60,9 @@ services:
       KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
       KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
-      AI_PROVIDER: ${AI_PROVIDER:-openai}
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
-      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      # Note: AI providers are now configured via the web UI (Settings → Models)
+      # No AI provider environment variables are needed here
+      # Each provider requires an API key which is stored securely in the database
     volumes:
       - .:/app
       - node_modules:/app/node_modules
@@ -92,9 +91,9 @@ services:
   #     BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-sambungchat-dev-secret-key-at-least-32-chars-long}
   #     BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:5173}
   #     CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
-  #     AI_PROVIDER: ${AI_PROVIDER:-ollama}
   #     PUBLIC_SERVER_URL: ${PUBLIC_SERVER_URL:-http://localhost:5173}
   #     PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:3000}
+  #     # Note: AI providers are now configured via the web UI (Settings → Models)
   #     PUBLIC_EMAIL_PASSWORD_ENABLED: ${PUBLIC_EMAIL_PASSWORD_ENABLED:-true}
   #     EMAIL_PASSWORD_ENABLED: ${EMAIL_PASSWORD_ENABLED:-true}
   #     PUBLIC_KEYCLOAK_ENABLED: ${PUBLIC_KEYCLOAK_ENABLED:-false}

@@ -5,12 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import {
-  createAIProvider,
-  isProviderConfigured,
-  getConfiguredProviders,
-  type AIProvider,
-} from './ai-provider-factory';
+import { createAIProvider, type AIProvider } from './ai-provider-factory';
 
 describe('AI Provider Factory', () => {
   describe('createAIProvider', () => {
@@ -20,40 +15,19 @@ describe('AI Provider Factory', () => {
         createAIProvider({
           provider: 'openai',
           modelId: 'gpt-4o-mini',
+          apiKey: 'test-key',
         });
       }).not.toThrow();
     });
 
-    it('should create an Anthropic provider instance when API key is available', () => {
-      // Skip this test if ANTHROPIC_API_KEY is not set
-      if (!process.env.ANTHROPIC_API_KEY) {
-        return;
-      }
-
+    it('should create an Anthropic provider instance', () => {
       expect(() => {
         createAIProvider({
           provider: 'anthropic',
           modelId: 'claude-3-5-sonnet-20241022',
+          apiKey: 'test-key',
         });
       }).not.toThrow();
-    });
-
-    it('should throw error when Anthropic API key is missing', () => {
-      // Temporarily unset the API key for this test
-      const originalKey = process.env.ANTHROPIC_API_KEY;
-      delete process.env.ANTHROPIC_API_KEY;
-
-      expect(() => {
-        createAIProvider({
-          provider: 'anthropic',
-          modelId: 'claude-3-5-sonnet-20241022',
-        });
-      }).toThrow('Anthropic API key is required');
-
-      // Restore the original key
-      if (originalKey) {
-        process.env.ANTHROPIC_API_KEY = originalKey;
-      }
     });
 
     it('should create a Groq provider instance', () => {
@@ -61,15 +35,17 @@ describe('AI Provider Factory', () => {
         createAIProvider({
           provider: 'groq',
           modelId: 'llama-3.3-70b-versatile',
+          apiKey: 'test-key',
         });
       }).not.toThrow();
     });
 
-    it('should create an Ollama provider instance', () => {
+    it('should create an Ollama provider instance (no API key required)', () => {
       expect(() => {
         createAIProvider({
           provider: 'ollama',
           modelId: 'llama3.2',
+          apiKey: 'ollama', // placeholder for Ollama
         });
       }).not.toThrow();
     });
@@ -84,45 +60,15 @@ describe('AI Provider Factory', () => {
         });
       }).not.toThrow();
     });
-  });
 
-  describe('isProviderConfigured', () => {
-    it('should return true for OpenAI if API key is set', () => {
-      const result = isProviderConfigured('openai');
-      expect(typeof result).toBe('boolean');
-    });
-
-    it('should return true for Anthropic if API key is set', () => {
-      const result = isProviderConfigured('anthropic');
-      expect(typeof result).toBe('boolean');
-    });
-
-    it('should return true for Ollama (no API key required)', () => {
-      const result = isProviderConfigured('ollama');
-      expect(result).toBe(true);
-    });
-
-    it('should return false for unsupported providers', () => {
-      // This test verifies type safety - unsupported providers should not exist
-      const providers: AIProvider[] = ['openai', 'anthropic', 'google', 'groq', 'ollama', 'custom'];
-
-      providers.forEach((provider) => {
-        const result = isProviderConfigured(provider);
-        expect(typeof result).toBe('boolean');
-      });
-    });
-  });
-
-  describe('getConfiguredProviders', () => {
-    it('should return an array of configured providers', () => {
-      const providers = getConfiguredProviders();
-      expect(Array.isArray(providers)).toBe(true);
-      expect(providers.length).toBeGreaterThan(0);
-    });
-
-    it('should always include Ollama (no API key required)', () => {
-      const providers = getConfiguredProviders();
-      expect(providers).toContain('ollama');
+    it('should create an OpenRouter provider instance', () => {
+      expect(() => {
+        createAIProvider({
+          provider: 'openrouter',
+          modelId: 'anthropic/claude-3.5-sonnet',
+          apiKey: 'test-key',
+        });
+      }).not.toThrow();
     });
   });
 });
