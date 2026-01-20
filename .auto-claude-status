@@ -1,25 +1,25 @@
 {
   "active": true,
-  "spec": "002-add-visual-diagrams-to-architecture-documentation",
+  "spec": "013-add-comprehensive-security-headers-to-prevent-xss-",
   "state": "building",
   "subtasks": {
-    "completed": 23,
-    "total": 29,
+    "completed": 0,
+    "total": 0,
     "in_progress": 1,
     "failed": 0
   },
   "phase": {
-    "current": "",
-    "id": 0,
-    "total": 0
+    "current": "Planning & Analysis",
+    "id": null,
+    "total": 4
   },
   "workers": {
     "active": 0,
     "max": 1
   },
   "session": {
-    "number": 7,
-    "started_at": "2026-01-12T17:44:28.284511"
+    "number": 2,
+    "started_at": "2026-01-20T12:53:56.660879"
   },
-  "last_update": "2026-01-12T18:10:28.909242"
+  "last_update": "2026-01-20T12:56:13.711895"
 }
