@@ -354,4 +354,121 @@ if (!isBrowserContext) {
   }
 }
 
+/**
+ * Validates and returns sanitized CORS origins.
+ *
+ * Rules:
+ * - Validates each origin as a properly formatted URL
+ * - Rejects malformed URLs
+ * - Warns about wildcard or overly permissive origins
+ * - Logs all allowed origins on startup
+ * - Trims whitespace and removes trailing slashes
+ * - Rejects origins with embedded credentials (username:password@)
+ *
+ * @returns Array of validated and sanitized CORS origins
+ * @throws Error if any origin is malformed
+ */
+export function getValidatedCorsOrigins(): string[] {
+  const corsOrigin = envSchema.CORS_ORIGIN;
+  const defaultOrigin = 'http://localhost:5174';
+
+  // Use default if not configured
+  const rawOrigins = corsOrigin
+    ? corsOrigin.split(',').map((origin) => origin.trim())
+    : [defaultOrigin];
+
+  const validatedOrigins: string[] = [];
+  const warnings: string[] = [];
+
+  for (const origin of rawOrigins) {
+    // Skip empty origins
+    if (!origin) {
+      continue;
+    }
+
+    // Check for wildcard
+    if (origin === '*' || origin === '*') {
+      warnings.push(
+        '[SECURITY] WARNING: CORS_ORIGIN=* allows requests from ANY origin. ' +
+          'This is highly insecure and should NEVER be used in production.'
+      );
+      validatedOrigins.push('*');
+      continue;
+    }
+
+    // Reject origins with embedded credentials
+    if (origin.includes('@') && origin.includes('://')) {
+      const urlParts = origin.split('://');
+      if (urlParts[1]?.includes('@')) {
+        throw new Error(
+          `Invalid CORS origin "${origin}": Origins with embedded credentials (username:password@) are not allowed.`
+        );
+      }
+    }
+
+    // Validate URL format
+    try {
+      const url = new URL(origin);
+
+      // Ensure protocol is http or https
+      if (!['http:', 'https:'].includes(url.protocol)) {
+        throw new Error(
+          `Invalid CORS origin "${origin}": Only http:// and https:// protocols are allowed.`
+        );
+      }
+
+      // Sanitize: remove trailing slash
+      let sanitizedOrigin = url.href;
+      if (sanitizedOrigin.endsWith('/')) {
+        sanitizedOrigin = sanitizedOrigin.slice(0, -1);
+      }
+
+      validatedOrigins.push(sanitizedOrigin);
+
+      // Warn about HTTP in production
+      if (envSchema.NODE_ENV === 'production' && url.protocol === 'http:') {
+        warnings.push(
+          `[SECURITY] WARNING: CORS origin "${sanitizedOrigin}" uses HTTP in production. ` +
+            `HTTPS should be used for security.`
+        );
+      }
+
+      // Warn about localhost in production
+      if (envSchema.NODE_ENV === 'production' && url.hostname === 'localhost') {
+        warnings.push(
+          `[SECURITY] WARNING: CORS origin "${sanitizedOrigin}" points to localhost in production. ` +
+            `This is likely a misconfiguration.`
+        );
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(
+          `Invalid CORS origin "${origin}": ${error.message}`
+        );
+      }
+      throw new Error(`Invalid CORS origin "${origin}": Malformed URL`);
+    }
+  }
+
+  // Log all warnings
+  for (const warning of warnings) {
+    console.warn(warning);
+  }
+
+  // Log all allowed origins
+  console.log(
+    `[SECURITY] CORS origins: ${validatedOrigins.length === 1 ? validatedOrigins[0] : validatedOrigins.join(', ')}`
+  );
+
+  // Warn if no origins configured
+  if (validatedOrigins.length === 0) {
+    console.warn(
+      '[SECURITY] WARNING: No valid CORS origins configured. Using default: http://localhost:5174'
+    );
+    return [defaultOrigin];
+  }
+
+  return validatedOrigins;
+}
+
 export const env = envSchema;

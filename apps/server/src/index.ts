@@ -8,7 +8,7 @@ import { ZodToJsonSchemaConverter } from '@orpc/zod/zod4';
 import { createContext } from '@sambung-chat/api/context';
 import { appRouter } from '@sambung-chat/api/routers/index';
 import { auth } from '@sambung-chat/auth';
-import { env } from '@sambung-chat/env/server';
+import { env, getValidatedCorsOrigins } from '@sambung-chat/env/server';
 import { streamText, convertToModelMessages, wrapLanguageModel } from 'ai';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
@@ -18,10 +18,13 @@ const app = new Hono();
 // ============================================================================
 // CORS - Must be registered before auth handler
 // ============================================================================
+// Validate and sanitize CORS origins on startup
+const allowedOrigins = getValidatedCorsOrigins();
+
 app.use(
   '/*',
   cors({
-    origin: (env.CORS_ORIGIN || 'http://localhost:5174').split(','),
+    origin: allowedOrigins,
     allowMethods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE', 'PATCH'],
     allowHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Set-Cookie', 'X-CSRF-Token'],
     exposeHeaders: ['Set-Cookie', 'Content-Length', 'Content-Type'],
