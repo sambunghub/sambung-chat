@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.8] - 2026-01-20
+
+### Fixed
+
+- **Cookie Forwarding**: Fix CSRF token 403 errors and URL construction errors by using Vite proxy ([.env.example](.env.example:46))
+  - Change `PUBLIC_API_URL` from `http://localhost:3000` to `http://localhost:5174`
+  - Standardize all web ports to 5174: `WEB_PORT`, `BETTER_AUTH_URL`, `CORS_ORIGIN`, `PUBLIC_API_URL`
+  - Requests now go through Vite proxy which properly forwards session cookies
+  - Fixes "Failed to construct 'URL': Invalid URL" errors in ORPC client
+  - Fixes 403 CSRF errors caused by missing authentication
+  - Session cookies are now sent with RPC requests, allowing chat functionality to work
+
+**Important**: Users must update their local `.env` file to use `PUBLIC_API_URL=http://localhost:5174`
+
+---
+
 ## [0.0.7] - 2026-01-20
 
 ### Fixed
