@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.0] - 2026-01-20
+
+### Fixed
+
+- **Vite Proxy Circular Reference**: Fix ECONNRESET and ENOTFOUND errors by correcting proxy target ([apps/web/vite.config.ts](apps/web/vite.config.ts:56))
+  - Changed proxy target from `PUBLIC_API_URL` (port 5174) to backend server (port 3000)
+  - Vite proxy now correctly forwards `/rpc` and `/ai` requests to backend server
+  - `PUBLIC_API_URL` remains `http://localhost:5174` for client-side same-origin requests
+  - Proxy uses `SERVER_PORT` (default: 3000) to connect to backend server
+  - Fixes "ECONNRESET" errors when CSRF token fetch times out
+  - Fixes "ENOTFOUND localhost" errors on RPC endpoints
+  - All RPC routes now work correctly: `/rpc/getCsrfToken`, `/rpc/chat/search`, `/rpc/model/getAll`, etc.
+
+**Technical Details**:
+
+- **Before**: Proxy forwarded to `http://localhost:5174` (itself), creating circular reference
+- **After**: Proxy forwards to `http://localhost:3000` (backend server)
+- Client-side requests go to `http://localhost:5174/rpc/*` (same-origin)
+- Vite proxy forwards to `http://localhost:3000/rpc/*` (backend server)
+- This maintains same-origin cookies while avoiding circular proxy
+
+---
+
 ## [0.0.9] - 2026-01-20
 
 ### Fixed

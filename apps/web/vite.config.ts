@@ -48,9 +48,12 @@ export default defineConfig({
     },
 
     // Proxy API requests to backend server (same-origin for cookies)
+    // IMPORTANT: Proxy target must be the backend server (port 3000), not PUBLIC_API_URL
+    // PUBLIC_API_URL is for client-side fetch calls to be same-origin
+    // Backend server runs on SERVER_PORT (default: 3000)
     proxy: {
       '/ai': {
-        target: process.env.PUBLIC_API_URL || 'http://localhost:3000',
+        target: process.env.SERVER_URL || `http://localhost:${process.env.SERVER_PORT || 3000}`,
         changeOrigin: true,
         secure: false,
         ws: true,
@@ -60,7 +63,7 @@ export default defineConfig({
         },
       },
       '/rpc': {
-        target: process.env.PUBLIC_API_URL || 'http://localhost:3000',
+        target: process.env.SERVER_URL || `http://localhost:${process.env.SERVER_PORT || 3000}`,
         changeOrigin: true,
         secure: false,
         ws: true,
