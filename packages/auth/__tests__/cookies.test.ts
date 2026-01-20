@@ -211,9 +211,7 @@ describe('SameSite Cookie Configuration', () => {
         process.env.NODE_ENV = 'development';
         process.env.SAME_SITE_COOKIE = 'none';
 
-        expect(() => getValidatedSameSiteSetting()).toThrow(
-          /requires secure cookies/
-        );
+        expect(() => getValidatedSameSiteSetting()).toThrow(/requires secure cookies/);
       });
     });
   });
@@ -230,6 +228,7 @@ describe('SameSite Cookie Configuration', () => {
       process.env.SAME_SITE_COOKIE = 'strict';
 
       // Re-initialize to pick up new env
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { auth: authProd } = require('../src/index');
       expect(authProd).toBeDefined();
     });
@@ -239,6 +238,7 @@ describe('SameSite Cookie Configuration', () => {
       process.env.SAME_SITE_COOKIE = 'lax';
 
       // Re-initialize to pick up new env
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { auth: authDev } = require('../src/index');
       expect(authDev).toBeDefined();
     });

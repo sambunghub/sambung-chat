@@ -18,6 +18,11 @@ export default defineConfig({
     },
   },
 
+  // Disable esbuild during config loading to prevent EPIPE
+  esbuild: {
+    tsconfigRaw: {},
+  },
+
   ssr: {
     // No external - use default behavior
   },
