@@ -2,7 +2,7 @@ import { db } from '@sambung-chat/db';
 import { chats } from '@sambung-chat/db/schema/chat';
 import { messages } from '@sambung-chat/db/schema/chat';
 import { models } from '@sambung-chat/db/schema/model';
-import { eq, and, desc, asc, sql, gte, lte } from 'drizzle-orm';
+import { eq, and, desc, asc, sql, gte, lte, inArray } from 'drizzle-orm';
 import z from 'zod';
 import { protectedProcedure } from '../index';
 import { ulidSchema, ulidOptionalSchema } from '../utils/validation';
@@ -159,7 +159,7 @@ export const chatRouter = {
         query: z.string().optional(),
         folderId: ulidOptionalSchema,
         pinnedOnly: z.boolean().optional(),
-        provider: z.enum(['openai', 'anthropic', 'google', 'groq', 'ollama', 'custom']).optional(),
+        providers: z.array(z.enum(['openai', 'anthropic', 'google', 'groq', 'ollama', 'custom'])).optional(),
         modelId: z.string().optional(),
         dateFrom: z.string().optional(),
         dateTo: z.string().optional(),
@@ -206,14 +206,14 @@ export const chatRouter = {
       }
 
       // Build the query - join with models and/or messages tables as needed
-      const needsModelJoin = input.provider !== undefined || input.modelId !== undefined;
+      const needsModelJoin = input.providers !== undefined || input.modelId !== undefined;
       const needsMessagesJoin = input.searchInMessages && input.query !== undefined;
 
       let query;
       if (needsModelJoin && needsMessagesJoin) {
-        // Add provider filter
-        if (input.provider !== undefined) {
-          conditions.push(eq(models.provider, input.provider));
+        // Add providers filter (multi-select)
+        if (input.providers !== undefined && input.providers.length > 0) {
+          conditions.push(inArray(models.provider, input.providers));
         }
 
         // Add modelId filter
@@ -240,9 +240,9 @@ export const chatRouter = {
           .where(and(...conditions))
           .orderBy(desc(chats.pinned), desc(chats.updatedAt));
       } else if (needsModelJoin) {
-        // Add provider filter
-        if (input.provider !== undefined) {
-          conditions.push(eq(models.provider, input.provider));
+        // Add providers filter (multi-select)
+        if (input.providers !== undefined && input.providers.length > 0) {
+          conditions.push(inArray(models.provider, input.providers));
         }
 
         // Add modelId filter

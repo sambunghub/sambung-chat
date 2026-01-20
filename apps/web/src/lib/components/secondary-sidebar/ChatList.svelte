@@ -8,6 +8,7 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { autofocus } from '$lib/actions/autofocus.js';
+  import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import PlusIcon from '@lucide/svelte/icons/plus';
   import PanelLeftCloseIcon from '@lucide/svelte/icons/panel-left-close';
   import FolderIcon from '@lucide/svelte/icons/folder';
@@ -15,6 +16,8 @@
   import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
   import PencilIcon from '@lucide/svelte/icons/pencil';
   import Trash2Icon from '@lucide/svelte/icons/trash-2';
+  import FilterIcon from '@lucide/svelte/icons/filter';
+  import CheckIcon from '@lucide/svelte/icons/check';
 
   // Types
   interface Chat {
@@ -34,6 +37,27 @@
     createdAt: Date;
   }
 
+  interface Model {
+    id: string;
+    provider: string;
+    modelId: string;
+    name: string;
+    baseUrl?: string;
+    apiKeyId?: string;
+    isActive: boolean;
+    avatarUrl?: string;
+    settings?: {
+      temperature?: number;
+      maxTokens?: number;
+      topP?: number;
+      topK?: number;
+      frequencyPenalty?: number;
+      presencePenalty?: number;
+    };
+    createdAt: Date;
+    updatedAt: Date;
+  }
+
   interface Props {
     currentChatId?: string;
     onToggleCollapse?: () => void;
@@ -44,12 +68,14 @@
   // State
   let chats = $state<Chat[]>([]);
   let folders = $state<Folder[]>([]);
+  let models = $state<Model[]>([]);
   let loading = $state(true);
   let searching = $state(false);
   let error = $state<string | null>(null);
   let searchQuery = $state('');
   let selectedFolderId = $state<string>('');
   let showPinnedOnly = $state(false);
+  let selectedProviders = $state<Array<'openai' | 'anthropic' | 'google' | 'groq' | 'ollama' | 'custom'>>([]);
   let collapsedFolders = $state<Record<string, boolean>>({});
   let isInitialLoad = $state(true);
 
@@ -59,6 +85,22 @@
 
   // Computed - filtered chats (API handles filtering, just return chats)
   let filteredChats = $derived(() => chats);
+
+  // Computed - unique providers from user's models
+  let availableProviders = $derived(() => {
+    const providerSet = new Set(models.map((m) => m.provider));
+    return Array.from(providerSet).sort() as Array<'openai' | 'anthropic' | 'google' | 'groq' | 'ollama' | 'custom'>;
+  });
+
+  // Computed - provider labels for display
+  const providerLabels: Record<string, string> = {
+    openai: 'OpenAI',
+    anthropic: 'Anthropic',
+    google: 'Google',
+    groq: 'Groq',
+    ollama: 'Ollama',
+    custom: 'Custom',
+  };
 
   // Group chats by folder and time period
   let groupedChats = $derived(() => {
@@ -118,6 +160,12 @@
     }
   }
 
+  function handleProvidersChange() {
+    if (!isInitialLoad) {
+      loadChats();
+    }
+  }
+
   // Load chats with search & filters
   async function loadChats() {
     // Use searching state for filter changes, loading for initial load
@@ -133,7 +181,8 @@
         query: searchQuery || undefined,
         folderId: selectedFolderId || undefined,
         pinnedOnly: showPinnedOnly || undefined,
-      });
+        providers: selectedProviders.length > 0 ? selectedProviders : undefined,
+      } as any);
       chats = result as Chat[];
     } catch (err) {
       console.error('Failed to load chats:', err);
@@ -167,10 +216,21 @@
     }
   }
 
+  // Load models
+  async function loadModels() {
+    try {
+      const result = await orpc.model.getAll();
+      models = result as Model[];
+    } catch (err) {
+      console.error('Failed to load models:', err);
+    }
+  }
+
   // Initial load
   onMount(() => {
     loadChats();
     loadFolders();
+    loadModels();
   });
 
   // Handle chat selection
@@ -418,6 +478,57 @@
         Pinned only
       </label>
     </div>
+
+    <!-- Provider Filter -->
+    {#if availableProviders().length > 0}
+      <div class="mt-2">
+        <DropdownMenu.DropdownMenu>
+          <DropdownMenu.Trigger
+            class="border-input bg-background hover:bg-accent hover:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground flex w-full items-center justify-between rounded-md border px-2 py-1.5 text-sm text-left focus:ring-1 focus:ring-ring focus:outline-none"
+            type="button"
+          >
+            <div class="flex items-center gap-2">
+              <FilterIcon class="size-3.5" />
+              <span class="text-muted-foreground text-xs">
+                {selectedProviders.length === 0
+                  ? 'All Providers'
+                  : `${selectedProviders.length} provider${selectedProviders.length > 1 ? 's' : ''} selected`}
+              </span>
+            </div>
+            <ChevronDownIcon class="size-3.5" />
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content class="w-56">
+            {#each availableProviders() as provider (provider)}
+              {@const isSelected = selectedProviders.includes(provider)}
+              <DropdownMenu.CheckboxItem
+                checked={isSelected}
+                onselect={() => {
+                  if (isSelected) {
+                    selectedProviders = selectedProviders.filter((p) => p !== provider);
+                  } else {
+                    selectedProviders = [...selectedProviders, provider];
+                  }
+                  handleProvidersChange();
+                }}
+              >
+                <span class="flex-1">{providerLabels[provider] || provider}</span>
+              </DropdownMenu.CheckboxItem>
+            {/each}
+            {#if selectedProviders.length > 0}
+              <DropdownMenu.Separator />
+              <DropdownMenu.Item
+                onclick={() => {
+                  selectedProviders = [];
+                  handleProvidersChange();
+                }}
+              >
+                Clear providers
+              </DropdownMenu.Item>
+            {/if}
+          </DropdownMenu.Content>
+        </DropdownMenu.DropdownMenu>
+      </div>
+    {/if}
   </Sidebar.Header>
 
   <!-- Content -->
