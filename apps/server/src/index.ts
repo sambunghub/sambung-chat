@@ -12,6 +12,7 @@ import { env } from '@sambung-chat/env/server';
 import { streamText, convertToModelMessages, wrapLanguageModel } from 'ai';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { securityMiddleware } from './middleware/security';
 
 const app = new Hono();
 
@@ -29,6 +30,11 @@ app.use(
     maxAge: 86400,
   })
 );
+
+// ============================================================================
+// SECURITY HEADERS - Applied after CORS, before route handlers
+// ============================================================================
+app.use('/*', securityMiddleware());
 
 // ============================================================================
 // BETTER AUTH HANDLER
