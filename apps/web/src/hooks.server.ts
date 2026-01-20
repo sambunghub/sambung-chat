@@ -3,6 +3,7 @@ import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { building } from '$app/environment';
 import { redirect } from '@sveltejs/kit';
 import type { Handle } from '@sveltejs/kit';
+import { getSecurityHeaders } from '$lib/security/headers';
 
 export const handle: Handle = async ({ event, resolve }) => {
   // Fetch current session from Better Auth
@@ -39,5 +40,15 @@ export const handle: Handle = async ({ event, resolve }) => {
       return redirect(302, '/login');
     }
   }
-  return svelteKitHandler({ event, resolve, auth, building });
+
+  // Let Better Auth handle the request
+  const response = await svelteKitHandler({ event, resolve, auth, building });
+
+  // Apply security headers to the response
+  const securityHeaders = getSecurityHeaders();
+  for (const [name, value] of Object.entries(securityHeaders)) {
+    response.headers.set(name, value);
+  }
+
+  return response;
 };
