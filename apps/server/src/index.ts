@@ -126,10 +126,6 @@ const openai = createOpenAICompatible({
 
 app.post('/ai', async (c) => {
   try {
-    // Debug: Log request headers
-    const cookieHeader = c.req.raw.headers.get('cookie');
-    console.log('[AI] Request cookies:', cookieHeader);
-
     // Authentication check
     const session = await auth.api.getSession({
       headers: c.req.raw.headers,
