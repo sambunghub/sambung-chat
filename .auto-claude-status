@@ -1,11 +1,11 @@
 {
   "active": true,
   "spec": "007-chat-history-search-enhancement",
-  "state": "building",
+  "state": "complete",
   "subtasks": {
-    "completed": 22,
+    "completed": 24,
     "total": 24,
-    "in_progress": 1,
+    "in_progress": 0,
     "failed": 0
   },
   "phase": {
@@ -18,8 +18,8 @@
     "max": 1
   },
   "session": {
-    "number": 24,
+    "number": 25,
     "started_at": "2026-01-20T09:34:38.700421"
   },
-  "last_update": "2026-01-20T11:08:47.701021"
+  "last_update": "2026-01-20T11:16:33.228085"
 }
