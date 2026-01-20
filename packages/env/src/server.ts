@@ -369,7 +369,8 @@ if (!isBrowserContext) {
  * @throws Error if any origin is malformed
  */
 export function getValidatedCorsOrigins(): string[] {
-  const corsOrigin = envSchema.CORS_ORIGIN;
+  const corsOrigin = process.env.CORS_ORIGIN;
+  const nodeEnv = process.env.NODE_ENV || 'development';
   const defaultOrigin = 'http://localhost:5174';
 
   // Use default if not configured
@@ -413,7 +414,7 @@ export function getValidatedCorsOrigins(): string[] {
       // Ensure protocol is http or https
       if (!['http:', 'https:'].includes(url.protocol)) {
         throw new Error(
-          `Invalid CORS origin "${origin}": Only http:// and https:// protocols are allowed.`
+          `Only http:// and https:// protocols are allowed.`
         );
       }
 
@@ -426,7 +427,7 @@ export function getValidatedCorsOrigins(): string[] {
       validatedOrigins.push(sanitizedOrigin);
 
       // Warn about HTTP in production
-      if (envSchema.NODE_ENV === 'production' && url.protocol === 'http:') {
+      if (nodeEnv === 'production' && url.protocol === 'http:') {
         warnings.push(
           `[SECURITY] WARNING: CORS origin "${sanitizedOrigin}" uses HTTP in production. ` +
             `HTTPS should be used for security.`
@@ -434,7 +435,7 @@ export function getValidatedCorsOrigins(): string[] {
       }
 
       // Warn about localhost in production
-      if (envSchema.NODE_ENV === 'production' && url.hostname === 'localhost') {
+      if (nodeEnv === 'production' && url.hostname === 'localhost') {
         warnings.push(
           `[SECURITY] WARNING: CORS origin "${sanitizedOrigin}" points to localhost in production. ` +
             `This is likely a misconfiguration.`
@@ -442,9 +443,11 @@ export function getValidatedCorsOrigins(): string[] {
       }
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error(
-          `Invalid CORS origin "${origin}": ${error.message}`
-        );
+        // Don't duplicate the error prefix if it's already there
+        const message = error.message.startsWith('Invalid CORS origin')
+          ? error.message
+          : `Invalid CORS origin "${origin}": ${error.message}`;
+        throw new Error(message);
       }
       throw new Error(`Invalid CORS origin "${origin}": Malformed URL`);
     }
