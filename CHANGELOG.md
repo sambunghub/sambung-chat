@@ -5,6 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.5] - 2026-01-20
+
+### Added
+
+- **Secure API Key Management System**: Comprehensive encrypted API key storage with AES-256-GCM encryption, user-level key isolation, and secure key rotation ([docs/setup/api-keys.md](docs/setup/api-keys.md))
+  - Database schema for encrypted API key storage with ULID primary keys ([packages/db/src/schema/api-keys.ts](packages/db/src/schema/api-keys.ts))
+  - AES-256-GCM encryption utilities with scrypt key derivation and random IV per encryption ([packages/api/src/lib/encryption.ts](packages/api/src/lib/encryption.ts))
+  - oRPC router with full CRUD operations for API key management ([packages/api/src/routers/api-keys.ts](packages/api/src/routers/api-keys.ts))
+  - API key service layer with business logic separation ([packages/api/src/services/api-key-service.ts](packages/api/src/services/api-key-service.ts))
+  - Secure logging middleware to prevent API key exposure in logs and errors ([packages/api/src/middleware/secure-logging.ts](packages/api/src/middleware/secure-logging.ts))
+  - Frontend settings UI at `/app/settings/api-keys` with full CRUD functionality ([apps/web/src/routes/app/settings/api-keys/+page.svelte](apps/web/src/routes/app/settings/api-keys/+page.svelte))
+  - Reusable form components: ApiKeyForm, ApiKeyCard, and ApiKeyList ([apps/web/src/lib/components/settings/api-keys/](apps/web/src/lib/components/settings/api-keys/))
+  - Environment validation for ENCRYPTION_KEY with 32-byte base64 requirement ([packages/env/src/server.ts](packages/env/src/server.ts))
+  - Comprehensive documentation for encryption setup and key rotation ([docs/setup/api-keys.md](docs/setup/api-keys.md))
+  - Navigation sidebar integration in settings page with AI Models and API Keys links ([apps/web/src/routes/app/settings/+page.svelte](apps/web/src/routes/app/settings/+page.svelte))
+
+### Changed
+
+- **Environment Configuration**: Add ENCRYPTION_KEY requirement for API key encryption ([apps/server/.env.example](apps/server/.env.example), [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md))
+- **Security**: Implement secure logging middleware to sanitize API keys from all error messages and console output ([packages/api/src/middleware/secure-logging.ts](packages/api/src/middleware/secure-logging.ts))
+
+### Testing
+
+- **Encryption Utilities**: 51 unit tests covering encryption/decryption cycles, security properties, and edge cases ([packages/api/src/lib/encryption.test.ts](packages/api/src/lib/encryption.test.ts))
+- **API Key Service**: 34 unit tests for CRUD operations with mocked database ([packages/api/src/services/api-key-service.test.ts](packages/api/src/services/api-key-service.test.ts))
+- **Secure Logging**: 78 security audit tests verifying no API key exposure in any scenario ([packages/api/src/middleware/secure-logging.test.ts](packages/api/src/middleware/secure-logging.test.ts))
+- **E2E Tests**: 31 test scenarios covering complete user flows with cross-browser testing (155 total variants) ([tests/e2e/api-keys.spec.ts](tests/e2e/api-keys.spec.ts))
+- **Total Test Coverage**: 163 tests (51 encryption + 34 service + 78 security + 31 E2E scenarios)
+
+### Security
+
+- **AES-256-GCM Encryption**: All API keys encrypted at rest with unique IV per encryption and auth tag verification
+- **User-Level Isolation**: Users can only access their own API keys through ownership verification
+- **Secure Logging**: API keys automatically redacted from console logs, error messages, and ORPC responses
+- **No Key Exposure**: Last 4 characters only display in UI; full keys never exposed in logs or client responses
+- **Key Rotation Support**: Users can update API keys without losing chat history or settings
+
+---
+
 ## [0.0.4] - 2026-01-19
 
 ### Fixed
