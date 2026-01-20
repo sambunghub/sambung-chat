@@ -157,19 +157,16 @@ export function encrypt(plaintext: string): EncryptedData {
 		const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
 
 		// Encrypt the data
-		let ciphertext = cipher.update(plaintext, 'utf-8', 'binary');
-		ciphertext += cipher.final('binary');
+		const ciphertextPart1 = cipher.update(plaintext, 'utf-8');
+		const ciphertextPart2 = cipher.final();
+		const ciphertext = Buffer.concat([ciphertextPart1, ciphertextPart2]);
 
 		// Get the authentication tag (important for GCM mode)
 		const authTag = cipher.getAuthTag();
 
-		// Combine IV + ciphertext + auth tag
+		// Combine IV + auth tag + ciphertext
 		// Format: [IV (12 bytes)][Auth Tag (16 bytes)][Ciphertext]
-		const combined = Buffer.alloc(iv.length + authTag.length + Buffer.byteLength(ciphertext));
-
-		iv.copy(combined, 0);
-		authTag.copy(combined, iv.length);
-		Buffer.from(ciphertext, 'binary').copy(combined, iv.length + authTag.length);
+		const combined = Buffer.concat([iv, authTag, ciphertext]);
 
 		// Return as base64 for easy storage
 		return {
