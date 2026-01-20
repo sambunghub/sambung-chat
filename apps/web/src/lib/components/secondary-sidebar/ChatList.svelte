@@ -697,7 +697,7 @@
     </div>
 
     <!-- Clear All Filters Button -->
-    {#if hasActiveFilters()}
+    {#if hasActiveFilters}
       <div class="mt-3">
         <Button
           size="sm"
