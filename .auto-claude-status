@@ -1,10 +1,10 @@
 {
   "active": true,
-  "spec": "002-add-visual-diagrams-to-architecture-documentation",
+  "spec": "006-chat-history-export-json-markdown",
   "state": "building",
   "subtasks": {
-    "completed": 23,
-    "total": 29,
+    "completed": 1,
+    "total": 13,
     "in_progress": 1,
     "failed": 0
   },
@@ -18,8 +18,8 @@
     "max": 1
   },
   "session": {
-    "number": 7,
-    "started_at": "2026-01-12T17:44:28.284511"
+    "number": 3,
+    "started_at": "2026-01-20T08:08:44.095990"
   },
-  "last_update": "2026-01-12T18:10:28.909242"
+  "last_update": "2026-01-20T08:13:40.282763"
 }

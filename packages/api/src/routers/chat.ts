@@ -65,6 +65,84 @@ export const chatRouter = {
     return chatsWithDetails;
   }),
 
+  // Get chats grouped by folders for structured export
+  getChatsByFolder: protectedProcedure.handler(async ({ context }) => {
+    const userId = context.session.user.id;
+
+    // Get all chats for the user
+    const userChats = await db
+      .select()
+      .from(chats)
+      .where(eq(chats.userId, userId))
+      .orderBy(desc(chats.updatedAt));
+
+    // Fetch messages and folder info for each chat
+    const chatsWithDetails = await Promise.all(
+      userChats.map(async (chat) => {
+        // Get messages for this chat
+        const chatMessages = await db
+          .select()
+          .from(messages)
+          .where(eq(messages.chatId, chat.id))
+          .orderBy(asc(messages.createdAt));
+
+        // Get folder information if folderId exists
+        let folder = null;
+        if (chat.folderId) {
+          const folderResults = await db
+            .select()
+            .from(folders)
+            .where(and(eq(folders.id, chat.folderId), eq(folders.userId, userId)));
+
+          if (folderResults.length > 0) {
+            folder = {
+              id: folderResults[0].id,
+              name: folderResults[0].name,
+            };
+          }
+        }
+
+        return {
+          ...chat,
+          messages: chatMessages,
+          folder,
+        };
+      })
+    );
+
+    // Group chats by folder
+    const folderMap = new Map<string, { id: string; name: string; chats: typeof chatsWithDetails }>();
+    const uncategorizedChats: typeof chatsWithDetails = [];
+
+    for (const chat of chatsWithDetails) {
+      if (chat.folder) {
+        // Chat has a folder
+        const folderId = chat.folder.id;
+        if (!folderMap.has(folderId)) {
+          folderMap.set(folderId, {
+            id: chat.folder.id,
+            name: chat.folder.name,
+            chats: [],
+          });
+        }
+        folderMap.get(folderId)!.chats.push(chat);
+      } else {
+        // Chat has no folder
+        uncategorizedChats.push(chat);
+      }
+    }
+
+    // Convert map to array and sort by folder name
+    const foldersArray = Array.from(folderMap.values()).sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+
+    return {
+      folders: foldersArray,
+      uncategorized: uncategorizedChats,
+    };
+  }),
+
   // Get chat by ID with messages
   getById: protectedProcedure
     .input(z.object({ id: ulidSchema }))

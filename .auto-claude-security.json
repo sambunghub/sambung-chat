@@ -130,7 +130,6 @@
   "stack_commands": [
     "bun",
     "bunx",
-    "composer",
     "createdb",
     "createuser",
     "dive",
@@ -142,29 +141,18 @@
     "dropuser",
     "eslint",
     "initdb",
-    "ipython",
-    "jupyter",
     "node",
-    "notebook",
     "npm",
     "npx",
-    "pdb",
     "pg_ctl",
     "pg_dump",
     "pg_dumpall",
     "pg_isready",
     "pg_restore",
-    "php",
-    "pip",
-    "pip3",
-    "pipx",
     "playwright",
     "postgres",
     "prettier",
     "psql",
-    "pudb",
-    "python",
-    "python3",
     "ts-node",
     "tsc",
     "tsx",
@@ -181,10 +169,8 @@
   "custom_commands": [],
   "detected_stack": {
     "languages": [
-      "python",
       "javascript",
-      "typescript",
-      "php"
+      "typescript"
     ],
     "package_managers": [
       "bun"
@@ -253,7 +239,7 @@
       "validate-guide.sh"
     ]
   },
-  "project_dir": "/Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat",
-  "created_at": "2026-01-18T16:47:33.752656",
-  "project_hash": "69a2b1aa1e2a63b05aeae5a673cd4c60"
+  "project_dir": "/Users/mis-puragroup/development/riset-ai/sambung-chat/.auto-claude/worktrees/tasks/006-chat-history-export-json-markdown",
+  "created_at": "2026-01-20T08:09:30.023837",
+  "project_hash": "3d7507af782046f567033433af89fe46"
 }
