@@ -51,18 +51,7 @@ export default defineConfig({
         ws: true,
         // Ensure cookies are properly forwarded
         configure: (proxy, _options) => {
-          proxy.on('proxyReq', (proxyReq, _req, _res) => {
-            // Log original cookies for debugging
-            const cookies = _req.headers['cookie'];
-            console.log('[Vite Proxy /ai] Original cookies:', cookies?.substring(0, 100));
-          });
-          proxy.on('proxyRes', (proxyRes, _req, _res) => {
-            // Log set-cookie headers for debugging
-            const setCookie = proxyRes.headers['set-cookie'];
-            if (setCookie) {
-              console.log('[Vite Proxy /ai] Set-Cookie:', setCookie);
-            }
-          });
+          // Proxy configuration - cookies automatically forwarded
         },
       },
       '/rpc': {
@@ -71,10 +60,7 @@ export default defineConfig({
         secure: false,
         ws: true,
         configure: (proxy, _options) => {
-          proxy.on('proxyReq', (proxyReq, _req, _res) => {
-            const cookies = _req.headers['cookie'];
-            console.log('[Vite Proxy /rpc] Original cookies:', cookies?.substring(0, 100));
-          });
+          // Proxy configuration - cookies automatically forwarded
         },
       },
     },
