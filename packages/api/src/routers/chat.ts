@@ -2,7 +2,7 @@ import { db } from '@sambung-chat/db';
 import { chats } from '@sambung-chat/db/schema/chat';
 import { messages } from '@sambung-chat/db/schema/chat';
 import { models } from '@sambung-chat/db/schema/model';
-import { eq, and, desc, asc, sql } from 'drizzle-orm';
+import { eq, and, desc, asc, sql, gte, lte } from 'drizzle-orm';
 import z from 'zod';
 import { protectedProcedure } from '../index';
 import { ulidSchema, ulidOptionalSchema } from '../utils/validation';
@@ -185,6 +185,15 @@ export const chatRouter = {
 
       if (input.pinnedOnly) {
         conditions.push(eq(chats.pinned, true));
+      }
+
+      // Add date range filter
+      if (input.dateFrom) {
+        conditions.push(gte(chats.createdAt, new Date(input.dateFrom)));
+      }
+
+      if (input.dateTo) {
+        conditions.push(lte(chats.createdAt, new Date(input.dateTo)));
       }
 
       // Build the query - join with models table if needed for provider/modelId filters
