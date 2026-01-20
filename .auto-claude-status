@@ -1,7 +1,7 @@
 {
   "active": true,
   "spec": "015-implement-csrf-protection-and-samesite-cookie-hard",
-  "state": "building",
+  "state": "complete",
   "subtasks": {
     "completed": 0,
     "total": 0,
@@ -21,5 +21,5 @@
     "number": 17,
     "started_at": "2026-01-20T12:54:01.105484"
   },
-  "last_update": "2026-01-20T14:19:59.486402"
+  "last_update": "2026-01-20T14:25:50.489905"
 }
