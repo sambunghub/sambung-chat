@@ -3,7 +3,7 @@
   "spec": "007-chat-history-search-enhancement",
   "state": "building",
   "subtasks": {
-    "completed": 10,
+    "completed": 13,
     "total": 24,
     "in_progress": 1,
     "failed": 0
@@ -18,8 +18,8 @@
     "max": 1
   },
   "session": {
-    "number": 11,
+    "number": 14,
     "started_at": "2026-01-20T09:34:38.700421"
   },
-  "last_update": "2026-01-20T10:17:04.284669"
+  "last_update": "2026-01-20T10:34:51.360652"
 }
