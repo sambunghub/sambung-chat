@@ -142,6 +142,34 @@ CORS_ORIGIN=https://app.sambungchat.com
 CORS_ORIGIN=https://app.sambungchat.com,https://sambungchat.com
 ```
 
+### API Key Encryption Configuration
+
+| Variable         | Description                 | Example                      | Requirement     |
+| ---------------- | --------------------------- | ---------------------------- | --------------- |
+| `ENCRYPTION_KEY` | Encryption key for API keys | `base64-encoded-32-byte-key` | 32 bytes base64 |
+
+**ENCRYPTION_KEY Setup:**
+
+The `ENCRYPTION_KEY` is used to encrypt API keys at rest using AES-256-GCM encryption.
+
+```bash
+# Generate a secure encryption key (32 bytes, base64-encoded)
+openssl rand -base64 32
+
+# Alternative: Node.js
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+
+# Alternative: Bun
+bun -e "console.log(crypto.randomBytes(32).toString('base64'))"
+```
+
+**IMPORTANT:**
+
+- **Never commit** this key to git
+- **Never share** this key across environments
+- **Back up securely** - if lost, all encrypted API keys become permanently unreadable
+- See [API Key Encryption Setup](./setup/api-keys.md) for detailed instructions
+
 ---
 
 ## AI Provider Configuration
@@ -208,6 +236,9 @@ cp .env.example .env
 ```bash
 # Generate Better Auth secret (min 32 characters)
 openssl rand -base64 32
+
+# Generate ENCRYPTION_KEY for API key encryption (32 bytes, base64)
+openssl rand -base64 32
 ```
 
 ### Step 3: Configure Required Variables
@@ -243,6 +274,14 @@ POSTGRES_DB=sambungchat_dev
 BETTER_AUTH_SECRET=your-secret-key-minimum-32-characters-long
 BETTER_AUTH_URL=http://localhost:3000
 CORS_ORIGIN=http://localhost:5173
+
+# ===========================================
+# API KEY ENCRYPTION
+# ===========================================
+# Required for secure API key storage
+# Generate with: openssl rand -base64 32
+# See docs/setup/api-keys.md for detailed setup instructions
+ENCRYPTION_KEY=your-base64-encoded-32-byte-encryption-key
 
 # ===========================================
 # AI PROVIDER (Choose one)
@@ -415,6 +454,26 @@ openssl rand -base64 32
 BETTER_AUTH_SECRET=<generated-secret>
 ```
 
+### Error: `ENCRYPTION_KEY` must be a 32-byte base64-encoded key
+
+**Problem:** Encryption key invalid format or wrong length
+
+**Solution:**
+
+```bash
+# Generate proper key (32 bytes, base64-encoded)
+openssl rand -base64 32
+
+# Verify length
+openssl rand -base64 32 | base64 -d | wc -c
+# Should output: 32
+
+# Update .env
+ENCRYPTION_KEY=<generated-key>
+```
+
+**For detailed troubleshooting, see [API Key Encryption Setup](./setup/api-keys.md#troubleshooting)**
+
 ### Docker: Environment variables not loading
 
 **Problem:** Docker Compose not reading .env
@@ -480,6 +539,9 @@ CORS_ORIGIN=https://app.sambungchat.com
 ```bash
 # Better Auth Secret
 echo "BETTER_AUTH_SECRET=$(openssl rand -base64 32)"
+
+# ENCRYPTION_KEY for API key encryption
+echo "ENCRYPTION_KEY=$(openssl rand -base64 32)"
 ```
 
 ### Validate Environment

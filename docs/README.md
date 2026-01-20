@@ -4,16 +4,42 @@ Welcome to the SambungChat documentation! This hub provides comprehensive guides
 
 ## Quick Links
 
-| Document                                                            | Description                                |
-| ------------------------------------------------------------------- | ------------------------------------------ |
-| [Teams Concept](./teams-concept.md)                                 | Team model, access control, workspaces     |
-| [Routes Structure](./routes.md)                                     | Complete URL structure and routing         |
-| [Database Schema](./database.md)                                    | Database tables and relationships          |
-| [Internationalization](./i18n.md)                                   | Multi-language support guide (svelte-i18n) |
-| [AI Provider Integration Guide](./ai-provider-integration-guide.md) | Complete guide for adding AI providers     |
-| [troubleshooting](./troubleshooting.md)                             | Common issues and solutions                |
-| [ui-package-guide](./ui-package-guide.md)                           | UI package development guide               |
-| [Architecture](./architecture.md)                                   | System architecture with diagrams          |
+| Document                                                            | Description                                 |
+| ------------------------------------------------------------------- | ------------------------------------------- |
+| [Teams Concept](./teams-concept.md)                                 | Team model, access control, workspaces      |
+| [Routes Structure](./routes.md)                                     | Complete URL structure and routing          |
+| [Database Schema](./database.md)                                    | Database tables and relationships           |
+| [Internationalization](./i18n.md)                                   | Multi-language support guide (svelte-i18n)  |
+| [AI Provider Integration Guide](./ai-provider-integration-guide.md) | Complete guide for adding AI providers      |
+| [API Key Encryption Setup](./setup/api-keys.md)                     | Encryption key generation and configuration |
+| [troubleshooting](./troubleshooting.md)                             | Common issues and solutions                 |
+| [ui-package-guide](./ui-package-guide.md)                           | UI package development guide                |
+| [Architecture](./architecture.md)                                   | System architecture with diagrams           |
+
+---
+
+## Setup & Configuration
+
+### API Key Encryption Setup
+
+**[API Key Encryption Setup](./setup/api-keys.md)** - Secure API Key Management
+
+Complete guide to setting up encryption for secure API key storage:
+
+- **Key Generation**: Generate secure 32-byte base64-encoded encryption keys
+- **Configuration**: Set up ENCRYPTION_KEY environment variable
+- **Security Best Practices**: Proper key management, storage, and access control
+- **Key Rotation**: Process for safely rotating encryption keys
+- **Troubleshooting**: Common issues and solutions
+
+**Who Should Read This:**
+
+- Developers setting up SambungChat for the first time
+- DevOps engineers deploying to production
+- Security-conscious users managing API keys
+- Anyone rotating encryption keys
+
+**📖 [Read API Key Encryption Setup →](./setup/api-keys.md)**
 
 ---
 

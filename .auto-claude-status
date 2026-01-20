@@ -1,25 +1,25 @@
 {
   "active": true,
-  "spec": "001-complete-openai-provider-integration",
+  "spec": "003-secure-api-key-management-system",
   "state": "building",
   "subtasks": {
-    "completed": 16,
-    "total": 19,
+    "completed": 12,
+    "total": 20,
     "in_progress": 1,
     "failed": 0
   },
   "phase": {
-    "current": "",
-    "id": 0,
-    "total": 0
+    "current": "Integration & Testing",
+    "id": null,
+    "total": 4
   },
   "workers": {
     "active": 0,
     "max": 1
   },
   "session": {
-    "number": 18,
-    "started_at": "2026-01-19T11:36:15.001417"
+    "number": 4,
+    "started_at": "2026-01-20T08:01:06.516208"
   },
-  "last_update": "2026-01-19T12:48:04.294644"
+  "last_update": "2026-01-20T08:16:26.748085"
 }
