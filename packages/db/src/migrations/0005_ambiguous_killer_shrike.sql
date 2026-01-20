@@ -1,0 +1,1 @@
+CREATE INDEX "chat_created_at_idx" ON "chats" USING btree ("created_at");
