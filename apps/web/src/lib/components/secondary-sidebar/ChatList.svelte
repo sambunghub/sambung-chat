@@ -17,7 +17,6 @@
   import PencilIcon from '@lucide/svelte/icons/pencil';
   import Trash2Icon from '@lucide/svelte/icons/trash-2';
   import FilterIcon from '@lucide/svelte/icons/filter';
-  import CheckIcon from '@lucide/svelte/icons/check';
 
   // Types
   interface Chat {
@@ -76,6 +75,7 @@
   let selectedFolderId = $state<string>('');
   let showPinnedOnly = $state(false);
   let selectedProviders = $state<Array<'openai' | 'anthropic' | 'google' | 'groq' | 'ollama' | 'custom'>>([]);
+  let selectedModelIds = $state<Array<string>>([]);
   let collapsedFolders = $state<Record<string, boolean>>({});
   let isInitialLoad = $state(true);
 
@@ -90,6 +90,16 @@
   let availableProviders = $derived(() => {
     const providerSet = new Set(models.map((m) => m.provider));
     return Array.from(providerSet).sort() as Array<'openai' | 'anthropic' | 'google' | 'groq' | 'ollama' | 'custom'>;
+  });
+
+  // Computed - available models filtered by selected providers
+  let availableModels = $derived(() => {
+    if (selectedProviders.length === 0) {
+      return models.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    return models
+      .filter((m) => selectedProviders.includes(m.provider as any))
+      .sort((a, b) => a.name.localeCompare(b.name));
   });
 
   // Computed - provider labels for display
@@ -162,6 +172,14 @@
 
   function handleProvidersChange() {
     if (!isInitialLoad) {
+      // Clear model selection when providers change
+      selectedModelIds = [];
+      loadChats();
+    }
+  }
+
+  function handleModelsChange() {
+    if (!isInitialLoad) {
       loadChats();
     }
   }
@@ -182,6 +200,7 @@
         folderId: selectedFolderId || undefined,
         pinnedOnly: showPinnedOnly || undefined,
         providers: selectedProviders.length > 0 ? selectedProviders : undefined,
+        modelIds: selectedModelIds.length > 0 ? selectedModelIds : undefined,
       } as any);
       chats = result as Chat[];
     } catch (err) {
@@ -523,6 +542,57 @@
                 }}
               >
                 Clear providers
+              </DropdownMenu.Item>
+            {/if}
+          </DropdownMenu.Content>
+        </DropdownMenu.DropdownMenu>
+      </div>
+    {/if}
+
+    <!-- Model Filter -->
+    {#if availableModels().length > 0}
+      <div class="mt-2">
+        <DropdownMenu.DropdownMenu>
+          <DropdownMenu.Trigger
+            class="border-input bg-background hover:bg-accent hover:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground flex w-full items-center justify-between rounded-md border px-2 py-1.5 text-sm text-left focus:ring-1 focus:ring-ring focus:outline-none"
+            type="button"
+          >
+            <div class="flex items-center gap-2">
+              <FilterIcon class="size-3.5" />
+              <span class="text-muted-foreground text-xs">
+                {selectedModelIds.length === 0
+                  ? 'All Models'
+                  : `${selectedModelIds.length} model${selectedModelIds.length > 1 ? 's' : ''} selected`}
+              </span>
+            </div>
+            <ChevronDownIcon class="size-3.5" />
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content class="w-56 max-h-80 overflow-y-auto">
+            {#each availableModels() as model (model.id)}
+              {@const isSelected = selectedModelIds.includes(model.id)}
+              <DropdownMenu.CheckboxItem
+                checked={isSelected}
+                onselect={() => {
+                  if (isSelected) {
+                    selectedModelIds = selectedModelIds.filter((id) => id !== model.id);
+                  } else {
+                    selectedModelIds = [...selectedModelIds, model.id];
+                  }
+                  handleModelsChange();
+                }}
+              >
+                <span class="flex-1 truncate" title={model.name}>{model.name}</span>
+              </DropdownMenu.CheckboxItem>
+            {/each}
+            {#if selectedModelIds.length > 0}
+              <DropdownMenu.Separator />
+              <DropdownMenu.Item
+                onclick={() => {
+                  selectedModelIds = [];
+                  handleModelsChange();
+                }}
+              >
+                Clear models
               </DropdownMenu.Item>
             {/if}
           </DropdownMenu.Content>

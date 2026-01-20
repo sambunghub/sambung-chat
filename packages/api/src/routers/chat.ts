@@ -160,7 +160,7 @@ export const chatRouter = {
         folderId: ulidOptionalSchema,
         pinnedOnly: z.boolean().optional(),
         providers: z.array(z.enum(['openai', 'anthropic', 'google', 'groq', 'ollama', 'custom'])).optional(),
-        modelId: z.string().optional(),
+        modelIds: z.array(z.string()).optional(),
         dateFrom: z.string().optional(),
         dateTo: z.string().optional(),
         searchInMessages: z.boolean().optional(),
@@ -206,7 +206,7 @@ export const chatRouter = {
       }
 
       // Build the query - join with models and/or messages tables as needed
-      const needsModelJoin = input.providers !== undefined || input.modelId !== undefined;
+      const needsModelJoin = input.providers !== undefined || input.modelIds !== undefined;
       const needsMessagesJoin = input.searchInMessages && input.query !== undefined;
 
       let query;
@@ -216,9 +216,9 @@ export const chatRouter = {
           conditions.push(inArray(models.provider, input.providers));
         }
 
-        // Add modelId filter
-        if (input.modelId !== undefined) {
-          conditions.push(eq(models.modelId, input.modelId));
+        // Add modelIds filter (multi-select)
+        if (input.modelIds !== undefined && input.modelIds.length > 0) {
+          conditions.push(inArray(models.id, input.modelIds));
         }
 
         // Join with both models and messages tables
@@ -245,9 +245,9 @@ export const chatRouter = {
           conditions.push(inArray(models.provider, input.providers));
         }
 
-        // Add modelId filter
-        if (input.modelId !== undefined) {
-          conditions.push(eq(models.modelId, input.modelId));
+        // Add modelIds filter (multi-select)
+        if (input.modelIds !== undefined && input.modelIds.length > 0) {
+          conditions.push(inArray(models.id, input.modelIds));
         }
 
         query = db
