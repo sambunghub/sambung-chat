@@ -158,6 +158,12 @@ export class ApiKeyService {
 			})
 			.returning();
 
+		if (!newKey) {
+			throw new ORPCError('INTERNAL_ERROR', {
+				message: 'Failed to create API key',
+			});
+		}
+
 		return {
 			id: newKey.id,
 			provider: newKey.provider as ApiKeyProvider,
@@ -235,6 +241,12 @@ export class ApiKeyService {
 		}
 
 		const apiKey = results[0];
+
+		if (!apiKey) {
+			throw new ORPCError('NOT_FOUND', {
+				message: 'API key not found or you do not have permission to access it',
+			});
+		}
 
 		// Decrypt the key
 		let decryptedKey: string;
@@ -320,6 +332,12 @@ export class ApiKeyService {
 			.set(updateData)
 			.where(and(eq(apiKeys.id, id), eq(apiKeys.userId, userId)))
 			.returning();
+
+		if (!updatedKey) {
+			throw new ORPCError('NOT_FOUND', {
+				message: 'API key not found or you do not have permission to access it',
+			});
+		}
 
 		return {
 			id: updatedKey.id,

@@ -88,7 +88,6 @@ export const apiKeyRouter = {
       const userId = context.session.user.id;
       return await ApiKeyService.updateKey({
         userId,
-        id: input.id,
         ...input,
       });
     }),
