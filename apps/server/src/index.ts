@@ -214,8 +214,13 @@ app.get('/', (c) => {
   return c.text('OK');
 });
 
-// Test database connection
+// Test database connection (development only)
 app.get('/debug/db', async (c) => {
+  // Disable debug endpoints in production
+  if (env.NODE_ENV === 'production') {
+    return c.json({ error: 'Not Found' }, 404);
+  }
+
   try {
     const { db } = await import('@sambung-chat/db');
     const result = await db.execute('SELECT 1 as test');
@@ -231,8 +236,13 @@ app.get('/debug/db', async (c) => {
   }
 });
 
-// Test Better Auth instance
+// Test Better Auth instance (development only)
 app.get('/debug/auth', async (c) => {
+  // Disable debug endpoints in production
+  if (env.NODE_ENV === 'production') {
+    return c.json({ error: 'Not Found' }, 404);
+  }
+
   try {
     const { auth } = await import('@sambung-chat/auth');
     return c.json({
@@ -252,13 +262,23 @@ app.get('/debug/auth', async (c) => {
   }
 });
 
-// Debug endpoint to test handler
+// Debug endpoint to test handler (development only)
 app.get('/debug', (c) => {
+  // Disable debug endpoints in production
+  if (env.NODE_ENV === 'production') {
+    return c.json({ error: 'Not Found' }, 404);
+  }
+
   return c.json({ message: 'Debug works', time: new Date().toISOString() });
 });
 
-// Debug endpoint to test session
+// Debug endpoint to test session (development only)
 app.get('/debug/session', async (c) => {
+  // Disable debug endpoints in production
+  if (env.NODE_ENV === 'production') {
+    return c.json({ error: 'Not Found' }, 404);
+  }
+
   const cookieHeader = c.req.raw.headers.get('cookie');
   const session = await auth.api.getSession({
     headers: c.req.raw.headers,
