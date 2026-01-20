@@ -3,7 +3,7 @@ import { folders, chats } from '@sambung-chat/db/schema/chat';
 import { eq, and, asc, sql } from 'drizzle-orm';
 import z from 'zod';
 import { ORPCError } from '@orpc/server';
-import { protectedProcedure } from '../index';
+import { protectedProcedure, withCsrfProtection } from '../index';
 import { ulidSchema } from '../utils/validation';
 
 export const folderRouter = {
@@ -48,6 +48,7 @@ export const folderRouter = {
 
   // Create new folder
   create: protectedProcedure
+    .use(withCsrfProtection)
     .input(
       z.object({
         name: z.string().min(1).max(100),
@@ -69,6 +70,7 @@ export const folderRouter = {
 
   // Update folder
   update: protectedProcedure
+    .use(withCsrfProtection)
     .input(
       z.object({
         id: ulidSchema,
@@ -90,6 +92,7 @@ export const folderRouter = {
 
   // Delete folder
   delete: protectedProcedure
+    .use(withCsrfProtection)
     .input(z.object({ id: ulidSchema }))
     .handler(async ({ input, context }) => {
       const userId = context.session.user.id;
