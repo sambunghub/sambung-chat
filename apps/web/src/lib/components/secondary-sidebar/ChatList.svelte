@@ -19,6 +19,14 @@
   import FilterIcon from '@lucide/svelte/icons/filter';
 
   // Types
+  interface MatchingMessage {
+    id: string;
+    chatId: string;
+    role: string;
+    content: string;
+    createdAt: Date;
+  }
+
   interface Chat {
     id: string;
     title: string;
@@ -27,6 +35,7 @@
     folderId: string | null;
     createdAt: Date;
     updatedAt: Date;
+    matchingMessages?: MatchingMessage[];
   }
 
   interface Folder {
@@ -205,6 +214,7 @@
     try {
       const result = await orpc.chat.search({
         query: searchQuery || undefined,
+        searchInMessages: searchQuery ? true : undefined,
         folderId: selectedFolderId || undefined,
         pinnedOnly: showPinnedOnly || undefined,
         providers: selectedProviders.length > 0 ? selectedProviders : undefined,
@@ -719,6 +729,7 @@
                   onMoveToFolder={(folderId) => moveChatToFolder(chat.id, folderId)}
                   onCreateFolder={() => createFolder(chat.id)}
                   {searchQuery}
+                  matchingMessages={chat.matchingMessages}
                 />
               {/each}
             </div>
@@ -835,6 +846,7 @@
                       onMoveToFolder={(folderId) => moveChatToFolder(chat.id, folderId)}
                       onCreateFolder={() => createFolder(chat.id)}
                       {searchQuery}
+                      matchingMessages={chat.matchingMessages}
                     />
                   {/each}
                 {/if}
@@ -862,6 +874,7 @@
                   onMoveToFolder={(folderId) => moveChatToFolder(chat.id, folderId)}
                   onCreateFolder={() => createFolder(chat.id)}
                   {searchQuery}
+                  matchingMessages={chat.matchingMessages}
                 />
               {/each}
             </div>
