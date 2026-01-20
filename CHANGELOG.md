@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.5] - 2026-01-20
+
+### Fixed
+
+- **Security - Debug Endpoint PII Exposure**: Remove user email and name from `/debug/session` endpoint response to prevent GDPR/CCPA violation through unauthenticated debug endpoint ([apps/server/src/index.ts](apps/server/src/index.ts:267-277))
+- **Security - Cookie Preview Exposure**: Remove `cookiePreview` field from `/debug/session` endpoint that exposed first 100 characters of session cookies ([apps/server/src/index.ts](apps/server/src/index.ts:267-277))
+- **Security - Auth Configuration Logging**: Remove console.log statements that exposed DATABASE_URL, BETTER_AUTH_URL, CORS_ORIGIN, and Keycloak credentials ([packages/auth/src/index.ts](packages/auth/src/index.ts:8-31))
+- **Security - Session Token Logging**: Remove logging of complete cookie header including session tokens from `/ai` endpoint ([apps/server/src/index.ts](apps/server/src/index.ts:127-143))
+- **Security - User Email Logging**: Remove logging of user email addresses from `/ai` endpoint ([apps/server/src/index.ts](apps/server/src/index.ts:135))
+- **Security - Session Status Logging**: Remove logging of session retrieval status and unauthorized attempts ([apps/server/src/index.ts](apps/server/src/index.ts:134-137))
+- **Security - Error Object Logging**: Sanitize error logging in `/ai` endpoint to prevent stack trace and sensitive data exposure ([apps/server/src/index.ts](apps/server/src/index.ts:198))
+
+### Security
+
+- **OWASP A09:2021 Compliance**: Addressed Security Logging and Monitoring Failures by removing all sensitive data from application logs
+- **GDPR/CCPA Compliance**: Prevented PII exposure in logs and debug endpoints
+- **Session Security**: Eliminated session token exposure in logs and debug responses
+
+---
+
 ## [0.0.4] - 2026-01-19
 
 ### Fixed
