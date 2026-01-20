@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.5] - 2026-01-20
+
+### Security
+
+- **Security Headers**: Add comprehensive security headers to prevent XSS, clickjacking, MIME-sniffing, and other web attacks
+  - Frontend (SvelteKit): Implemented 7 security headers including Content-Security-Policy with 12 directives, X-Frame-Options (DENY), X-Content-Type-Options (nosniff), Strict-Transport-Security, Permissions-Policy, Referrer-Policy, and Cross-Origin-Opener-Policy ([apps/web/src/lib/security/headers.ts](apps/web/src/lib/security/headers.ts), [apps/web/src/hooks.server.ts](apps/web/src/hooks.server.ts))
+  - Backend (Hono): Implemented 5 API-specific security headers including X-Frame-Options (DENY), X-Content-Type-Options (nosniff), Strict-Transport-Security (production only), Permissions-Policy (all features disabled), and Cross-Origin-Resource-Policy (same-site) ([apps/server/src/middleware/security.ts](apps/server/src/middleware/security.ts), [apps/server/src/index.ts](apps/server/src/index.ts:37))
+  - Environment Configuration: Added 12 optional environment variables for flexible security header configuration (SECURITY_HEADERS_ENABLED, CSP_HEADER, CSP_REPORT_ONLY, HSTS_MAX_AGE, HSTS_INCLUDE_SUBDOMAINS, HSTS_PRELOAD, X_FRAME_OPTIONS, X_CONTENT_TYPE_OPTIONS, REFERRER_POLICY, PERMISSIONS_POLICY, CROSS_ORIGIN_OPENER_POLICY, CROSS_ORIGIN_RESOURCE_POLICY) ([packages/env/src/server.ts](packages/env/src/server.ts))
+  - Testing: Created 168 comprehensive unit tests (74 SvelteKit + 70 Hono) verifying all security headers, environment configurations, and OWASP/SOC2/PCI-DSS compliance ([apps/web/src/lib/security/__tests__/headers.test.ts](apps/web/src/lib/security/__tests__/headers.test.ts), [apps/server/src/middleware/__tests__/security.test.ts](apps/server/src/middleware/__tests__/security.test.ts))
+  - Documentation: Created comprehensive security headers guide with CSP directives reference, environment variables, troubleshooting, and compliance mapping ([docs/security-headers.md](docs/security-headers.md))
+
+### Added
+
+- **Security Documentation**: Add comprehensive security headers documentation explaining implementation, configuration, testing, and compliance requirements
+
 ## [0.0.4] - 2026-01-19
 
 ### Fixed
