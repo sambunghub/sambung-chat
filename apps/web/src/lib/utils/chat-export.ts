@@ -49,28 +49,91 @@ export function exportToJSON(chat: ChatExport): string {
 }
 
 /**
- * Convert chat to Markdown format
+ * Format date to human-readable format
+ */
+function formatDate(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return d.toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+}
+
+/**
+ * Convert chat to Markdown format with enhanced formatting
  */
 export function exportToMarkdown(chat: ChatExport): string {
   let md = `# ${chat.title}\n\n`;
-  md += `**Model:** ${chat.modelId}\n`;
-  md += `**Created:** ${new Date(chat.createdAt).toLocaleString()}\n`;
-  md += `**Updated:** ${new Date(chat.updatedAt).toLocaleString()}\n\n`;
-  md += `---\n\n`;
 
-  for (const message of chat.messages) {
-    const role = message.role === 'user' ? '👤 **User**' : '🤖 **Assistant**';
-    md += `## ${role}\n\n`;
+  // Enhanced header metadata with blockquote
+  md += `> **📅 Created:** ${formatDate(chat.createdAt)}  \n`;
+  md += `> **🔄 Updated:** ${formatDate(chat.updatedAt)}  \n`;
+  md += `> **🤖 Model:** ${chat.modelId}  \n`;
+  md += `> **💬 Messages:** ${chat.messages.length}  \n`;
+
+  if (chat.pinned) {
+    md += `> **📌 Pinned:** Yes  \n`;
+  }
+
+  if (chat.folder) {
+    md += `> **📁 Folder:** ${chat.folder.name}  \n`;
+  }
+
+  md += `\n---\n\n`;
+
+  // Process each message
+  chat.messages.forEach((message, index) => {
+    // Determine role icon and label
+    let roleIcon: string;
+    let roleName: string;
+    if (message.role === 'user') {
+      roleIcon = '👤';
+      roleName = 'User';
+    } else if (message.role === 'system') {
+      roleIcon = '⚙️';
+      roleName = 'System';
+    } else {
+      roleIcon = '🤖';
+      roleName = 'Assistant';
+    }
+
+    // Message header with timestamp
+    md += `## ${roleIcon} ${roleName}\n\n`;
+    md += `**⏰ Time:** ${formatDate(message.createdAt)}\n\n`;
+
+    // Message content
     md += `${message.content}\n\n`;
 
-    if (message.metadata?.model) {
-      md += `*Model: ${message.metadata.model}`;
-      if (message.metadata.tokens) {
-        md += ` | Tokens: ${message.metadata.tokens}`;
+    // Enhanced metadata section
+    if (message.metadata && Object.keys(message.metadata).length > 0) {
+      md += `***\n\n`;
+      md += `**📋 Metadata:**\n\n`;
+
+      if (message.metadata.model) {
+        md += `- **Model:** \`${message.metadata.model}\`\n`;
       }
-      md += '*\n\n';
+
+      if (message.metadata.tokens) {
+        md += `- **Tokens:** ${message.metadata.tokens}\n`;
+      }
+
+      if (message.metadata.finishReason) {
+        md += `- **Finish Reason:** ${message.metadata.finishReason}\n`;
+      }
+
+      md += `\n`;
     }
-  }
+
+    // Clear separator between messages (not after the last one)
+    if (index < chat.messages.length - 1) {
+      md += `---\n\n`;
+    }
+  });
 
   return md;
 }

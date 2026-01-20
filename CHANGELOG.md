@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.5] - 2025-01-20
+
+### Changed
+
+- **Markdown Export Format**: Enhanced Markdown export with improved readability and structure ([apps/web/src/lib/utils/chat-export.ts](apps/web/src/lib/utils/chat-export.ts:51-139))
+  - Added blockquote-style metadata header with emojis and clear formatting
+  - Message-level timestamps with consistent date formatting
+  - Clear horizontal rule separators between messages
+  - Enhanced metadata section with bullet points and code formatting
+  - Support for system messages with dedicated icon
+  - Added message count and folder information to header
+
+---
+
 ## [0.0.4] - 2026-01-19
 
 ### Fixed
