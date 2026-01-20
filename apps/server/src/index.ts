@@ -131,10 +131,7 @@ app.post('/ai', async (c) => {
       headers: c.req.raw.headers,
     });
 
-    console.log('[AI] Session retrieved:', session ? 'Yes' : 'No');
-
     if (!session?.user) {
-      console.log('[AI] Unauthorized - No session or user found');
       return c.json({ error: 'Unauthorized' }, 401);
     }
 
