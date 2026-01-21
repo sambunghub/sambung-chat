@@ -369,6 +369,37 @@ export async function reinitMermaidDiagrams() {
 }
 
 /**
+ * Ensure all markdown rendering dependencies are loaded
+ * This function pre-loads KaTeX and Mermaid to avoid lazy-loading during rendering
+ * Call this before rendering markdown with LaTeX or Mermaid diagrams
+ * @returns Promise that resolves when all dependencies are loaded
+ */
+export async function ensureMarkdownDependencies(): Promise<void> {
+  try {
+    // Load KaTeX and CSS if not already loaded
+    if (!cachedKatex && !katexLoadInProgress) {
+      katexLoadInProgress = loadKatex();
+      cachedKatex = await katexLoadInProgress;
+    } else if (katexLoadInProgress) {
+      // Wait for existing load to complete
+      cachedKatex = await katexLoadInProgress;
+    }
+
+    // Load KaTeX CSS
+    const { loadKatexCss } = await import('$lib/utils/lazy-load');
+    await loadKatexCss();
+
+    // Load Mermaid if not already loaded
+    if (!isMermaidLoaded()) {
+      await loadMermaid();
+    }
+  } catch (error) {
+    console.error('Failed to load markdown dependencies:', error);
+    throw error;
+  }
+}
+
+/**
  * Setup theme change observer for Mermaid diagrams
  * Automatically re-renders diagrams when the theme changes
  */
