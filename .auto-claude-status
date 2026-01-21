@@ -1,25 +1,25 @@
 {
   "active": true,
-  "spec": "015-implement-csrf-protection-and-samesite-cookie-hard",
-  "state": "complete",
+  "spec": "006-extract-repetitive-model-transformation-in-getavai",
+  "state": "building",
   "subtasks": {
-    "completed": 0,
-    "total": 0,
+    "completed": 2,
+    "total": 8,
     "in_progress": 1,
     "failed": 0
   },
   "phase": {
-    "current": "Phase 4: Testing & Validation",
+    "current": "Refactor getAvailableModels Procedure",
     "id": null,
-    "total": 5
+    "total": 1
   },
   "workers": {
     "active": 0,
     "max": 1
   },
   "session": {
-    "number": 17,
-    "started_at": "2026-01-20T12:54:01.105484"
+    "number": 4,
+    "started_at": "2026-01-22T00:45:22.803827"
   },
-  "last_update": "2026-01-20T14:25:50.489905"
+  "last_update": "2026-01-22T00:54:16.423088"
 }
