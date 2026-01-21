@@ -3,23 +3,23 @@
   "spec": "007-complete-prompt-templates-system",
   "state": "building",
   "subtasks": {
-    "completed": 4,
+    "completed": 11,
     "total": 18,
     "in_progress": 1,
     "failed": 0
   },
   "phase": {
-    "current": "Backend ORPC Router",
+    "current": "Frontend UI Components",
     "id": null,
-    "total": 5
+    "total": 6
   },
   "workers": {
     "active": 0,
     "max": 1
   },
   "session": {
-    "number": 6,
-    "started_at": "2026-01-22T00:50:49.827328"
+    "number": 1,
+    "started_at": "2026-01-22T02:10:15.714318"
   },
-  "last_update": "2026-01-22T01:11:22.196949"
+  "last_update": "2026-01-22T02:10:15.792636"
 }
