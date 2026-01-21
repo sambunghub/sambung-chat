@@ -7,6 +7,7 @@
   import { DefaultChatTransport } from 'ai';
   import { renderMarkdownSync, initMermaidDiagrams } from '$lib/markdown-renderer.js';
   import { Button } from '$lib/components/ui/button/index.js';
+  import { Separator } from '$lib/components/ui/separator/index.js';
   import { exportChat } from '$lib/utils/chat-export';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import DownloadIcon from '@lucide/svelte/icons/download';
@@ -20,6 +21,7 @@
   import ClockIcon from '@lucide/svelte/icons/clock';
   import TokenDisplay from '$lib/components/token-display.svelte';
   import ErrorDisplay from '$lib/components/error-display.svelte';
+  import SecondarySidebarTrigger from '$lib/components/secondary-sidebar-trigger.svelte';
 
   // Get backend API URL for AI endpoint
   // In development: Connect directly to backend server (port 3000)
@@ -665,32 +667,36 @@
   <!-- Header -->
   <div class="shrink-0 border-b px-6 py-4">
     <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-foreground text-xl font-semibold">
-          {loading ? 'Loading...' : chatData?.title || 'Chat'}
-        </h1>
-        {#if chatData}
-          <p class="text-muted-foreground flex items-center gap-3 text-sm">
-            <span class="flex items-center gap-1">
-              <MessageCircleIcon class="size-3" />
-              {chatStats().messageCount} messages
-            </span>
-            <span class="flex items-center gap-1">
-              <AlignLeftIcon class="size-3" />
-              {chatStats().totalWords} words
-            </span>
-            <span class="flex items-center gap-1">
-              <ClockIcon class="size-3" />
-              {chatStats().lastActivity || 'N/A'}
-            </span>
-            {#if activeModel}
+      <div class="flex items-center gap-3">
+        <SecondarySidebarTrigger class="-ms-1" />
+        <Separator orientation="vertical" class="data-[orientation=vertical]:h-4" />
+        <div>
+          <h1 class="text-foreground text-xl font-semibold">
+            {loading ? 'Loading...' : chatData?.title || 'Chat'}
+          </h1>
+          {#if chatData}
+            <p class="text-muted-foreground flex items-center gap-3 text-sm">
               <span class="flex items-center gap-1">
-                <CodeIcon class="size-3" />
-                {activeModel.name}
+                <MessageCircleIcon class="size-3" />
+                {chatStats().messageCount} messages
               </span>
-            {/if}
-          </p>
-        {/if}
+              <span class="flex items-center gap-1">
+                <AlignLeftIcon class="size-3" />
+                {chatStats().totalWords} words
+              </span>
+              <span class="flex items-center gap-1">
+                <ClockIcon class="size-3" />
+                {chatStats().lastActivity || 'N/A'}
+              </span>
+              {#if activeModel}
+                <span class="flex items-center gap-1">
+                  <CodeIcon class="size-3" />
+                  {activeModel.name}
+                </span>
+              {/if}
+            </p>
+          {/if}
+        </div>
       </div>
       <div class="flex gap-2">
         <DropdownMenu.DropdownMenu>

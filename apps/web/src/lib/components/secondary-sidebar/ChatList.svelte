@@ -16,7 +16,6 @@
   import CodeIcon from '@lucide/svelte/icons/code';
   import PackageIcon from '@lucide/svelte/icons/package';
   import PlusIcon from '@lucide/svelte/icons/plus';
-  import PanelLeftCloseIcon from '@lucide/svelte/icons/panel-left-close';
   import FolderIcon from '@lucide/svelte/icons/folder';
   import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
   import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
@@ -76,10 +75,9 @@
 
   interface Props {
     currentChatId?: string;
-    onToggleCollapse?: () => void;
   }
 
-  let { currentChatId, onToggleCollapse }: Props = $props();
+  let { currentChatId }: Props = $props();
 
   // State
   let chats = $state<Chat[]>([]);
@@ -566,17 +564,6 @@
     <div class="mb-3 flex items-center justify-between">
       <h2 class="text-lg font-semibold">Chats</h2>
       <div class="flex gap-2">
-        {#if onToggleCollapse}
-          <Button
-            size="sm"
-            onclick={onToggleCollapse}
-            variant="ghost"
-            title="Collapse chat list"
-            class="h-8 w-8 p-0"
-          >
-            <PanelLeftCloseIcon class="size-4" />
-          </Button>
-        {/if}
         <DropdownMenu.DropdownMenu>
           <DropdownMenu.DropdownMenuTrigger
             class="bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-8 items-center justify-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors"

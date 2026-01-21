@@ -6,9 +6,8 @@
   import { useSidebar } from '$lib/components/ui/sidebar/context.svelte.js';
   import * as Sidebar from '$lib/components/ui/sidebar/index.js';
   import CommandIcon from '@lucide/svelte/icons/command';
-  import PanelLeftCloseIcon from '@lucide/svelte/icons/panel-left-close';
-  import PanelLeftOpenIcon from '@lucide/svelte/icons/panel-left-open';
   import ChatList from './secondary-sidebar/ChatList.svelte';
+  import { secondarySidebarStore } from '$lib/stores/secondary-sidebar.js';
 
   // Load nav config from JSON
   import navRailConfig from '$lib/navigation/nav-rail-menu.config.json';
@@ -60,6 +59,12 @@
   // Get active nav item based on current path
   const activeNavId = $derived(() => {
     const path = $page.url.pathname;
+
+    // Check if we're on settings route - don't show secondary sidebar
+    if (path.startsWith('/app/settings')) {
+      return 'settings';
+    }
+
     for (const item of menuItems) {
       if (item.path === '/team' && path.startsWith('/team')) return item.id;
       if (path === item.path || path.startsWith(item.path + '/')) return item.id;
@@ -74,10 +79,12 @@
     ] || secondarySidebarConfig.contexts.chat
   );
 
-  const sidebar = useSidebar();
+  // Check if secondary sidebar should be visible
+  const showSecondarySidebar = $derived(
+    !isSettingsContext(sidebarConfig) && activeNavId() !== 'settings'
+  );
 
-  // Secondary sidebar collapse state (default visible/expanded)
-  let secondarySidebarOpen = $state(true);
+  const sidebar = useSidebar();
 
   // Handle navigation
   function handleNavClick(item: NavItem) {
@@ -158,18 +165,15 @@
   </Sidebar.Root>
 
   <!-- Secondary Sidebar (280px) - Context aware content -->
-  {#if !isSettingsContext(sidebarConfig)}
+  {#if showSecondarySidebar}
     <Sidebar.Root
       collapsible="none"
-      class={secondarySidebarOpen ? 'flex-1' : 'w-0 overflow-hidden'}
+      class={$secondarySidebarStore ? 'flex-1' : 'w-0 overflow-hidden'}
       style="transition: all 0.2s ease;"
     >
       {#if activeNavId() === 'chat'}
         <!-- Render ChatList component for chat context -->
-        <ChatList
-          currentChatId={extractChatIdFromPath($page.url.pathname)}
-          onToggleCollapse={() => (secondarySidebarOpen = !secondarySidebarOpen)}
-        />
+        <ChatList currentChatId={extractChatIdFromPath($page.url.pathname)} />
       {:else}
         <!-- Render config-based sidebar for other contexts -->
         <Sidebar.Header class="gap-3.5 border-b p-4">
@@ -232,16 +236,5 @@
         </Sidebar.Content>
       {/if}
     </Sidebar.Root>
-
-    <!-- Expand Toggle Button (when collapsed) - positioned above input area -->
-    {#if !secondarySidebarOpen && activeNavId() === 'chat'}
-      <button
-        onclick={() => (secondarySidebarOpen = true)}
-        class="bg-background hover:bg-accent absolute bottom-20 left-[4.5rem] z-50 rounded-l-md border-t border-l p-1.5 shadow-lg transition-colors"
-        title="Expand chat list"
-      >
-        <PanelLeftOpenIcon class="text-muted-foreground size-4" />
-      </button>
-    {/if}
   {/if}
 </div>

@@ -6,9 +6,11 @@
   import { fade } from 'svelte/transition';
   import { renderMarkdownSync } from '$lib/markdown-renderer.js';
   import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
+  import { Separator } from '$lib/components/ui/separator/index.js';
   import { orpc } from '$lib/orpc';
   import { goto } from '$app/navigation';
   import ModelSelector from '$lib/components/model-selector.svelte';
+  import SecondarySidebarTrigger from '$lib/components/secondary-sidebar-trigger.svelte';
 
   // Get backend API URL for AI endpoint
   // In development: Connect directly to backend server (port 3000)
@@ -256,13 +258,17 @@
 <header
   class="bg-background sticky top-0 z-10 flex shrink-0 items-center justify-between gap-2 border-b p-4"
 >
-  <Breadcrumb.Root>
-    <Breadcrumb.List>
-      <Breadcrumb.Item>
-        <Breadcrumb.Page>Chat</Breadcrumb.Page>
-      </Breadcrumb.Item>
-    </Breadcrumb.List>
-  </Breadcrumb.Root>
+  <div class="flex items-center gap-2">
+    <SecondarySidebarTrigger class="-ms-1" />
+    <Separator orientation="vertical" class="data-[orientation=vertical]:h-4" />
+    <Breadcrumb.Root>
+      <Breadcrumb.List>
+        <Breadcrumb.Item>
+          <Breadcrumb.Page>Chat</Breadcrumb.Page>
+        </Breadcrumb.Item>
+      </Breadcrumb.List>
+    </Breadcrumb.Root>
+  </div>
 
   <div class="flex items-center gap-2">
     <ModelSelector
