@@ -338,18 +338,21 @@ export const chatRouter = {
     .handler(async ({ input, context }) => {
       const userId = context.session.user.id;
 
+      // Normalize query: trim whitespace to prevent searching for empty/whitespace-only strings
+      const normalizedQuery = input.query?.trim();
+
       const conditions = [eq(chats.userId, userId)];
 
       // Build search conditions for title and/or message content
-      if (input.query) {
+      if (normalizedQuery) {
         if (input.searchInMessages) {
           // Search in both title and message content
           conditions.push(
-            sql`(${chats.title} ILIKE ${`%${input.query}%`} OR ${messages.content} ILIKE ${`%${input.query}%`})`
+            sql`(${chats.title} ILIKE ${`%${normalizedQuery}%`} OR ${messages.content} ILIKE ${`%${normalizedQuery}%`})`
           );
         } else {
           // Search only in title
-          conditions.push(sql`${chats.title} ILIKE ${`%${input.query}%`}`);
+          conditions.push(sql`${chats.title} ILIKE ${`%${normalizedQuery}%`}`);
         }
       }
 
@@ -376,7 +379,7 @@ export const chatRouter = {
 
       // Build the query - join with models and/or messages tables as needed
       const needsModelJoin = input.providers !== undefined || input.modelIds !== undefined;
-      const needsMessagesJoin = input.searchInMessages && input.query !== undefined;
+      const needsMessagesJoin = Boolean(input.searchInMessages && normalizedQuery);
 
       let query;
       if (needsModelJoin && needsMessagesJoin) {
@@ -465,7 +468,7 @@ export const chatRouter = {
 
       // If searching in messages and a query was provided, fetch matching message snippets
       let resultsWithSnippets = results;
-      if (input.searchInMessages && input.query && results.length > 0) {
+      if (input.searchInMessages && normalizedQuery && results.length > 0) {
         const chatIds = results.map((r) => r.id);
 
         // Get all matching messages for these chats
@@ -479,7 +482,7 @@ export const chatRouter = {
           })
           .from(messages)
           .where(
-            and(inArray(messages.chatId, chatIds), ilike(messages.content, `%${input.query}%`))
+            and(inArray(messages.chatId, chatIds), ilike(messages.content, `%${normalizedQuery}%`))
           )
           .orderBy(asc(messages.createdAt));
 

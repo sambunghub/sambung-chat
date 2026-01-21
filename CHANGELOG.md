@@ -46,6 +46,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Guard getAllChatsWithMessages against empty chatIds to prevent invalid SQL
   - Guard getChatsByFolder against empty chatIds to prevent invalid SQL
   - Return early with empty structures when no chats exist
+- **Query Normalization**: Normalize search query by trimming whitespace ([packages/api/src/routers/chat.ts](packages/api/src/routers/chat.ts:342))
+  - Trim leading/trailing whitespace to prevent searching for empty/whitespace-only strings
+  - Use normalized query throughout search logic for consistency
+  - Use Boolean() for explicit needsMessagesJoin conversion
 
 ## [0.0.17] - 2026-01-21
 
