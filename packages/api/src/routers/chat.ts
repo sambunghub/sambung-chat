@@ -2,7 +2,7 @@ import { db } from '@sambung-chat/db';
 import { chats, folders } from '@sambung-chat/db/schema/chat';
 import { messages } from '@sambung-chat/db/schema/chat';
 import { models } from '@sambung-chat/db/schema/model';
-import { eq, and, desc, asc, sql, gte, lte, inArray } from 'drizzle-orm';
+import { eq, and, desc, asc, sql, gte, lte, inArray, ilike } from 'drizzle-orm';
 import z from 'zod';
 import { protectedProcedure, withCsrfProtection } from '../index';
 import { ulidSchema, ulidOptionalSchema } from '../utils/validation';
@@ -446,10 +446,7 @@ export const chatRouter = {
           })
           .from(messages)
           .where(
-            and(
-              sql`${messages.chatId} = ANY(${chatIds})`,
-              sql`${messages.content} ILIKE ${`%${input.query}%`}`
-            )
+            and(inArray(messages.chatId, chatIds), ilike(messages.content, `%${input.query}%`))
           )
           .orderBy(asc(messages.createdAt));
 
