@@ -8,7 +8,7 @@ import { folderRouter } from './folder';
 import { modelRouter } from './model';
 import { apiKeyRouter } from './api-keys';
 import { generateCsrfToken } from '../utils/csrf';
-import { csrfRateLimiter } from '../utils/rate-limiter';
+import { csrfPersistentRateLimiter } from '../utils/rate-limiter';
 
 // NOTE: Example routers are in _example/ folder for reference only
 // They are NOT exported to production API
@@ -32,7 +32,7 @@ export const appRouter = {
     const rateLimitKey = context.session?.user?.id || context.clientIp || 'anonymous';
 
     // Check rate limit
-    if (!csrfRateLimiter.checkLimit(rateLimitKey)) {
+    if (!(await csrfPersistentRateLimiter.checkLimit(rateLimitKey))) {
       throw new ORPCError('TOO_MANY_REQUESTS', {
         message: 'Too many CSRF token requests. Please try again later.',
       });
