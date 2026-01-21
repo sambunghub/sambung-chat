@@ -9,6 +9,7 @@
         "@ai-sdk/openai-compatible": "^2.0.4",
         "@sambung-chat/env": "workspace:*",
         "dotenv": "catalog:",
+        "ulidx": "^2.4.1",
         "zod": "catalog:",
       },
       "devDependencies": {
@@ -50,6 +51,7 @@
         "better-auth": "catalog:",
         "dotenv": "catalog:",
         "hono": "^4.8.2",
+        "ulidx": "^2.4.1",
         "zod": "catalog:",
       },
       "devDependencies": {

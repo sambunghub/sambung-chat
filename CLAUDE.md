@@ -284,9 +284,19 @@ bun run format           # Prettier
 
 **Commit Rules (CRITICAL):**
 
+- **PRE-COMPULSORY**: ALL commits MUST pass pre-commit hooks (`git commit` without `--no-verify`)
 - **NO co-author tags** - Jangan gunakan `Co-Authored-By` di commit messages
 - **Conventional commits**: `feat:`, `fix:`, `docs:`, `refactor:`, dll.
 - **Hindari watermark** - Tidak menambahkan signature atau attribution di commits
+
+**Pre-commit hooks validation** (enforced by Husky):
+
+1. ✅ lint-staged (Prettier + ESLint auto-fix)
+2. ✅ ESLint (0 errors allowed, warnings OK)
+3. ✅ svelte-check (0 errors allowed, warnings OK)
+4. ✅ Build (server + web must compile successfully)
+
+**NEVER bypass pre-commit** with `--no-verify` unless explicitly instructed by user for infrastructure issues.
 
 ---
 

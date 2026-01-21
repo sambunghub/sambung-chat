@@ -1,4 +1,5 @@
 <script lang="ts">
+  import './chat.css';
   import { page } from '$app/stores';
   import { Chat } from '@ai-sdk/svelte';
   import { DefaultChatTransport } from 'ai';
@@ -41,7 +42,7 @@
 
   const chat = new Chat({
     transport: new DefaultChatTransport({
-      api: `${PUBLIC_API_URL}/ai`,
+      api: `${PUBLIC_API_URL}/api/ai`,
       fetch: authenticatedFetch,
     }),
   });
@@ -226,7 +227,9 @@
   }
 </script>
 
-<header class="bg-background sticky top-0 z-10 flex shrink-0 items-center justify-between gap-2 border-b p-4">
+<header
+  class="bg-background sticky top-0 z-10 flex shrink-0 items-center justify-between gap-2 border-b p-4"
+>
   <Breadcrumb.Root>
     <Breadcrumb.List>
       <Breadcrumb.Item>
@@ -546,187 +549,3 @@
     {/if}
   </form>
 </div>
-
-<style>
-  :global(.scroll-smooth) {
-    scroll-behavior: smooth;
-  }
-
-  :global(.overflow-y-auto::-webkit-scrollbar) {
-    width: 6px;
-  }
-
-  :global(.overflow-y-auto::-webkit-scrollbar-track) {
-    background: transparent;
-  }
-
-  :global(.overflow-y-auto::-webkit-scrollbar-thumb) {
-    background: hsl(var(--color-border) / 0.5);
-    border-radius: 3px;
-  }
-
-  :global(.overflow-y-auto::-webkit-scrollbar-thumb:hover) {
-    background: hsl(var(--color-border));
-  }
-
-  :global(.markdown-content) {
-    line-height: 1.7;
-  }
-
-  :global(.markdown-content pre) {
-    border-radius: 0.75rem;
-    margin: 1rem 0;
-    overflow-x: auto;
-    background: linear-gradient(
-      145deg,
-      hsl(var(--color-muted) / 0.8),
-      hsl(var(--color-muted) / 0.4)
-    );
-    border: 1px solid hsl(var(--color-border) / 0.8);
-    box-shadow: 0 4px 6px -1px hsl(var(--color-border) / 0.3);
-  }
-
-  :global(.markdown-content code) {
-    font-family: 'JetBrains Mono', 'Fira Code', Consolas, Monaco, monospace;
-    font-size: 0.875em;
-  }
-
-  :global(.markdown-content :not(pre) > code) {
-    background: linear-gradient(
-      135deg,
-      hsl(var(--color-primary) / 0.15),
-      hsl(var(--color-primary) / 0.08)
-    );
-    color: hsl(var(--color-primary));
-    padding: 0.2rem 0.5rem;
-    border-radius: 0.375rem;
-    font-weight: 600;
-    border: 1px solid hsl(var(--color-primary) / 0.2);
-    box-shadow: 0 1px 2px hsl(var(--color-primary) / 0.1);
-  }
-
-  :global(.markdown-content pre > div:first-child) {
-    font-family: 'JetBrains Mono', 'Fira Code', Consolas, Monaco, monospace;
-    background: linear-gradient(
-      135deg,
-      hsl(var(--color-muted) / 0.95),
-      hsl(var(--color-muted) / 0.7)
-    );
-    border-bottom: 2px solid hsl(var(--color-primary) / 0.3);
-  }
-
-  :global(.markdown-content h1) {
-    font-size: 1.5rem;
-    font-weight: 800;
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
-    background: linear-gradient(135deg, hsl(var(--color-primary)), hsl(var(--color-primary) / 0.7));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    padding-bottom: 0.25rem;
-    border-bottom: 2px solid hsl(var(--color-primary) / 0.2);
-  }
-
-  :global(.markdown-content h2) {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-top: 1.25rem;
-    margin-bottom: 0.5rem;
-    color: hsl(var(--color-primary));
-    background: linear-gradient(90deg, hsl(var(--color-primary) / 0.1), transparent);
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    border-left: 3px solid hsl(var(--color-primary));
-  }
-
-  :global(.markdown-content h3) {
-    font-size: 1.125rem;
-    font-weight: 700;
-    margin-top: 1rem;
-    margin-bottom: 0.5rem;
-    color: hsl(var(--color-foreground));
-    background: hsl(var(--color-muted) / 0.3);
-    padding: 0.2rem 0.5rem;
-    border-radius: 0.25rem;
-  }
-
-  :global(.markdown-content ul),
-  :global(.markdown-content ol) {
-    padding-left: 1.5rem;
-    margin: 0.75rem 0;
-  }
-
-  :global(.markdown-content li) {
-    margin: 0.4rem 0;
-    padding-left: 0.25rem;
-  }
-
-  :global(.markdown-content ul li::marker) {
-    color: hsl(var(--color-primary));
-    font-size: 1.2em;
-  }
-
-  :global(.markdown-content ol li::marker) {
-    color: hsl(var(--color-primary));
-    font-weight: 600;
-  }
-
-  :global(.markdown-content blockquote) {
-    border-left: 4px solid hsl(var(--color-primary));
-    padding: 1rem 1.25rem;
-    margin: 1.25rem 0;
-    font-style: italic;
-    color: hsl(var(--color-foreground));
-    background: linear-gradient(90deg, hsl(var(--color-primary) / 0.1), transparent);
-    border-radius: 0.5rem;
-    box-shadow: 0 2px 4px hsl(var(--color-border) / 0.2);
-  }
-
-  :global(.markdown-content table) {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    margin: 1.5rem 0;
-    border-radius: 0.5rem;
-    overflow: hidden;
-    box-shadow: 0 4px 6px -1px hsl(var(--color-border) / 0.3);
-  }
-
-  :global(.markdown-content th),
-  :global(.markdown-content td) {
-    border: 1px solid hsl(var(--color-border) / 0.5);
-    padding: 0.75rem 1rem;
-  }
-
-  :global(.markdown-content th) {
-    background: linear-gradient(
-      135deg,
-      hsl(var(--color-primary) / 0.15),
-      hsl(var(--color-primary) / 0.05)
-    );
-    font-weight: 700;
-    color: hsl(var(--color-primary));
-    text-transform: uppercase;
-    font-size: 0.875em;
-    letter-spacing: 0.05em;
-  }
-
-  :global(.markdown-content tr:nth-child(even)) {
-    background-color: hsl(var(--color-muted) / 0.3);
-  }
-
-  :global(.markdown-content tr:hover) {
-    background-color: hsl(var(--color-muted) / 0.5);
-  }
-
-  :global(.markdown-content a) {
-    color: hsl(var(--color-primary));
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-
-  :global(.markdown-content a:hover) {
-    text-decoration-thickness: 2px;
-  }
-</style>

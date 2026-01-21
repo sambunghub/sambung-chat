@@ -39,6 +39,7 @@ export default defineConfig({
       '**/build/**',
       '**/examples/**',
       '**/tests/e2e/**',
+      '**/.auto-claude/**',
     ],
 
     // Setup files - loads .env before tests run

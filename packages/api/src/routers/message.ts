@@ -3,7 +3,7 @@ import { chats } from '@sambung-chat/db/schema/chat';
 import { messages } from '@sambung-chat/db/schema/chat';
 import { eq, and, asc } from 'drizzle-orm';
 import z from 'zod';
-import { protectedProcedure } from '../index';
+import { protectedProcedure, withCsrfProtection } from '../index';
 import { ulidSchema } from '../utils/validation';
 
 export const messageRouter = {
@@ -33,6 +33,7 @@ export const messageRouter = {
 
   // Create message
   create: protectedProcedure
+    .use(withCsrfProtection)
     .input(
       z.object({
         chatId: ulidSchema,
@@ -68,6 +69,7 @@ export const messageRouter = {
 
   // Delete message
   delete: protectedProcedure
+    .use(withCsrfProtection)
     .input(z.object({ id: ulidSchema }))
     .handler(async ({ input, context }) => {
       const userId = context.session.user.id;

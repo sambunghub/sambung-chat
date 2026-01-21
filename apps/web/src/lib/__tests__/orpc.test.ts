@@ -21,14 +21,19 @@ describe('ORPC Client Configuration', () => {
   });
 
   it('should match CORS_ORIGIN with frontend', () => {
-    // CORS_ORIGIN can be either port 3000, 5173, or 5174 depending on environment
+    // CORS_ORIGIN can be comma-separated list of URLs
     const frontendUrls = [
       'http://localhost:3000',
       'http://localhost:5173',
       'http://localhost:5174',
     ];
     expect(process.env.CORS_ORIGIN).toBeDefined();
-    expect(frontendUrls).toContain(process.env.CORS_ORIGIN!);
+
+    // Parse comma-separated CORS_ORIGIN and check if all are valid frontend URLs
+    const corsOrigins = process.env.CORS_ORIGIN!.split(',').map((url) => url.trim());
+    corsOrigins.forEach((origin) => {
+      expect(frontendUrls).toContain(origin);
+    });
   });
 });
 

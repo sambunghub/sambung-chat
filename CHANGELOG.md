@@ -5,37 +5,94 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.11] - 2026-01-20
-
-### Changed
-
-- **Environment-based Configuration Removed**: AI provider configuration is now exclusively managed through the web UI ([.env.example](.env.example:140-165), [packages/env/src/server.ts](packages/env/src/server.ts:71-80))
-  - Removed all AI provider API key environment variables (OPENAI_API_KEY, ANTHROPIC_API_KEY, etc.)
-  - Removed model ID environment variables (OPENAI_MODEL, ANTHROPIC_MODEL, etc.)
-  - Removed AI_PROVIDER and AI_MODEL environment variables
-  - Users must now configure models via Settings → Models in the web UI
-  - API keys are stored securely in the database with AES-256-GCM encryption
-
-- **API Keys Now Required**: Models must have an associated API key from the database ([packages/api/src/lib/ai-provider-factory.ts](packages/api/src/lib/ai-provider-factory.ts:77-82))
-  - Exception: Ollama provider doesn't require an API key (uses local inference)
-  - Clearer error messages when API key is missing from model configuration
-
-- **Improved Error Messages**: Better user guidance when configuration is incomplete ([apps/server/src/index.ts](apps/server/src/index.ts:210-221), [packages/api/src/routers/ai.ts](packages/api/src/routers/ai.ts:148-158))
-  - "No active model configured" - directs users to Settings → Models
-  - "Model is missing an API key" - instructs users to add API Key in Settings
-
-### Removed
-
-- **isProviderConfigured() function**: No longer needed since providers are configured via UI ([packages/api/src/lib/ai-provider-factory.ts](packages/api/src/lib/ai-provider-factory.ts))
-- **getConfiguredProviders() function**: No longer needed since providers are configured via UI ([packages/api/src/lib/ai-provider-factory.ts](packages/api/src/lib/ai-provider-factory.ts))
-- **validateAIProviders() function**: Environment validation removed since all config is in database ([packages/env/src/server.ts](packages/env/src/server.ts:122-123))
+## [0.0.14] - 2026-01-21
 
 ### Security
 
-- **Enhanced Security**: Removing environment-based API keys reduces risk of credential exposure
-  - API keys are now encrypted at rest in the database
-  - No API keys in environment variables or configuration files
-  - Each user can manage their own API keys through the UI
+- **AI Provider Validation**: Add Zod schema validation for AI provider values from database ([apps/server/src/index.ts](apps/server/src/index.ts:26))
+  - Replaces unsafe `as any` cast with proper Zod enum validation
+  - Returns 400 error with clear message for invalid provider values
+
+- **Security Headers on Redirects**: Apply security headers to redirect responses by using Response-based redirects ([apps/web/src/hooks.server.ts](apps/web/src/hooks.server.ts:42))
+  - Replaces SvelteKit `redirect()` with Response(302) + Location header
+  - Ensures security headers are applied to all redirect responses
+
+- **Validated Environment Variables**: Use validated env exports in security headers instead of process.env ([apps/web/src/lib/security/headers.ts](apps/web/src/lib/security/headers.ts:12))
+  - Import `env` from `@sambung-chat/env/server` for PUBLIC_API_URL and KEYCLOAK_URL
+  - Add try/catch for malformed KEYCLOAK_URL with fallback to empty string
+
+- **Context Security Hardening**: Remove sensitive headers from context type and harden IP extraction ([packages/api/src/context.ts](packages/api/src/context.ts))
+  - getClientIp no longer trusts spoofable X-Forwarded-For/X-Real-IP headers
+  - Context now returns only `csrfToken` instead of full headers object
+  - CSRF middleware updated to use pre-extracted csrfToken
+
+- **Type Safety Improvements**: Add type guard for SameSite values ([packages/env/src/server.ts](packages/env/src/server.ts:251))
+  - Removes unsafe `as any` cast with `isSameSite()` type guard function
+  - CORS origins now use `url.origin` instead of `url.href` to discard path/query/hash
+
+### Fixed
+
+- **CSRF Test Assertion**: Fix test that incorrectly expected token validation to pass with different secret ([packages/api/src/**tests**/csrf.test.ts](packages/api/src/__tests__/csrf.test.ts:234))
+- **Auth Test Module Loading**: Add `vi.resetModules()` before dynamic imports and fix spy types ([packages/auth/**tests**/cookies.test.ts](packages/auth/__tests__/cookies.test.ts:231))
+- **Reencrypt Script Enhancements**: Add `--key-id` argument support and use package alias ([scripts/reencrypt-api-keys.ts](scripts/reencrypt-api-keys.ts))
+  - Import encryption functions from `@sambung-chat/api/lib/encryption` instead of relative path
+  - Support targeting specific API key by ID with `--key-id` argument
+
+### Documentation
+
+- **Standardized Port**: Update documentation to reflect standardized web port 5174 ([docs/security-headers.md](docs/security-headers.md:363))
+- **Markdown Formatting**: Fix markdownlint issues in security.md ([docs/security.md](docs/security.md))
+  - Hyphenate compound modifiers (CSRF-validation, rate-limiting, CORS-origin)
+  - Wrap bare localhost URLs in angle brackets for MD034 compliance
+  - Convert bold DO/DON'T labels to proper markdown headings (#### Do/#### Don't)
+
+---
+
+## [0.0.13] - 2026-01-21
+
+### Fixed
+
+- **Unit Test Configuration**: Exclude `.auto-claude/**` directories from vitest to prevent test failures from old worktrees ([vitest.config.ts](vitest.config.ts:42))
+- **Auth Test Dynamic Imports**: Fix module resolution in auth tests by using ES module `import()` instead of `require()` ([packages/auth/**tests**/cookies.test.ts](packages/auth/__tests__/cookies.test.ts:231))
+
+---
+
+## [0.0.12] - 2026-01-21
+
+### Added
+
+- **AI Endpoint from Database**: New `/api/ai` endpoint that retrieves model configuration from database ([apps/server/src/index.ts](apps/server/src/index.ts:133))
+  - Gets active model for authenticated user from database
+  - Retrieves and decrypts API key using existing encryption utility
+  - Creates AI provider dynamically based on user's configured model
+  - Supports all providers: OpenAI, Anthropic, Google, Groq, Ollama, custom
+  - Returns clear error messages when no active model is configured
+
+### Changed
+
+- **AI Endpoint Path**: Move AI endpoint from `/ai` to `/api/ai` for consistency with other API routes
+  - Frontend chat pages updated to use new path: `apps/web/src/routes/app/chat/+page.svelte:45`
+  - Follows existing pattern: `/api/auth/*` for auth, `/api/ai/*` for AI services
+
+### Removed
+
+- **Debug Logs**: Remove debug console logs from AI router ([packages/api/src/routers/ai.ts](packages/api/src/routers/ai.ts))
+
+---
+
+## [0.0.11] - 2026-01-21
+
+### Fixed
+
+- **AI Provider Validation**: Remove obsolete global AI provider validation ([packages/env/src/server.ts](packages/env/src/server.ts:313))
+  - AI providers are now configured per-user in database (models table with apiKeyId references)
+  - Environment variables for API keys remain available for backward compatibility but are no longer required
+  - Fixes server startup errors when no global AI provider keys are configured
+
+- **CSRF Token Response Parsing**: Fix incorrect ORPC response structure parsing ([apps/web/src/lib/orpc.ts](apps/web/src/lib/orpc.ts:59))
+  - Changed response parsing from `data.data` to `data.json` to match ORPC response format
+  - ORPC wraps responses in `{ json: { ... } }` format, not `{ data: { ... } }`
+  - Fixes "CSRF token is required for this operation" errors when sending messages
 
 ---
 
@@ -43,33 +100,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **AI Endpoint API Key Decryption**: Fix "Invalid API key" error in `/ai` endpoint by implementing proper AES-256-GCM decryption ([apps/server/src/index.ts](apps/server/src/index.ts:130-142))
-  - Added `getDecryptedApiKey` helper function to decrypt API keys from database
-  - Previously API keys were not decrypted in `/ai` endpoint (only RPC endpoints were fixed)
-  - Now both endpoints (`/rpc/ai.stream` and `/ai`) properly decrypt stored API keys
+- **Vite Proxy Circular Reference**: Fix ECONNRESET and ENOTFOUND errors by correcting proxy target ([apps/web/vite.config.ts](apps/web/vite.config.ts:56))
+  - Changed proxy target from `PUBLIC_API_URL` (port 5174) to backend server (port 3000)
+  - Vite proxy now correctly forwards `/rpc` and `/ai` requests to backend server
+  - `PUBLIC_API_URL` remains `http://localhost:5174` for client-side same-origin requests
+  - Proxy uses `SERVER_PORT` (default: 3000) to connect to backend server
+  - Fixes "ECONNRESET" errors when CSRF token fetch times out
+  - Fixes "ENOTFOUND localhost" errors on RPC endpoints
+  - All RPC routes now work correctly: `/rpc/getCsrfToken`, `/rpc/chat/search`, `/rpc/model/getAll`, etc.
 
-- **METHOD_NOT_SUPPORTED Error**: Fix ORPC error for OPTIONS requests by adding explicit handler ([apps/server/src/index.ts](apps/server/src/index.ts:97-99))
-  - Added `app.options('/rpc/*', ...)` handler to properly handle CORS preflight requests
-  - Prevents 405 errors when browser sends OPTIONS requests before actual RPC calls
+**Technical Details**:
 
-- **Model Management UI**: Add missing API Key selector field to model creation/edit forms ([apps/web/src/routes/app/settings/models-manager.svelte](apps/web/src/routes/app/settings/models-manager.svelte))
-  - Added API key dropdown that filters keys based on selected provider
-  - Users can now select stored API keys instead of relying solely on environment variables
-  - Shows key name and last 4 digits for easy identification
-  - Added link to API Keys management page for quick access
-
-### Changed
-
-- **Better Model Logging**: Enhanced logging in `/ai` endpoint to show both modelId and display name ([apps/server/src/index.ts](apps/server/src/index.ts:223))
-  - Logs now show: `[AI] Using active model: {provider} {modelId} {name}`
-  - Helps debug issues where display name differs from actual model ID
-
-### Technical Notes
-
-- **Model Fields**: Database has two separate fields:
-  - `name`: Display name (e.g., "Trial GLM", "GPT-4o")
-  - `modelId`: Actual model ID passed to API (e.g., "glm-4", "gpt-4o")
-- Ensure `modelId` contains the correct API model identifier, not the display name
+- **Before**: Proxy forwarded to `http://localhost:5174` (itself), creating circular reference
+- **After**: Proxy forwards to `http://localhost:3000` (backend server)
+- Client-side requests go to `http://localhost:5174/rpc/*` (same-origin)
+- Vite proxy forwards to `http://localhost:3000/rpc/*` (backend server)
+- This maintains same-origin cookies while avoiding circular proxy
 
 ---
 
@@ -77,139 +123,195 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **API Key Decryption**: Fix "Invalid API key" error for custom models by implementing proper AES-256-GCM decryption in AI router ([packages/api/src/routers/ai.ts](packages/api/src/routers/ai.ts:58-87))
-  - `getDecryptedApiKey` function now properly decrypts API keys using the `decrypt` function from encryption module
-  - Previously returned encrypted key directly, causing authentication failures with AI providers
+- **CSRF Token Same-Origin Requests**: Fix CSRF token 500 errors by using dynamic API_URL variable ([apps/web/src/lib/orpc.ts](apps/web/src/lib/orpc.ts:42))
+  - Changed `fetchToken()` to use `API_URL` variable instead of `PUBLIC_API_URL` constant
+  - Changed `RPCLink` to use `API_URL` variable instead of `PUBLIC_API_URL` constant
+  - `API_URL` is dynamically set to `window.location.origin` in browser for same-origin requests
+  - This ensures both CSRF token fetch and all RPC requests use the same origin
+  - Session cookies are now properly included in all requests to CSRF-protected endpoints
+  - Fixes 500 Internal Server Error on `/rpc/model/getAll`, `/rpc/chat/search`, etc.
+  - Fixes 403 FORBIDDEN errors caused by missing CSRF tokens in mutation requests
 
-- **Base URL Sanitization**: Prevent duplicate `/chat/completions` path in OpenAI-compatible provider URLs ([packages/api/src/lib/ai-provider-factory.ts](packages/api/src/lib/ai-provider-factory.ts:33-66))
-  - Added `sanitizeBaseURL` function that automatically removes endpoint paths like `/chat/completions`, `/completions` from user input
-  - Applied sanitization to all OpenAI-compatible providers (OpenAI, Custom, Groq, Ollama) and Anthropic
-  - Fixes issue where input like `https://api.example.com/v1/chat/completions` resulted in double path `https://api.example.com/v1/chat/completions/chat/completions`
-  - Now both `https://api.example.com/v1` and `https://api.example.com/v1/chat/completions` work correctly
+**Technical Details**:
 
-- **Provider Config Types**: Fix TypeScript errors by correcting property name from `model` to `modelId` in ProviderConfig ([packages/api/src/routers/ai.ts](packages/api/src/routers/ai.ts:151))
-  - Updated `getModelConfig` to use correct property name `modelId` instead of `model`
-  - Fixed all references to use `modelConfig.modelId` instead of `modelConfig.model`
+- The `API_URL` variable is set using `getApiUrl()` which returns `window.location.origin` in browser
+- This makes all requests same-origin, allowing automatic cookie forwarding
+- Both CSRF token fetch and RPC calls now use consistent URL resolution
 
 ---
 
 ## [0.0.8] - 2026-01-20
 
-### Added
+### Fixed
 
-- **Secure API Key Management System**: Comprehensive encrypted API key storage with AES-256-GCM encryption, user-level key isolation, and secure key rotation ([docs/setup/api-keys.md](docs/setup/api-keys.md))
-  - Database schema for encrypted API key storage with ULID primary keys ([packages/db/src/schema/api-keys.ts](packages/db/src/schema/api-keys.ts))
-  - AES-256-GCM encryption utilities with scrypt key derivation and random IV per encryption ([packages/api/src/lib/encryption.ts](packages/api/src/lib/encryption.ts))
-  - oRPC router with full CRUD operations for API key management ([packages/api/src/routers/api-keys.ts](packages/api/src/routers/api-keys.ts))
-  - API key service layer with business logic separation ([packages/api/src/services/api-key-service.ts](packages/api/src/services/api-key-service.ts))
-  - Secure logging middleware to prevent API key exposure in logs and errors ([packages/api/src/middleware/secure-logging.ts](packages/api/src/middleware/secure-logging.ts))
-  - Frontend settings UI at `/app/settings/api-keys` with full CRUD functionality ([apps/web/src/routes/app/settings/api-keys/+page.svelte](apps/web/src/routes/app/settings/api-keys/+page.svelte))
-  - Reusable form components: ApiKeyForm, ApiKeyCard, and ApiKeyList ([apps/web/src/lib/components/settings/api-keys/](apps/web/src/lib/components/settings/api-keys/))
-  - Environment validation for ENCRYPTION_KEY with 32-byte base64 requirement ([packages/env/src/server.ts](packages/env/src/server.ts))
-  - Comprehensive documentation for encryption setup and key rotation ([docs/setup/api-keys.md](docs/setup/api-keys.md))
-  - Navigation sidebar integration in settings page with AI Models and API Keys links ([apps/web/src/routes/app/settings/+page.svelte](apps/web/src/routes/app/settings/+page.svelte))
+- **CSP & Cookie Forwarding**: Fix CSP violations and CSRF errors by using relative paths ([apps/web/src/lib/orpc.ts](apps/web/src/lib/orpc.ts:8))
+  - Use relative path `/rpc` for client-side requests instead of absolute URLs
+  - This makes requests same-origin, which allows cookies to be sent automatically
+  - Fixes CSP violation: "Connecting to 'http://localhost:3000/rpc/\*' violates CSP directive"
+  - Fixes 403 CSRF errors caused by missing session cookies in requests
+  - Fixes "Failed to construct 'URL': Invalid URL" errors in ORPC client
+  - For SSR, still uses full URL from `PUBLIC_API_URL` environment variable
+  - Session cookies are now properly sent with all RPC requests
 
-### Changed
+**Technical Details**:
 
-- **Environment Configuration**: Add ENCRYPTION_KEY requirement for API key encryption ([apps/server/.env.example](apps/server/.env.example), [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md))
-- **Security**: Implement secure logging middleware to sanitize API keys from all error messages and console output ([packages/api/src/middleware/secure-logging.ts](packages/api/src/middleware/secure-logging.ts))
-
-### Testing
-
-- **Encryption Utilities**: 51 unit tests covering encryption/decryption cycles, security properties, and edge cases ([packages/api/src/lib/encryption.test.ts](packages/api/src/lib/encryption.test.ts))
-- **API Key Service**: 34 unit tests for CRUD operations with mocked database ([packages/api/src/services/api-key-service.test.ts](packages/api/src/services/api-key-service.test.ts))
-- **Secure Logging**: 78 security audit tests verifying no API key exposure in any scenario ([packages/api/src/middleware/secure-logging.test.ts](packages/api/src/middleware/secure-logging.test.ts))
-- **E2E Tests**: 31 test scenarios covering complete user flows with cross-browser testing (155 total variants) ([tests/e2e/api-keys.spec.ts](tests/e2e/api-keys.spec.ts))
-- **Total Test Coverage**: 163 tests (51 encryption + 34 service + 78 security + 31 E2E scenarios)
-
-### Security
-
-- **AES-256-GCM Encryption**: All API keys encrypted at rest with unique IV per encryption and auth tag verification
-- **User-Level Isolation**: Users can only access their own API keys through ownership verification
-- **Secure Logging**: API keys automatically redacted from console logs, error messages, and ORPC responses
-- **No Key Exposure**: Last 4 characters only display in UI; full keys never exposed in logs or client responses
-- **Key Rotation Support**: Users can update API keys without losing chat history or settings
+- In browser: Uses relative path (e.g., `/rpc/getCsrfToken`) - same-origin, cookies work
+- In SSR: Uses `PUBLIC_API_URL` from env (e.g., `http://localhost:5174`)
+- This approach works regardless of which port the web app runs on (5173, 5174, etc.)
 
 ---
 
-## [0.0.7] - 2026-01-19
+## [0.0.7] - 2026-01-20
 
-### Added
+### Fixed
 
-- **Multi-Provider AI Integration**: Complete integration of OpenAI and Anthropic providers with unified architecture ([packages/api/src/lib/ai-provider-factory.ts](packages/api/src/lib/ai-provider-factory.ts), [apps/server/src/index.ts](apps/server/src/index.ts:132-332))
-  - Provider factory pattern supporting OpenAI, Anthropic, Google, Groq, Ollama, and custom providers
-  - Automatic provider selection based on user's active model configuration
-  - API key injection with fallback to environment variables
-  - Custom base URL support for enterprise deployments
+- **SSR Error**: Fix 500 error in sidebar-provider during server-side rendering ([apps/web/src/lib/components/ui/sidebar/sidebar-provider.svelte](apps/web/src/lib/components/ui/sidebar/sidebar-provider.svelte:39))
+  - Remove `bind:this={ref}` from server-side rendering branch
+  - Element refs don't work during SSR because there's no DOM
+  - This fixes `Cannot read properties of null (reading 'function')` error in `push_element`
+  - Chat pages now load correctly without hydration errors
 
-- **OpenAI Provider Integration**: Full chat completion route with comprehensive error handling ([packages/api/src/routers/ai.ts](packages/api/src/routers/ai.ts:57-320))
-  - Server-Sent Events (SSE) streaming for real-time token delivery
-  - Error handling for 9 categories: rate limits, authentication, model not found, context exceeded, content policy, invalid requests, network errors, service unavailable, payment errors
-  - API key sanitization to prevent sensitive data leakage in logs
-  - Chat history persistence with proper database integration
+---
 
-- **Anthropic Provider Integration**: Complete Claude AI provider support ([packages/api/src/lib/anthropic-models.ts](packages/api/src/lib/anthropic-models.ts))
-  - Claude 3.5 Sonnet (claude-3-5-sonnet-20241022) - 200K context, optimized for complex tasks
-  - Claude 3.5 Haiku (claude-3-5-haiku-20241022) - 200K context, fastest response times
-  - Claude 3 Opus (claude-3-opus-20240229) - 200K context, highest quality reasoning
-  - Claude 3 Sonnet (claude-3-sonnet-20240229) - 200K context, balanced performance
-  - Claude 3 Haiku (claude-3-haiku-20240307) - 200K context, fastest Claude 3 model
+## [0.0.6] - 2026-01-20
 
-- **OpenAI Models**: Database schema and configuration for OpenAI model family ([packages/db/src/schema/model.ts](packages/db/src/schema/model.ts))
-  - GPT-4 Turbo (gpt-4-turbo, gpt-4-turbo-2024-04-09)
-  - GPT-4 (gpt-4, gpt-4-0613)
-  - GPT-3.5 Turbo (gpt-3.5-turbo, gpt-3.5-turbo-0125, gpt-3.5-turbo-1106)
-  - GPT-4O (gpt-4o, gpt-4o-2024-08-06)
+### Fixed
 
-- **Model Metadata Endpoint**: Provider-agnostic model catalog ([packages/api/src/routers/model.ts](packages/api/src/routers/model.ts))
-  - `GET /rpc/model.getAvailableModels` returns all models grouped by provider
-  - Model catalogs for OpenAI (5 models), Anthropic (5 models), Google (4 models), Groq (4 models), Ollama (5 models)
-  - Each model includes id, name, maxTokens, contextWindow, bestFor, and cost information
+- **RPC Routing**: Fix 404 errors on all RPC endpoints by correcting client-side URL format ([apps/web/src/lib/orpc.ts](apps/web/src/lib/orpc.ts:25))
+  - Change `/rpc/app.getCsrfToken` to `/rpc/getCsrfToken` (remove incorrect `app.` prefix)
+  - ORPC routes are flat on `appRouter`, not nested under `app` namespace
+  - All RPC endpoints now work correctly: `healthCheck`, `getCsrfToken`, `chat`, `message`, `folder`, `model`
+  - Simplified server middleware by removing unnecessary manual routing workaround
 
-- **Frontend Chat Integration**: Streaming UI components with real-time token display ([apps/web/src/routes/app/chat/+page.svelte](apps/web/src/routes/app/chat/+page.svelte))
-  - AI SDK Chat component integration with DefaultChatTransport
-  - Streaming state management with visual indicators (animated dots)
-  - Stop/abort functionality with AbortController
-  - Auto-scroll during streaming responses
-  - Error state handling with user-friendly messages
+- **Server RPC Middleware**: Clean up excessive debug logging from RPC middleware ([apps/server/src/index.ts](apps/server/src/index.ts:97))
+  - Remove verbose procedure path logging
+  - Remove manual routing fallback (RPCHandler works correctly with proper URLs)
+  - Keep only error logging for debugging issues
 
-- **API Key Management**: Database schema for encrypted API key storage ([packages/db/src/schema/api-key.ts](packages/db/src/schema/api-key.ts))
-  - apiKeys table with encryptedKey field for AES-256 encryption
-  - keyLast4 field for secure display (last 4 characters only)
-  - Provider-specific key management (openai, anthropic, google, groq, ollama)
-  - User ownership with cascade delete on user removal
+---
 
-- **Secure API Key Infrastructure**: Encryption utilities for secure key storage ([packages/api/src/lib/encryption.ts](packages/api/src/lib/encryption.ts))
-  - AES-256-GCM encryption for API keys at rest
-  - 32-byte base64-encoded encryption key requirement
-  - IV (Initialization Vector) per key for enhanced security
-  - Auth tag verification for data integrity
-
-### Changed
-
-- **AI Endpoint Architecture**: Refactored to support multi-provider model selection ([apps/server/src/index.ts](apps/server/src/index.ts:132-332))
-  - Query user's active model from database before processing request
-  - Extract provider and modelId from model configuration
-  - Route request to appropriate provider via provider factory
-  - Fallback to default OpenAI model when no active model set
-
-- **Environment Configuration**: Added provider-specific environment variables ([packages/env/src/server.ts](packages/env/src/server.ts))
-  - OPENAI_API_KEY, OPENAI_BASE_URL
-  - ANTHROPIC_API_KEY, ANTHROPIC_MODEL, ANTHROPIC_BASE_URL, ANTHROPIC_VERSION
+## [0.0.5] - 2026-01-20
 
 ### Security
 
-- **API Key Encryption**: AES-256-GCM encryption for all stored API keys ([packages/api/src/lib/encryption.ts](packages/api/src/lib/encryption.ts))
-- **API Key Sanitization**: Automatic sanitization of API keys in error logs to prevent leakage ([packages/api/src/routers/ai.ts](packages/api/src/routers/ai.ts:140-298))
-- **Secure Logging Middleware**: Prevents API key exposure in logs ([apps/server/src/index.ts](apps/server/src/index.ts:50-65))
+- **CSRF Protection**: Implement comprehensive CSRF token validation for all state-changing operations ([packages/api/src/utils/csrf.ts](packages/api/src/utils/csrf.ts:1))
+  - Add cryptographically secure token generation with 256-bit entropy
+  - Add HMAC-SHA256 signature verification to prevent token tampering
+  - Add constant-time comparison to prevent timing attacks
+  - Add token expiration with 1-hour default lifetime
+  - Add rate limiting (10 req/min) on CSRF token endpoint
+  - Apply `withCsrfProtection` middleware to all 10 mutation routes
+  - Protected routes: chat (5 mutations), message (2 mutations), folder (3 mutations)
 
-### Tested
+- **SameSite Cookie Hardening**: Update Better Auth configuration with secure defaults ([packages/auth/src/index.ts](packages/auth/src/index.ts:60))
+  - Add `SAME_SITE_COOKIE` environment variable with validation
+  - Default to `strict` in production for maximum CSRF protection
+  - Default to `lax` in development for OAuth-friendly testing
+  - Add validation to ensure `none` requires secure cookies
+  - Add security warnings for insecure configurations
 
-- **Type Checking**: All packages pass TypeScript type checking with zero errors
-- **Hydration Validation**: SSR hydration validation passes with clean console
-- **Streaming Functionality**: Manual testing of streaming with real OpenAI and Anthropic APIs
-- **Error Handling**: Code review and automated testing of all error categories
-- **Build Verification**: Production build passes with clean console and no hydration issues
+- **CORS Validation**: Add origin validation and sanitization ([packages/env/src/server.ts](packages/env/src/server.ts:377))
+  - Validate CORS_ORIGIN values as properly formatted URLs
+  - Reject origins with embedded credentials (username:password@)
+  - Only allow http:// and https:// protocols
+  - Sanitize origins by removing trailing slashes
+  - Warn about wildcard (\*) origins - highly insecure
+  - Warn about HTTP and localhost in production
+  - Log all allowed CORS origins on startup for transparency
+
+### Added
+
+- **CSRF Token Endpoint**: Add public endpoint to fetch CSRF tokens for authenticated sessions ([packages/api/src/routers/index.ts](packages/api/src/routers/index.ts:1))
+  - Endpoint: `GET /rpc/app.getCsrfToken`
+  - Returns `{ token, authenticated: true, expiresIn: 3600 }` for authenticated users
+  - Returns `{ token: null, authenticated: false }` for unauthenticated users
+  - Rate limited to 10 requests per minute per user/IP
+
+- **CSRF Token Manager**: Add automatic CSRF token management in frontend ([apps/web/src/lib/orpc.ts](apps/web/src/lib/orpc.ts:1))
+  - In-memory token storage (never stored in localStorage for security)
+  - Automatic token fetching on app load
+  - Automatic token refresh on 403 Forbidden responses
+  - All requests include `X-CSRF-Token` header
+  - Prevention of concurrent token fetches with tokenPromise mechanism
+  - Graceful handling of unauthenticated users
+
+- **Rate Limiter Utility**: Add in-memory rate limiting to prevent token enumeration ([packages/api/src/utils/rate-limiter.ts](packages/api/src/utils/rate-limiter.ts:1))
+  - Automatic cleanup of old entries every 5 minutes
+  - Tracks by user ID (authenticated) or IP address (anonymous)
+  - Configurable max requests and time window
+  - Used by CSRF token endpoint (10 req/min)
+
+- **Environment Validation**: Add validation helpers for security configuration ([packages/env/src/server.ts](packages/env/src/server.ts:1))
+  - `getValidatedSameSiteSetting()`: Validate and return SameSite cookie setting
+  - `getValidatedCorsOrigins()`: Validate and return array of CORS origins
+  - Comprehensive logging and security warnings
+  - Environment-aware defaults (production vs development)
+
+### Changed
+
+- **Better Auth Configuration**: Update cookie configuration to use dynamic SameSite setting ([packages/auth/src/index.ts](packages/auth/src/index.ts:60))
+  - Replace hardcoded `sameSite: 'lax'` with dynamic `sameSiteSetting` variable
+  - Add logging to display current SameSite cookie setting on startup
+  - Maintain backward compatibility with existing setups
+
+- **CORS Configuration**: Update server to use validated CORS origins ([apps/server/src/index.ts](apps/server/src/index.ts:1))
+  - Replace direct `env.CORS_ORIGIN.split(',')` with `getValidatedCorsOrigins()`
+  - Add `X-CSRF-Token` to CORS allowed headers
+  - Origins are validated on server startup before CORS middleware is configured
+
+- **API Context**: Add clientIp to request context for better rate limiting ([packages/api/src/context.ts](packages/api/src/context.ts:1))
+  - Extract IP from X-Forwarded-For, X-Real-IP, or CF-Connecting-IP headers
+  - Fallback to 'unknown' if headers not available
+  - Used for rate limiting anonymous requests
+
+### Documentation
+
+- **Security Documentation**: Add comprehensive security guide ([docs/security.md](docs/security.md:1))
+  - CSRF protection implementation details
+  - SameSite cookie configuration guide
+  - CORS security best practices
+  - Deployment security checklist
+  - Troubleshooting guide for common security issues
+
+- **Environment Configuration**: Enhance .env.example with security documentation ([.env.example](.env.example:1))
+  - Document SAME_SITE_COOKIE variable with security recommendations
+  - Add CORS_ORIGIN security best practices
+  - Provide examples for development, production, and staging
+  - Add security risks section with attack scenarios
+  - Add troubleshooting guide for common CORS errors
+
+### Tests
+
+- **CSRF Protection Tests**: Add 40 comprehensive tests for CSRF utilities and integration ([packages/api/src/utils/**tests**/csrf.test.ts](packages/api/src/utils/__tests__/csrf.test.ts:1), [packages/api/src/**tests**/csrf.test.ts](packages/api/src/__tests__/csrf.test.ts:1))
+  - Token generation, validation, and expiration
+  - Timing attack protection
+  - Rate limiting behavior
+  - Security properties (entropy, uniqueness)
+  - Edge cases and error scenarios
+
+- **CORS Validation Tests**: Add 44 comprehensive tests for CORS validation ([apps/server/**tests**/cors.test.ts](apps/server/__tests__/cors.test.ts:1))
+  - Valid and invalid CORS origins
+  - Origin sanitization
+  - Security warnings (wildcard, HTTP, localhost in production)
+  - Edge cases (duplicates, paths, query params, IPs)
+
+- **SameSite Cookie Tests**: Add 34 comprehensive tests for SameSite configuration ([packages/auth/**tests**/cookies.test.ts](packages/auth/__tests__/cookies.test.ts:1))
+  - Production and development defaults
+  - Explicit SameSite settings (strict, lax, none)
+  - Validation rules and security warnings
+  - Cookie behavior across contexts
+
+- **Rate Limiter Tests**: Add 9 tests for rate limiting functionality ([packages/api/src/utils/**tests**/rate-limiter.test.ts](packages/api/src/utils/__tests__/rate-limiter.test.ts:1))
+  - Rate limiting functionality
+  - Automatic cleanup of old entries
+  - Remaining requests calculation
+  - Reset functionality
+
+### Performance
+
+- **Token Storage**: Use in-memory storage for CSRF tokens (cleared on page refresh)
+- **Automatic Cleanup**: Rate limiter automatically removes old entries every 5 minutes
+- **Concurrent Request Prevention**: CSRF token manager prevents duplicate token fetches
 
 ---
 
@@ -279,3 +381,181 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Architecture Documentation**
   - Add comprehensive architecture documentation with 35+ Mermaid diagrams ([architecture.md](architecture.md))
+  - Add diagrams directory for architecture visualization assets
+  - Document authentication flow, AI provider abstraction, and component relationships
+
+- **CI/CD Improvements**
+  - Add helpful PR title validation with English error examples
+  - Consolidate duplicate CI workflows (pr.yml merged into ci.yml)
+  - Add sequential job dependencies (type-check → lint → build)
+
+- **UI Package with shadcn-svelte Integration**
+  - Integrate shadcn-svelte component library into monorepo
+  - Add bits-ui, @lucide/svelte, tailwind-variants, tw-animate-css dependencies
+  - Convert design tokens from HSL to OKLCH format (Teal #208B8D, Orange #E67E50)
+  - Create core UI components: Button, Input, Textarea, Card components
+  - Create Header component with navigation and authentication state
+  - Set up Tailwind configuration for component library
+  - Configure @sveltejs/package for building UI package
+
+- **Authentication Components**
+  - Move and enhance SignInForm and SignUpForm components to packages/ui
+  - Add UserMenu component with dropdown navigation
+  - Integrate authentication state management across all pages
+
+- **Design System**
+  - Create design tokens package (colors, borders, spacing, typography)
+  - Establish base CSS styles and Tailwind integration
+  - Document component usage patterns in README.md and agents.md
+
+- **Comprehensive Documentation Suite**
+  - **Testing Guide** ([docs/TESTING.md](docs/TESTING.md))
+    - Complete testing strategy with Vitest, integration tests, and Playwright E2E
+    - Test structure and organization guidelines
+    - Coverage requirements: 80% backend, 70% frontend
+    - Factory pattern for test data
+    - Mock database utilities for integration tests
+
+  - **Database Documentation** ([docs/DATABASE.md](docs/DATABASE.md))
+    - Complete schema documentation for all tables
+    - Entity Relationship Diagram (ERD)
+    - Migration guide with Drizzle ORM
+    - Command reference for database operations
+    - Drizzle Studio setup
+    - Backup and restore procedures
+
+  - **Environment Configuration** ([docs/ENVIRONMENT.md](docs/ENVIRONMENT.md))
+    - Complete environment variable reference
+    - Server and client environment setup
+    - Security best practices
+    - Environment-specific configs (dev, prod, test)
+    - Docker environment configuration
+
+  - **Contributing Guide** ([.github/CONTRIBUTING.md](.github/CONTRIBUTING.md))
+    - Development workflow guidelines
+    - Backend-first approach explanation
+    - Coding standards (TypeScript, Svelte 5, ORPC)
+    - Testing requirements
+    - Commit guidelines (Conventional Commits)
+    - Pull request process and template
+
+- **Backend-First Development Plan**
+  - Add comprehensive backend-first development workflow documentation
+  - Define API-driven development approach
+  - Outline database schema and ORPC integration patterns
+  - Testing strategy with unit, integration, and E2E tests
+  - Module breakdown for chat, message, prompt, and API key management
+
+- **UI/UX Design Updates**
+  - Update layout specifications with Navigation Rail (64px) + Secondary Sidebar (280px) pattern
+  - Add responsive behavior for desktop, tablet, and mobile
+  - Component hierarchy aligned with backend modules
+
+- **Project Documentation**
+  - Add comprehensive project documentation
+  - Document API reference with implementation status
+  - Add important notices and development guidelines
+  - ORPC implementation reference guide
+
+- **Documentation**
+  - Add comprehensive troubleshooting guide (TROUBLESHOOTING.md)
+  - Add UI package development guide (UI-PACKAGE-GUIDE.md)
+  - Create hierarchical agents.md files for AI agents
+    - Root agents.md with JIT index and quick commands
+    - packages/ui/agents.md with UI-specific patterns
+    - apps/web/agents.md with SvelteKit patterns
+    - apps/server/agents.md with Hono patterns
+    - packages/api/agents.md with ORPC patterns
+    - packages/db/agents.md with Drizzle patterns
+
+- **Status Tracking**
+  - Implement file-based progress tracking system
+  - Add STATUS.md with auto-generated progress from .status/config.json
+  - Create scripts for status management (update, pending, blocked)
+  - Track 59 tasks across 12 weeks of development
+
+- **Code Quality & Developer Experience**
+  - Set up ESLint with TypeScript and Svelte support
+  - Set up Prettier with Svelte plugin for consistent formatting
+  - Set up Husky pre-commit hooks with lint-staged
+  - Add lint and format scripts to package.json
+  - Configure automated code formatting on commit
+
+- **License**
+  - Add AGPL-3.0 license for open-source compliance
+
+### Changed
+
+- **Environment Variables**
+  - Replace $env/dynamic/public with $env/static/public for better build optimization
+  - Add PUBLIC_SERVER_URL to CI build environment variables
+
+- **Documentation Structure**
+  - plan-reference/ established as source of truth for project planning
+  - docs/ for public-facing documentation
+  - Implement sync mechanism between plan-reference and docs
+
+- **Developer Workflow**
+  - Pre-commit hooks now mandatory - code must pass linting before commit
+  - TypeScript check required before build (bun run check + npx svelte-check)
+  - Auto-formatting applied to all committed files
+
+- **Monorepo Configuration**
+  - Update apps/web/vite.config.ts to consume pre-built UI package from dist
+  - Configure ssr.noExternal for proper module resolution in workspace
+  - Update svelte.config.js with path aliases for UI package
+
+- **AI Provider Migration**
+  - Switch from proprietary AI provider to OpenAI-compatible provider
+  - Update ai package configuration for broader compatibility
+
+- **Component Migration**
+  - Move Header, SignInForm, SignUpForm, UserMenu components from apps/web to packages/ui
+  - Update imports across all pages (+layout.svelte, login, todos, ai)
+  - Centralize component management in UI package
+
+### Security
+
+- **Critical Security Vulnerabilities Fixed**
+  - **Folder Delete Unauthorized Access** - Fixed vulnerability where users could unassign chats from folders they don't own. Added ownership verification before operations and transaction for atomicity ([packages/api/src/routers/folder.ts](packages/api/src/routers/folder.ts:52-71))
+  - **AI Endpoint Authentication** - Added authentication requirement to `/ai` endpoint. Previously accessible without auth, now requires valid Better Auth session ([apps/server/src/index.ts](apps/server/src/index.ts:132-141))
+  - **AI Endpoint Input Validation** - Added comprehensive input validation including message count limits, role validation, and content size limits ([apps/server/src/index.ts](apps/server/src/index.ts:146-177))
+  - **Debug Endpoints Exposure** - Guarded debug endpoints (`/debug/db`, `/debug/auth`, `/debug`) to only respond in development environment ([apps/server/src/index.ts](apps/server/src/index.ts:219-260))
+
+- **Code Review Documentation**
+  - Created comprehensive code review document documenting 50+ issues found during security audit ([plan-reference/code-review.md](plan-reference/code-review.md))
+
+### Fixed
+
+- **Husky Pre-commit Hook**
+  - Remove deprecated shebang and source lines for Husky v9+ compatibility
+  - Fix lint-staged formatting warning for `*.{svelte}` pattern
+
+- **Code Quality**
+  - Add ESLint ignores for examples/, test scripts, and report files
+  - Add .prettierignore for examples/ directory
+  - Fix ESLint no-case-declarations errors in provider-factory.ts
+
+- **Build Errors**
+  - Fix lucide-svelte import to use @lucide/svelte package
+  - Fix Svelte 5 runes issues (use let instead of const with $state)
+  - Replace @apply directives with CSS variables for Tailwind v4 compatibility
+  - Fix auth component export path resolution
+  - Move auth components to src/lib/components/auth for proper build scope
+  - Add tw-animate-css plugin to Tailwind config
+
+- **Module Resolution in Monorepo**
+  - Resolve $lib/utils import error during SSR by using svelte-package pre-build approach
+  - Fix circular dependency in Header component by using relative imports
+  - Configure proper exports in packages/ui/package.json to point to dist files
+
+### Technical Notes
+
+- shadcn-svelte components in src/lib/components/ui/ are managed by CLI - DO NOT EDIT manually
+- Use `npx shadcn-svelte add <component>` to add new components
+- Run `bun run build` in packages/ui after adding components
+- Tailwind content path in apps/web includes packages/ui source for proper style scanning
+- Backend-first development approach prioritizes API and database design before UI implementation
+
+[0.0.2]: https://github.com/sambunghub/sambung-chat/compare/v0.0.1...v0.0.2
+[0.0.1]: https://github.com/sambunghub/sambung-chat/compare/v0.0.0...v0.0.1

@@ -18,6 +18,11 @@ export default defineConfig({
     },
   },
 
+  // Disable esbuild during config loading to prevent EPIPE
+  esbuild: {
+    tsconfigRaw: {},
+  },
+
   ssr: {
     // No external - use default behavior
   },
@@ -43,38 +48,27 @@ export default defineConfig({
     },
 
     // Proxy API requests to backend server (same-origin for cookies)
+    // IMPORTANT: Proxy target must be the backend server (port 3000), not PUBLIC_API_URL
+    // PUBLIC_API_URL is for client-side fetch calls to be same-origin
+    // Backend server runs on SERVER_PORT (default: 3000)
     proxy: {
       '/ai': {
-        target: process.env.PUBLIC_API_URL || 'http://localhost:3000',
+        target: process.env.SERVER_URL || `http://localhost:${process.env.SERVER_PORT || 3000}`,
         changeOrigin: true,
         secure: false,
         ws: true,
         // Ensure cookies are properly forwarded
         configure: (proxy, _options) => {
-          proxy.on('proxyReq', (proxyReq, _req, _res) => {
-            // Log original cookies for debugging
-            const cookies = _req.headers['cookie'];
-            console.log('[Vite Proxy /ai] Original cookies:', cookies?.substring(0, 100));
-          });
-          proxy.on('proxyRes', (proxyRes, _req, _res) => {
-            // Log set-cookie headers for debugging
-            const setCookie = proxyRes.headers['set-cookie'];
-            if (setCookie) {
-              console.log('[Vite Proxy /ai] Set-Cookie:', setCookie);
-            }
-          });
+          // Proxy configuration - cookies automatically forwarded
         },
       },
       '/rpc': {
-        target: process.env.PUBLIC_API_URL || 'http://localhost:3000',
+        target: process.env.SERVER_URL || `http://localhost:${process.env.SERVER_PORT || 3000}`,
         changeOrigin: true,
         secure: false,
         ws: true,
         configure: (proxy, _options) => {
-          proxy.on('proxyReq', (proxyReq, _req, _res) => {
-            const cookies = _req.headers['cookie'];
-            console.log('[Vite Proxy /rpc] Original cookies:', cookies?.substring(0, 100));
-          });
+          // Proxy configuration - cookies automatically forwarded
         },
       },
     },

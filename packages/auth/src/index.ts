@@ -1,33 +1,19 @@
 import { db } from '@sambung-chat/db';
 import * as schema from '@sambung-chat/db/schema/auth';
-import { env } from '@sambung-chat/env/server';
+import { env, getValidatedSameSiteSetting } from '@sambung-chat/env/server';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { genericOAuth, keycloak } from 'better-auth/plugins';
-
-// === DIAGNOSTIC LOGGING: Phase 1 - Root Cause Investigation ===
-console.log('[AUTH CONFIG] === Initializing Better Auth ===');
-console.log('[AUTH CONFIG] DATABASE_URL:', env.DATABASE_URL ? 'Set' : 'NOT SET');
-console.log('[AUTH CONFIG] BETTER_AUTH_URL:', env.BETTER_AUTH_URL);
-console.log('[AUTH CONFIG] CORS_ORIGIN:', env.CORS_ORIGIN);
-console.log('[AUTH CONFIG] EMAIL_PASSWORD_ENABLED:', env.EMAIL_PASSWORD_ENABLED);
-
-// Keycloak configuration logging
-console.log('[AUTH CONFIG] KEYCLOAK_CLIENT_ID:', env.KEYCLOAK_CLIENT_ID ? 'Set' : 'NOT SET');
-console.log(
-  '[AUTH CONFIG] KEYCLOAK_CLIENT_SECRET:',
-  env.KEYCLOAK_CLIENT_SECRET ? 'Set' : 'NOT SET'
-);
-console.log('[AUTH CONFIG] KEYCLOAK_URL:', env.KEYCLOAK_URL);
-console.log('[AUTH CONFIG] KEYCLOAK_REALM:', env.KEYCLOAK_REALM);
-console.log('[AUTH CONFIG] KEYCLOAK_ISSUER:', env.KEYCLOAK_ISSUER);
 
 // Check if email/password auth is enabled
 const isEmailPasswordEnabled = env.EMAIL_PASSWORD_ENABLED !== 'false';
 
 const keycloakIssuer =
   env.KEYCLOAK_ISSUER || `${env.KEYCLOAK_URL || ''}/realms/${env.KEYCLOAK_REALM || ''}`;
-console.log('[AUTH CONFIG] Final Keycloak issuer:', keycloakIssuer);
+
+// Get and log the validated SameSite cookie setting
+const sameSiteSetting = getValidatedSameSiteSetting();
+console.log('[AUTH CONFIG] SameSite cookie setting:', sameSiteSetting);
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -57,7 +43,7 @@ export const auth = betterAuth({
       enabled: false,
     },
     defaultCookieAttributes: {
-      sameSite: 'lax', // Use 'lax' for localhost (works with Vite proxy on same domain)
+      sameSite: sameSiteSetting, // Use validated setting from environment (strict in production, lax in development)
       secure: env.NODE_ENV === 'production', // Secure cookies only in production
       httpOnly: true,
       maxAge: 60 * 60 * 24 * 7, // 7 days
@@ -77,5 +63,3 @@ export const auth = betterAuth({
     }),
   ],
 });
-
-console.log('[AUTH CONFIG] Better Auth initialized successfully');

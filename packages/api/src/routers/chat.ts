@@ -3,7 +3,7 @@ import { chats } from '@sambung-chat/db/schema/chat';
 import { messages } from '@sambung-chat/db/schema/chat';
 import { eq, and, desc, asc, sql } from 'drizzle-orm';
 import z from 'zod';
-import { protectedProcedure } from '../index';
+import { protectedProcedure, withCsrfProtection } from '../index';
 import { ulidSchema, ulidOptionalSchema } from '../utils/validation';
 
 export const chatRouter = {
@@ -50,6 +50,7 @@ export const chatRouter = {
 
   // Create new chat
   create: protectedProcedure
+    .use(withCsrfProtection)
     .input(
       z.object({
         title: z.string().min(1).default('New Chat'),
@@ -73,6 +74,7 @@ export const chatRouter = {
 
   // Update chat
   update: protectedProcedure
+    .use(withCsrfProtection)
     .input(
       z.object({
         id: ulidSchema,
@@ -95,6 +97,7 @@ export const chatRouter = {
 
   // Delete chat
   delete: protectedProcedure
+    .use(withCsrfProtection)
     .input(z.object({ id: ulidSchema }))
     .handler(async ({ input, context }) => {
       const userId = context.session.user.id;
@@ -106,6 +109,7 @@ export const chatRouter = {
 
   // Toggle pin status
   togglePin: protectedProcedure
+    .use(withCsrfProtection)
     .input(z.object({ id: ulidSchema }))
     .handler(async ({ input, context }) => {
       const userId = context.session.user.id;
@@ -138,6 +142,7 @@ export const chatRouter = {
 
   // Update chat folder
   updateFolder: protectedProcedure
+    .use(withCsrfProtection)
     .input(z.object({ id: ulidSchema, folderId: ulidOptionalSchema }))
     .handler(async ({ input, context }) => {
       const userId = context.session.user.id;

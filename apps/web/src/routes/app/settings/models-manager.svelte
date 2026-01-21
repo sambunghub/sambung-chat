@@ -107,13 +107,19 @@
     }
   }
 
+  // TODO: Re-implement after API key router migration
+  // async function loadApiKeys() {
+  //   try {
+  //     const result = await orpc.apiKey.getAll();
+  //     apiKeys = result as ApiKey[];
+  //   } catch (error) {
+  //     console.error('Failed to load API keys:', error);
+  //   }
+  // }
   async function loadApiKeys() {
-    try {
-      const result = await orpc.apiKey.getAll();
-      apiKeys = result as ApiKey[];
-    } catch (error) {
-      console.error('Failed to load API keys:', error);
-    }
+    // Placeholder - API key router removed during security improvements
+    // Use api-keys page instead
+    apiKeys = [];
   }
 
   function openAddDialog() {
