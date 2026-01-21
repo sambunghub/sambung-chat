@@ -50,6 +50,19 @@ async function reencryptApiKey(newPlaintextKey: string, keyId?: number) {
     console.log("\n⚠️  Warning: New key last 4 chars don't match!");
     console.log('   Existing last 4:', existingKey.keyLast4);
     console.log('   New key last 4:', newLast4);
+
+    // Check if running in interactive TTY environment
+    if (!process.stdin.isTTY) {
+      console.error('\n❌ Error: Last 4 characters mismatch in non-interactive environment');
+      console.error(
+        '   This script requires interactive confirmation when key last 4 chars differ'
+      );
+      console.error('   Existing key last 4:', existingKey.keyLast4);
+      console.error('   New key last 4:', newLast4);
+      console.error('\n   Please verify the API key and try again');
+      process.exit(1);
+    }
+
     console.log('\n   Continue anyway? Press Ctrl+C to cancel, or Enter to continue...');
     await new Promise((resolve) => {
       process.stdin.once('data', resolve);

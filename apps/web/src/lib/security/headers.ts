@@ -127,10 +127,12 @@ export function getCSPHeader(config: CSPConfig = { reportOnly: false }): string 
     `frame-ancestors 'none'`,
 
     // Upgrade insecure requests: Automatically upgrade HTTP to HTTPS
-    'upgrade-insecure-requests',
+    // Only apply in production to avoid breaking local HTTP/HMR workflows
+    ...(isDev ? [] : ['upgrade-insecure-requests']),
 
     // Block all mixed content: Prevent HTTP resources on HTTPS pages
-    'block-all-mixed-content',
+    // Only apply in production to avoid breaking local HTTP/HMR workflows
+    ...(isDev ? [] : ['block-all-mixed-content']),
   ];
 
   // Add report-uri if provided

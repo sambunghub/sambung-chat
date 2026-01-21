@@ -39,10 +39,19 @@ const aiProviderSchema = z.enum([
 // Validate and sanitize CORS origins on startup
 const allowedOrigins = getValidatedCorsOrigins();
 
+// Handle wildcard CORS: if '*' is in allowed origins, echo the request's Origin
+// Otherwise, use the validated origins array
+const corsOrigin =
+  allowedOrigins.length === 1 && allowedOrigins[0] === '*'
+    ? // Echo the incoming Origin header for wildcard
+      (origin: string) => origin
+    : // Use the validated origins array
+      allowedOrigins;
+
 app.use(
   '/*',
   cors({
-    origin: allowedOrigins,
+    origin: corsOrigin,
     allowMethods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE', 'PATCH'],
     allowHeaders: ['Content-Type', 'Authorization', 'Cookie', 'Set-Cookie', 'X-CSRF-Token'],
     exposeHeaders: ['Set-Cookie', 'Content-Length', 'Content-Type'],

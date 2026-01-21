@@ -391,19 +391,19 @@ Open browser console and check for CSP violations:
 
 **Mozilla Observatory:**
 
-- URL: https://observatory.mozilla.org/
+- URL: <https://observatory.mozilla.org/>
 - Expected Score: **A+ (100+)** for frontend, **A or B (80+)** for backend
 - Tests: CSP, HSTS, X-Frame-Options, X-Content-Type-Options
 
 **Security Headers.com:**
 
-- URL: https://securityheaders.com/
+- URL: <https://securityheaders.com/>
 - Expected Score: **A**
 - Tests: All security headers implementation
 
 **SSL Labs (for HSTS):**
 
-- URL: https://www.ssllabs.com/ssltest/
+- URL: <https://www.ssllabs.com/ssltest/>
 - Expected: HSTS properly configured with max-age ≥ 31536000
 
 ### Unit Tests
@@ -654,4 +654,4 @@ curl -I https://your-domain.com | grep -E '(X-Frame-Options|Content-Security-Pol
 
 ---
 
-**"Sambung: Connect any AI model. Self-hosted. Privacy-first. Open-source forever."**
+"Sambung: Connect any AI model. Self-hosted. Privacy-first. Open-source forever."

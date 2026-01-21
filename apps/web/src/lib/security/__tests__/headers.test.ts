@@ -65,8 +65,9 @@ describe('Content-Security-Policy', () => {
       expect(csp).toContain("base-uri 'self'");
       expect(csp).toContain("form-action 'self'");
       expect(csp).toContain("frame-ancestors 'none'");
-      expect(csp).toContain('upgrade-insecure-requests');
-      expect(csp).toContain('block-all-mixed-content');
+      // upgrade-insecure-requests and block-all-mixed-content only in production
+      expect(csp).not.toContain('upgrade-insecure-requests');
+      expect(csp).not.toContain('block-all-mixed-content');
     });
 
     it('should include unsafe-eval and unsafe-inline in development', () => {
@@ -87,6 +88,10 @@ describe('Content-Security-Policy', () => {
       const scriptSrcMatch = csp.match(/script-src[^;]*/);
       expect(scriptSrcMatch?.[0]).toBe("script-src 'self'");
       expect(scriptSrcMatch?.[0]).not.toContain('unsafe-inline');
+
+      // Production should include HTTPS upgrade and mixed content blocking
+      expect(csp).toContain('upgrade-insecure-requests');
+      expect(csp).toContain('block-all-mixed-content');
     });
 
     it('should include PUBLIC_API_URL in connect-src', () => {
