@@ -5,7 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.0] - 2026-01-20
+## [0.0.11] - 2026-01-21
+
+### Fixed
+
+- **AI Provider Validation**: Remove obsolete global AI provider validation ([packages/env/src/server.ts](packages/env/src/server.ts:313))
+  - AI providers are now configured per-user in database (models table with apiKeyId references)
+  - Environment variables for API keys remain available for backward compatibility but are no longer required
+  - Fixes server startup errors when no global AI provider keys are configured
+
+- **CSRF Token Response Parsing**: Fix incorrect ORPC response structure parsing ([apps/web/src/lib/orpc.ts](apps/web/src/lib/orpc.ts:59))
+  - Changed response parsing from `data.data` to `data.json` to match ORPC response format
+  - ORPC wraps responses in `{ json: { ... } }` format, not `{ data: { ... } }`
+  - Fixes "CSRF token is required for this operation" errors when sending messages
+
+---
+
+## [0.0.10] - 2026-01-20
 
 ### Fixed
 

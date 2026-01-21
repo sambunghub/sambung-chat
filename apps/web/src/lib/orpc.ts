@@ -56,15 +56,15 @@ class CsrfTokenManager {
       const data = await response.json();
 
       // The response structure from getCsrfToken endpoint
-      // ORPC wraps responses in { data: { ... } }
-      if (data.data && data.data.authenticated && data.data.token) {
-        this.token = data.data.token;
+      // ORPC wraps responses in { json: { ... } }
+      if (data.json && data.json.authenticated && data.json.token) {
+        this.token = data.json.token;
         console.info('[CSRF] Token fetched successfully');
         return this.token;
       }
 
       // User not authenticated, that's okay
-      if (data.data && !data.data.authenticated) {
+      if (data.json && !data.json.authenticated) {
         console.info('[CSRF] User not authenticated, no token needed yet');
         return null;
       }

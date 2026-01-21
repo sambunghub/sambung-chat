@@ -265,7 +265,8 @@ export function getValidatedSameSiteSetting(): 'lax' | 'strict' | 'none' {
 
   // Get the user-configured value or use default
   // Empty string should be treated as undefined
-  const configuredValue = sameSiteCookie && sameSiteCookie.trim() !== '' ? sameSiteCookie : undefined;
+  const configuredValue =
+    sameSiteCookie && sameSiteCookie.trim() !== '' ? sameSiteCookie : undefined;
   const defaultValue: 'lax' | 'strict' | 'none' = isProduction ? 'strict' : 'lax';
 
   // Validate that configured value is one of the allowed values
@@ -310,61 +311,10 @@ export function getValidatedSameSiteSetting(): 'lax' | 'strict' | 'none' {
   return sameSiteValue;
 }
 
-// Validate that at least one AI provider is configured
-function validateAIProviders(env: typeof envSchema): void {
-  // Check if at least one provider API key is configured
-  const hasAnyProvider =
-    env.OPENAI_API_KEY ||
-    env.ANTHROPIC_API_KEY ||
-    env.GOOGLE_GENERATIVE_AI_API_KEY ||
-    env.GOOGLE_API_KEY ||
-    env.GROQ_API_KEY ||
-    env.AI_PROVIDER === 'ollama'; // Ollama doesn't need API key
-
-  if (!hasAnyProvider) {
-    throw new Error(
-      'At least one AI provider API key is required. Please configure one of: OPENAI_API_KEY, ANTHROPIC_API_KEY, GOOGLE_GENERATIVE_AI_API_KEY, GROQ_API_KEY, or set AI_PROVIDER=ollama'
-    );
-  }
-
-  // If AI_PROVIDER is set, validate that all specified providers have API keys
-  if (env.AI_PROVIDER) {
-    const providers = env.AI_PROVIDER.split(',').map((p) => p.trim().toLowerCase());
-    const availableProviders = {
-      openai: !!env.OPENAI_API_KEY,
-      anthropic: !!env.ANTHROPIC_API_KEY,
-      google: !!(env.GOOGLE_GENERATIVE_AI_API_KEY || env.GOOGLE_API_KEY),
-      groq: !!env.GROQ_API_KEY,
-      ollama: true, // Always available (no API key needed)
-    };
-
-    for (const provider of providers) {
-      if (!availableProviders[provider as keyof typeof availableProviders]) {
-        throw new Error(
-          `Provider "${provider}" is specified in AI_PROVIDER but is missing required API key or configuration.`
-        );
-      }
-    }
-  }
-}
-
-// Validate and export the environment
-// Only run AI provider validation in Node.js/server context
-const isBrowserContext = typeof process === 'undefined';
-
-if (!isBrowserContext) {
-  // Server context - validate AI providers
-  try {
-    validateAIProviders(envSchema);
-  } catch (error) {
-    // Only throw in production, allow test/dev to continue with warning
-    if (process.env.NODE_ENV === 'production') {
-      throw error;
-    }
-    // For test/dev, just log warning
-    console.warn('AI provider validation warning:', error);
-  }
-}
+// Note: AI provider validation has been removed because AI providers are now
+// configured per-user in the database (models table with apiKeyId references).
+// The environment variables below are still available for backward compatibility
+// and optional global defaults, but are no longer required.
 
 /**
  * Validates and returns sanitized CORS origins.
@@ -425,9 +375,7 @@ export function getValidatedCorsOrigins(): string[] {
 
       // Ensure protocol is http or https
       if (!['http:', 'https:'].includes(url.protocol)) {
-        throw new Error(
-          `Only http:// and https:// protocols are allowed.`
-        );
+        throw new Error(`Only http:// and https:// protocols are allowed.`);
       }
 
       // Sanitize: remove trailing slash
