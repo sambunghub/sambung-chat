@@ -1,6 +1,6 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-@import "tw-animate-css";
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -119,3 +119,6 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* KaTeX styles for LaTeX math rendering */
+@import 'katex/dist/katex.min.css';

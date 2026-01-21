@@ -74,7 +74,9 @@
     "@ai-sdk/openai": "^3.0.12",
     "@ai-sdk/openai-compatible": "^2.0.4",
     "@sambung-chat/env": "workspace:*",
+    "@types/katex": "^0.16.8",
     "dotenv": "catalog:",
+    "katex": "^0.16.27",
     "ulidx": "^2.4.1",
     "zod": "catalog:"
   },

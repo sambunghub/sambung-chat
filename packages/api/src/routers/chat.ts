@@ -49,8 +49,8 @@ export const chatRouter = {
 
           if (folderResults.length > 0) {
             folder = {
-              id: folderResults[0].id,
-              name: folderResults[0].name,
+              id: folderResults[0]!.id,
+              name: folderResults[0]!.name,
             };
           }
         }
@@ -97,8 +97,8 @@ export const chatRouter = {
 
           if (folderResults.length > 0) {
             folder = {
-              id: folderResults[0].id,
-              name: folderResults[0].name,
+              id: folderResults[0]!.id,
+              name: folderResults[0]!.name,
             };
           }
         }

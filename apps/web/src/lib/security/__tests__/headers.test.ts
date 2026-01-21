@@ -57,7 +57,9 @@ describe('Content-Security-Policy', () => {
 
       expect(csp).toContain("default-src 'self'");
       // Test environment is treated as development (not production)
-      expect(csp).toContain("script-src 'self' 'unsafe-eval' 'unsafe-inline'");
+      expect(csp).toContain(
+        "script-src 'self' https://cdn.jsdelivr.net 'unsafe-eval' 'unsafe-inline'"
+      );
       expect(csp).toContain("style-src 'self' 'unsafe-inline'");
       expect(csp).toContain("img-src 'self' data: https:");
       expect(csp).toContain("font-src 'self'");
@@ -74,19 +76,21 @@ describe('Content-Security-Policy', () => {
       process.env.NODE_ENV = 'development';
       const csp = getCSPHeader();
 
-      expect(csp).toContain("script-src 'self' 'unsafe-eval' 'unsafe-inline'");
+      expect(csp).toContain(
+        "script-src 'self' https://cdn.jsdelivr.net 'unsafe-eval' 'unsafe-inline'"
+      );
     });
 
     it('should not include unsafe-eval or unsafe-inline in production', () => {
       process.env.NODE_ENV = 'production';
       const csp = getCSPHeader();
 
-      expect(csp).toContain("script-src 'self'");
+      expect(csp).toContain("script-src 'self' https://cdn.jsdelivr.net");
       expect(csp).not.toContain('unsafe-eval');
 
       // Check script-src specifically (not style-src which allows unsafe-inline)
       const scriptSrcMatch = csp.match(/script-src[^;]*/);
-      expect(scriptSrcMatch?.[0]).toBe("script-src 'self'");
+      expect(scriptSrcMatch?.[0]).toBe("script-src 'self' https://cdn.jsdelivr.net");
       expect(scriptSrcMatch?.[0]).not.toContain('unsafe-inline');
 
       // Production should include HTTPS upgrade and mixed content blocking
@@ -425,7 +429,9 @@ describe('getSecurityHeaders', () => {
       const headers = getSecurityHeaders();
 
       expect(headers['Content-Security-Policy']).toContain("default-src 'self'");
-      expect(headers['Content-Security-Policy']).toContain("script-src 'self'");
+      expect(headers['Content-Security-Policy']).toContain(
+        "script-src 'self' https://cdn.jsdelivr.net"
+      );
     });
 
     it('should return correct X-Frame-Options value', () => {

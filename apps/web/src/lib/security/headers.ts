@@ -98,9 +98,9 @@ export function getCSPHeader(config: CSPConfig = { reportOnly: false }): string 
     // Default policy for all content types
     `default-src 'self'`,
 
-    // Scripts: Only allow same-origin (no external scripts)
+    // Scripts: Allow same-origin and Mermaid.js CDN for diagrams
     // Allow unsafe-eval and unsafe-inline in development for Vite HMR
-    `script-src 'self'${isDev ? " 'unsafe-eval' 'unsafe-inline'" : ''}`,
+    `script-src 'self' https://cdn.jsdelivr.net${isDev ? " 'unsafe-eval' 'unsafe-inline'" : ''}`,
 
     // Styles: Allow inline styles for shadcn-svelte components
     `style-src 'self' 'unsafe-inline'`,
