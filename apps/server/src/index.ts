@@ -99,6 +99,34 @@ app.all('/api/auth/*', async (c) => {
 // because those are handled by the app.on() route handler above which runs
 // AFTER the middleware chain completes.
 // ============================================================================
+
+/**
+ * Extract cache metadata from ORPC response
+ *
+ * This function checks if the response contains cache metadata
+ * added by the cache-headers middleware and extracts it.
+ *
+ * @param response - The response data from ORPC
+ * @returns Cache metadata (cacheControl, etag, status)
+ */
+function extractCacheMetadata(response: unknown): {
+  cacheControl?: string;
+  etag?: string;
+  status?: number;
+} {
+  if (typeof response !== 'object' || response === null) {
+    return {};
+  }
+
+  const resp = response as Record<string, unknown>;
+
+  return {
+    cacheControl: resp._orpcCacheControl as string | undefined,
+    etag: resp._orpcETag as string | undefined,
+    status: resp._orpcCacheStatus as number | undefined,
+  };
+}
+
 export const apiHandler = new OpenAPIHandler(appRouter, {
   plugins: [
     new OpenAPIReferencePlugin({
@@ -130,6 +158,65 @@ app.use('/rpc/*', async (c, next) => {
     });
 
     if (rpcResult.matched) {
+      // Parse the response body to check for cache metadata
+      let responseBody: unknown;
+      const contentType = rpcResult.response.headers.get('content-type');
+
+      if (contentType?.includes('application/json')) {
+        // Parse JSON to extract cache metadata
+        const text = await rpcResult.response.clone().text();
+        try {
+          responseBody = JSON.parse(text);
+        } catch {
+          // If parsing fails, use original text
+          responseBody = text;
+        }
+      } else {
+        responseBody = await rpcResult.response.clone().text();
+      }
+
+      // Extract cache metadata from the response
+      const cacheMetadata = extractCacheMetadata(responseBody);
+
+      // Check if this is a 304 Not Modified response
+      if (cacheMetadata.status === 304) {
+        // Return 304 with no body
+        if (cacheMetadata.etag) {
+          c.header('ETag', cacheMetadata.etag);
+        }
+        if (cacheMetadata.cacheControl) {
+          c.header('Cache-Control', cacheMetadata.cacheControl);
+        }
+        return c.newResponse(null, 304);
+      }
+
+      // Clean up cache metadata from response body before sending
+      if (typeof responseBody === 'object' && responseBody !== null && !Array.isArray(responseBody)) {
+        const cleanBody = { ...responseBody as Record<string, unknown> };
+        delete cleanBody._orpcCacheControl;
+        delete cleanBody._orpcETag;
+        delete cleanBody._orpcCacheStatus;
+        delete cleanBody._data;
+
+        // Add cache headers
+        if (cacheMetadata.cacheControl) {
+          c.header('Cache-Control', cacheMetadata.cacheControl);
+        }
+        if (cacheMetadata.etag) {
+          c.header('ETag', cacheMetadata.etag);
+        }
+
+        return c.json(cleanBody);
+      }
+
+      // For non-object responses, pass through with cache headers
+      if (cacheMetadata.cacheControl) {
+        c.header('Cache-Control', cacheMetadata.cacheControl);
+      }
+      if (cacheMetadata.etag) {
+        c.header('ETag', cacheMetadata.etag);
+      }
+
       return c.newResponse(rpcResult.response.body, rpcResult.response);
     }
   } catch (error) {
