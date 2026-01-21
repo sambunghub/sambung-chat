@@ -5,7 +5,7 @@
   "subtasks": {
     "completed": 4,
     "total": 8,
-    "in_progress": 0,
+    "in_progress": 1,
     "failed": 0
   },
   "phase": {
@@ -19,7 +19,7 @@
   },
   "session": {
     "number": 6,
-    "started_at": "2026-01-22T01:15:00.000000"
+    "started_at": "2026-01-22T00:45:22.803827"
   },
-  "last_update": "2026-01-22T01:15:30.000000"
+  "last_update": "2026-01-22T01:01:37.735320"
 }
