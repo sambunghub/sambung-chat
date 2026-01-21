@@ -33,7 +33,7 @@
     loading = true;
     errorMessage = '';
     try {
-      const result = await orpc.prompt.getAll();
+      const result = await (orpc as any).prompt.getAll();
       prompts = result as Prompt[];
     } catch (error) {
       console.error('Failed to load prompts:', error);

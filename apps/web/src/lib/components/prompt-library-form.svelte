@@ -2,7 +2,6 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
-  import { Textarea } from '$lib/components/ui/textarea/index.js';
   import CheckIcon from '@lucide/svelte/icons/check';
   import PlusIcon from '@lucide/svelte/icons/plus';
   import XIcon from '@lucide/svelte/icons/x';
@@ -118,14 +117,14 @@
 
   <div class="space-y-2">
     <Label for={isEdit ? 'edit-content' : 'content'}>Content</Label>
-    <Textarea
+    <textarea
       id={isEdit ? 'edit-content' : 'content'}
       bind:value={formData.content}
-      placeholder="Enter your prompt template here. Use {variable} syntax for dynamic values."
+      placeholder={'Enter your prompt template here. Use {variable} syntax for dynamic values.'}
       required
       disabled={submitting}
       rows={8}
-      class="disabled:cursor-not-allowed disabled:opacity-50 resize-y"
+      class="border-input bg-background flex min-h-[60px] w-full rounded-md border px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-y"
     />
     <p class="text-muted-foreground text-xs">
       The main prompt text. Use <code class="bg-muted px-1 py-0.5 rounded">{'{variable}'}</code> for placeholders

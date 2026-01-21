@@ -7,7 +7,7 @@
   import SearchIcon from '@lucide/svelte/icons/search';
   import FileTextIcon from '@lucide/svelte/icons/file-text';
   import { Skeleton } from '$lib/components/ui/skeleton/index.js';
-  import { categories } from './prompt-library-form-types.js';
+  import { categories, type PromptFormData } from './prompt-library-form-types.js';
   import PromptForm from './prompt-library-form.svelte';
   import {
     DropdownMenu,
@@ -27,7 +27,6 @@
     DialogHeader,
     DialogTitle
   } from '$lib/components/ui/dialog/index.js';
-  import { Badge } from '$lib/components/ui/badge/index.js';
 
   /**
    * Prompt data structure (matches database schema)
@@ -108,13 +107,7 @@
   let selectedPrompt = $state<PromptData | null>(null);
 
   // Form data state
-  let formData = $state<{
-    name: string;
-    content: string;
-    variables: string[];
-    category: string;
-    isPublic: boolean;
-  }>({
+  let formData = $state<PromptFormData>({
     name: '',
     content: '',
     variables: [],
@@ -123,8 +116,8 @@
   });
 
   // Filter prompts based on search and category
-  let filteredPrompts = $derived(() => {
-    return prompts.filter((prompt) => {
+  let filteredPrompts = $derived(
+    prompts.filter((prompt) => {
       const matchesSearch =
         !searchQuery ||
         prompt.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -134,8 +127,8 @@
         selectedCategory === 'all' || prompt.category === selectedCategory;
 
       return matchesSearch && matchesCategory;
-    });
-  });
+    })
+  );
 
   // Get unique categories from prompts
   let availableCategories = $derived(() => {
@@ -162,7 +155,7 @@
       name: prompt.name,
       content: prompt.content,
       variables: prompt.variables,
-      category: prompt.category,
+      category: prompt.category as PromptFormData['category'],
       isPublic: prompt.isPublic,
     };
     showEditDialog = true;
@@ -212,18 +205,18 @@
     }
   }
 
-  // Get category badge variant
-  function getCategoryBadgeVariant(category: string): 'default' | 'secondary' | 'outline' {
-    const variants: Record<string, 'default' | 'secondary' | 'outline'> = {
-      coding: 'default',
-      writing: 'secondary',
-      creative: 'outline',
-      analysis: 'default',
-      business: 'secondary',
-      general: 'outline',
-      custom: 'outline',
+  // Get category badge color
+  function getCategoryBadgeColor(category: string): string {
+    const colors: Record<string, string> = {
+      coding: 'bg-primary/10 text-primary hover:bg-primary/20',
+      writing: 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/20',
+      creative: 'bg-green-500/10 text-green-500 hover:bg-green-500/20',
+      analysis: 'bg-purple-500/10 text-purple-500 hover:bg-purple-500/20',
+      business: 'bg-orange-500/10 text-orange-500 hover:bg-orange-500/20',
+      general: 'bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20',
+      custom: 'bg-pink-500/10 text-pink-500 hover:bg-pink-500/20',
     };
-    return variants[category] || 'outline';
+    return colors[category] || colors.general;
   }
 
   // Truncate content
@@ -346,20 +339,20 @@
                   {prompt.name}
                 </h4>
                 <div class="flex items-center gap-2">
-                  <Badge variant={getCategoryBadgeVariant(prompt.category)} class="text-xs">
+                  <span class={getCategoryBadgeColor(prompt.category) + ' rounded px-2 py-0.5 text-xs font-medium'}>
                     {categories.find((c) => c.value === prompt.category)?.label || prompt.category}
-                  </Badge>
+                  </span>
                   {#if prompt.isPublic}
-                    <Badge variant="outline" class="text-xs">Public</Badge>
+                    <span class="border-border rounded border px-2 py-0.5 text-xs font-medium">Public</span>
                   {/if}
                 </div>
               </div>
               <DropdownMenu>
-                <DropdownMenuTrigger asChild let:child>
-                  {@render child({
-                    class: 'hover:bg-muted data-[state=open]:bg-muted flex size-8 items-center justify-center rounded-md',
-                    type: 'button'
-                  })}
+                <DropdownMenuTrigger
+                  class="hover:bg-muted data-[state=open]:bg-muted flex size-8 items-center justify-center rounded-md"
+                  type="button"
+                >
+                  <MoreVerticalIcon class="size-4" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onclick={() => openViewDialog(prompt)}>
@@ -456,13 +449,15 @@
       <DialogTitle>{selectedPrompt?.name}</DialogTitle>
     </DialogHeader>
     {#if selectedPrompt}
+      {@const category = selectedPrompt.category}
+      {@const isPublic = selectedPrompt.isPublic}
       <div class="space-y-4">
         <div class="flex items-center gap-2">
-          <Badge variant={getCategoryBadgeVariant(selectedPrompt.category)}>
-            {categories.find((c) => c.value === selectedPrompt.category)?.label || selectedPrompt.category}
-          </Badge>
-          {#if selectedPrompt.isPublic}
-            <Badge variant="outline">Public</Badge>
+          <span class={getCategoryBadgeColor(category) + ' rounded px-2 py-0.5 text-xs font-medium'}>
+            {categories.find((c) => c.value === category)?.label || category}
+          </span>
+          {#if isPublic}
+            <span class="border-border rounded border px-2 py-0.5 text-xs font-medium">Public</span>
           {/if}
         </div>
 
