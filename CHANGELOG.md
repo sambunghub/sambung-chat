@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.0.15] - 2026-01-21
 
+### Added
+
+- **KaTeX & Mermaid.js Support**: Add LaTeX math and diagram rendering for markdown content ([apps/web/src/lib/markdown-renderer.ts](apps/web/src/lib/markdown-renderer.ts:1))
+  - Support inline math with `$...$` syntax
+  - Support display math with `$$...$$` syntax
+  - Support Mermaid diagrams: flowchart, sequence, class, state, etc.
+  - Auto-detect and apply theme (light/dark mode) for diagrams
+  - Add KaTeX CSS import to app styles ([apps/web/src/app.css](apps/web/src/app.css:121-123))
+  - Initialize Mermaid on page mount with theme detection ([apps/web/src/routes/+layout.svelte](apps/web/src/routes/+layout.svelte:1))
+  - Add Mermaid.js CDN to CSP script-src whitelist ([apps/web/src/lib/security/headers.ts](apps/web/src/lib/security/headers.ts:104))
+
 ### Changed
 
 - **Active Model for All Chats**: Backend now always uses the active model instead of requested modelId from chat ([apps/server/src/index.ts](apps/server/src/index.ts:210-220))
