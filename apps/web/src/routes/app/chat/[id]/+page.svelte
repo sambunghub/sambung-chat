@@ -59,7 +59,7 @@
 
   const chat = new Chat({
     transport: new DefaultChatTransport({
-      api: `${PUBLIC_API_URL}/ai`,
+      api: `${PUBLIC_API_URL}/api/ai`,
       fetch: authenticatedFetch,
     }),
   });

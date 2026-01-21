@@ -1,5 +1,4 @@
 import { devToolsMiddleware } from '@ai-sdk/devtools';
-import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { OpenAPIHandler } from '@orpc/openapi/fetch';
 import { OpenAPIReferencePlugin } from '@orpc/openapi/plugins';
 import { onError } from '@orpc/server';
@@ -9,7 +8,10 @@ import { createContext } from '@sambung-chat/api/context';
 import { appRouter } from '@sambung-chat/api/routers/index';
 import { auth } from '@sambung-chat/auth';
 import { env, getValidatedCorsOrigins } from '@sambung-chat/env/server';
+import { createAIProvider, type ProviderConfig } from '@sambung-chat/api/lib/ai-provider-factory';
+import { decrypt } from '@sambung-chat/api/lib/encryption';
 import { streamText, convertToModelMessages, wrapLanguageModel } from 'ai';
+import { and, eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 
@@ -126,15 +128,10 @@ app.use('/api-reference/*', async (c, next) => {
 });
 
 // ============================================================================
-// AI ENDPOINT
+// AI ENDPOINT (/api/ai)
 // ============================================================================
-const openai = createOpenAICompatible({
-  name: 'openai-compatible',
-  baseURL: env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1',
-  apiKey: env.OPENAI_API_KEY ?? '',
-});
-
-app.post('/ai', async (c) => {
+// AI SDK-compatible endpoint that retrieves model configuration from database
+app.post('/api/ai', async (c) => {
   try {
     // Authentication check
     const session = await auth.api.getSession({
@@ -144,6 +141,8 @@ app.post('/ai', async (c) => {
     if (!session?.user) {
       return c.json({ error: 'Unauthorized' }, 401);
     }
+
+    const userId = session.user.id;
 
     // Parse and validate request body
     const body = await c.req.json();
@@ -183,14 +182,88 @@ app.post('/ai', async (c) => {
       }
     }
 
-    // Create AI model
-    const model = wrapLanguageModel({
-      model: openai(env.OPENAI_MODEL ?? 'gpt-4o-mini'),
+    // Get active model from database
+    const { db } = await import('@sambung-chat/db');
+    const { models } = await import('@sambung-chat/db/schema/model');
+    const { apiKeys } = await import('@sambung-chat/db/schema/api-key');
+
+    const modelResults = await db
+      .select()
+      .from(models)
+      .where(and(eq(models.userId, userId), eq(models.isActive, true)))
+      .limit(1);
+
+    if (modelResults.length === 0) {
+      return c.json(
+        {
+          error: 'No active model found',
+          message: 'Please configure an active model in Settings',
+        },
+        400
+      );
+    }
+
+    const model = modelResults[0]!;
+
+    // Get decrypted API key if needed
+    let apiKey = '';
+    if (model.apiKeyId) {
+      const apiKeyResults = await db
+        .select()
+        .from(apiKeys)
+        .where(eq(apiKeys.id, model.apiKeyId))
+        .limit(1);
+
+      if (apiKeyResults.length === 0) {
+        return c.json(
+          {
+            error: 'API key not found',
+            message: 'The API key associated with this model no longer exists',
+          },
+          404
+        );
+      }
+
+      const apiKeyRecord = apiKeyResults[0]!;
+
+      // Decrypt API key using the existing decryption utility
+      apiKey = decrypt(apiKeyRecord.encryptedKey);
+    } else if (model.provider !== 'ollama') {
+      return c.json(
+        {
+          error: 'Missing API key',
+          message: `Model "${model.name}" is missing an API key. Please add an API Key in Settings.`,
+        },
+        400
+      );
+    } else {
+      apiKey = 'ollama'; // Placeholder for Ollama
+    }
+
+    // Build provider configuration
+    const config: ProviderConfig = {
+      provider: model.provider as any,
+      modelId: model.modelId,
+      apiKey,
+    };
+
+    // Add custom base URL if specified
+    if (model.baseUrl) {
+      config.baseURL = model.baseUrl;
+    }
+
+    // Create AI provider instance
+    const aiProvider = createAIProvider(config);
+
+    // Wrap model with dev tools
+    const wrappedModel = wrapLanguageModel({
+      model: aiProvider,
       middleware: devToolsMiddleware(),
     });
 
+    // Stream text using AI SDK
     const result = streamText({
-      model,
+      model: wrappedModel,
       messages: await convertToModelMessages(uiMessages),
     });
 
@@ -205,8 +278,8 @@ app.post('/ai', async (c) => {
       },
     });
   } catch (error) {
-    // Log generic error message without exposing stack traces or sensitive data
-    console.error('[AI] Error processing request');
+    // Log error for debugging
+    console.error('[AI] Error processing request:', error);
     return c.json(
       {
         error: 'Failed to process AI request',

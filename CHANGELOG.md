@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.12] - 2026-01-21
+
+### Added
+
+- **AI Endpoint from Database**: New `/api/ai` endpoint that retrieves model configuration from database ([apps/server/src/index.ts](apps/server/src/index.ts:133))
+  - Gets active model for authenticated user from database
+  - Retrieves and decrypts API key using existing encryption utility
+  - Creates AI provider dynamically based on user's configured model
+  - Supports all providers: OpenAI, Anthropic, Google, Groq, Ollama, custom
+  - Returns clear error messages when no active model is configured
+
+### Changed
+
+- **AI Endpoint Path**: Move AI endpoint from `/ai` to `/api/ai` for consistency with other API routes
+  - Frontend chat pages updated to use new path: `apps/web/src/routes/app/chat/+page.svelte:45`
+  - Follows existing pattern: `/api/auth/*` for auth, `/api/ai/*` for AI services
+
+### Removed
+
+- **Debug Logs**: Remove debug console logs from AI router ([packages/api/src/routers/ai.ts](packages/api/src/routers/ai.ts))
+
+---
+
 ## [0.0.11] - 2026-01-21
 
 ### Fixed
