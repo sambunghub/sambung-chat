@@ -5,7 +5,11 @@
   import { orpc } from '$lib/orpc';
   import { Chat } from '@ai-sdk/svelte';
   import { DefaultChatTransport } from 'ai';
-  import { renderMarkdownSync, initMermaidDiagrams } from '$lib/markdown-renderer.js';
+  import {
+    renderMarkdownSync,
+    initMermaidDiagrams,
+    ensureMarkdownDependencies
+  } from '$lib/markdown-renderer.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Separator } from '$lib/components/ui/separator/index.js';
   import { exportChat } from '$lib/utils/chat-export';
@@ -119,6 +123,15 @@
   let chatId = $derived(() => {
     const id = $page.params.id;
     return id || null;
+  });
+
+  // Lazy load markdown dependencies (KaTeX and Mermaid) on mount
+  onMount(async () => {
+    try {
+      await ensureMarkdownDependencies();
+    } catch (error) {
+      console.error('Failed to load markdown dependencies:', error);
+    }
   });
 
   // Auto-scroll to bottom
