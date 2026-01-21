@@ -38,6 +38,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **SQL Builder Guards**: Add Array.isArray checks before inArray clauses ([packages/api/src/routers/chat.ts](packages/api/src/routers/chat.ts:365))
   - Prevent empty IN () clauses when providers/modelIds are empty arrays
   - Validate array type and length before adding conditions
+- **Date Validation**: Use Zod coercion for date fields in search schema ([packages/api/src/routers/chat.ts](packages/api/src/routers/chat.ts:314))
+  - Replace z.string() with z.coerce.date() for dateFrom/dateTo
+  - Zod now validates and coerces input to Date objects automatically
+  - Remove redundant new Date() wrapping in date filter logic
+- **Empty Array Guards**: Add guards for empty chatIds in export functions ([packages/api/src/routers/chat.ts](packages/api/src/routers/chat.ts:34))
+  - Guard getAllChatsWithMessages against empty chatIds to prevent invalid SQL
+  - Guard getChatsByFolder against empty chatIds to prevent invalid SQL
+  - Return early with empty structures when no chats exist
 
 ## [0.0.17] - 2026-01-21
 

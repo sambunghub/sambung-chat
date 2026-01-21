@@ -29,8 +29,18 @@ export const chatRouter = {
       .where(eq(chats.userId, userId))
       .orderBy(desc(chats.updatedAt));
 
-    // Batch-fetch all messages for all chats (avoid N+1)
+    // Guard against empty chatIds to prevent invalid SQL
     const chatIds = userChats.map((chat) => chat.id);
+    if (chatIds.length === 0) {
+      // No chats, return empty array with empty messages structure
+      return userChats.map((chat) => ({
+        ...chat,
+        messages: [],
+        folder: null,
+      }));
+    }
+
+    // Batch-fetch all messages for all chats (avoid N+1)
     const allMessages = await db
       .select()
       .from(messages)
@@ -84,8 +94,17 @@ export const chatRouter = {
       .where(eq(chats.userId, userId))
       .orderBy(desc(chats.updatedAt));
 
-    // Batch-fetch all messages for all chats (avoid N+1)
+    // Guard against empty chatIds to prevent invalid SQL
     const chatIds = userChats.map((chat) => chat.id);
+    if (chatIds.length === 0) {
+      // No chats, return empty structure
+      return {
+        folders: [],
+        uncategorized: [],
+      };
+    }
+
+    // Batch-fetch all messages for all chats (avoid N+1)
     const allMessages = await db
       .select()
       .from(messages)
@@ -311,8 +330,8 @@ export const chatRouter = {
           .array(z.enum(['openai', 'anthropic', 'google', 'groq', 'ollama', 'custom']))
           .optional(),
         modelIds: z.array(z.string()).optional(),
-        dateFrom: z.string().optional(),
-        dateTo: z.string().optional(),
+        dateFrom: z.coerce.date().optional(),
+        dateTo: z.coerce.date().optional(),
         searchInMessages: z.boolean().optional(),
       })
     )
@@ -346,13 +365,13 @@ export const chatRouter = {
         conditions.push(eq(chats.pinned, true));
       }
 
-      // Add date range filter
+      // Add date range filter (input.dateFrom/dateTo are already Date objects from Zod coercion)
       if (input.dateFrom) {
-        conditions.push(gte(chats.createdAt, new Date(input.dateFrom)));
+        conditions.push(gte(chats.createdAt, input.dateFrom));
       }
 
       if (input.dateTo) {
-        conditions.push(lte(chats.createdAt, new Date(input.dateTo)));
+        conditions.push(lte(chats.createdAt, input.dateTo));
       }
 
       // Build the query - join with models and/or messages tables as needed
