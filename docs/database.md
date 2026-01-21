@@ -1,7 +1,7 @@
 # SambungChat Database Documentation
 
 **Version:** 0.1.0
-**Last Updated:** January 11, 2026
+**Last Updated:** January 20, 2026
 
 ---
 
@@ -16,11 +16,12 @@
    - [Chat & Message Tables](#chat--message-tables)
    - [Organization Tables](#organization-tables)
    - [Content Tables](#content-tables)
-5. [Migration Guide](#migration-guide)
-6. [Commands Reference](#commands-reference)
-7. [Drizzle Studio](#drizzle-studio)
-8. [Seeding & Test Data](#seeding--test-data)
-9. [Backup & Restore](#backup--restore)
+5. [Search Indexes & Performance](#search-indexes--performance)
+6. [Migration Guide](#migration-guide)
+7. [Commands Reference](#commands-reference)
+8. [Drizzle Studio](#drizzle-studio)
+9. [Seeding & Test Data](#seeding--test-data)
+10. [Backup & Restore](#backup--restore)
 
 ---
 
@@ -342,11 +343,26 @@ export const chatUserTeamIdx = index('chat_user_team_idx').on(chats.userId, chat
 export const chatFolderIdIdx = index('chat_folder_id_idx').on(chats.folderId);
 // Create index for sorting by updated date
 export const chatUpdatedAtIdx = index('chat_updated_at_idx').on(chats.updatedAt);
+// Create index for sorting by created date (supports date range queries)
+export const chatCreatedAtIdx = index('chat_created_at_idx').on(chats.createdAt);
+// Create composite index for user + model filtering with sorting
+export const chatUserModelUpdatedIdx = index('chat_user_model_updated_idx').on(
+  chats.userId,
+  chats.modelId,
+  chats.updatedAt
+);
 // Create index for public shares
 export const chatPublicTokenIdx = index('chat_public_token_idx')
   .on(chats.publicToken)
   .where(sql`${chats.isPublic} = true`);
 ```
+
+**Search-Related Indexes:**
+
+The following indexes optimize search queries:
+
+- `chat_created_at_idx` - Enables efficient date range filtering (see [Search Indexes](#search-indexes--performance))
+- `chat_user_model_updated_idx` - Enables efficient provider/model filtering (see [Search Indexes](#search-indexes--performance))
 
 **Chat Isolation:**
 
@@ -413,7 +429,16 @@ export type NewMessage = typeof messages.$inferInsert;
 ```typescript
 export const messageChatIdIdx = index('message_chat_id_idx').on(messages.chatId);
 export const messageCreatedAtIdx = index('message_created_at_idx').on(messages.createdAt);
+export const messageContentTrgmIdx = index('message_content_trgm_idx')
+  .using('gin', messages.content) // GIN index for full-text search
+  .with({ operatorClass: 'gin_trgm_ops' }); // Enables fast ILIKE queries
 ```
+
+**Search-Related Indexes:**
+
+- `message_content_trgm_idx` - GIN index for efficient full-text search using PostgreSQL's `pg_trgm` extension (see [Search Indexes](#search-indexes--performance))
+- Enables fast case-insensitive pattern matching (`ILIKE`) on message content
+- Average query time: **2.69ms** with 1,200 messages
 
 ### Prompt Table
 
@@ -622,6 +647,330 @@ export const chatTagChatIdIdx = index('chat_tag_chat_id_idx').on(chatTags.chatId
 // Index for finding all chats with a tag
 export const chatTagTagIdIdx = index('chat_tag_tag_id_idx').on(chatTags.tagId);
 ```
+
+---
+
+## Search Indexes & Performance
+
+### Overview
+
+SambungChat includes advanced search capabilities with optimized database indexes to ensure fast queries even with large datasets (1000+ chats, 10000+ messages). The search system supports:
+
+- **Full-text search** across chat titles and message content
+- **Provider filtering** by AI provider (OpenAI, Anthropic, Google, etc.)
+- **Model filtering** by specific AI models (GPT-4, Claude 3.5 Sonnet, etc.)
+- **Date range filtering** by creation or update time
+- **Combined filters** for complex queries
+
+### Search Indexes
+
+Three specialized indexes were added in migrations 0003-0005 to support efficient search queries:
+
+#### 1. Full-Text Search Index
+
+**Migration:** `0003_add_message_content_fulltext_search.sql`
+
+```sql
+-- Enable pg_trgm extension for trigram-based pattern matching
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+-- Create GIN index on messages.content for fast ILIKE queries
+CREATE INDEX message_content_trgm_idx ON messages
+  USING gin (content gin_trgm_ops);
+```
+
+**Purpose:** Enables fast case-insensitive pattern matching (`ILIKE`) on message content.
+
+**Performance:**
+
+- Search query: `messages.content ILIKE '%search term%'`
+- Avg query time: **2.69ms** with 1,200 messages
+- Supports partial word matching and phrase search
+
+**How it works:**
+
+- Uses PostgreSQL's `pg_trgm` extension for trigram-based indexing
+- Breaks text into 3-character sequences for efficient pattern matching
+- GIN (Generalized Inverted Index) structure allows fast lookups
+- The `gin_trgm_ops` operator class enables case-insensitive search
+
+**Example Query:**
+
+```typescript
+const results = await db
+  .select()
+  .from(chats)
+  .innerJoin(messages, eq(chats.id, messages.chatId))
+  .where(sql`${messages.content} ILIKE ${`%${searchQuery}%`}`);
+```
+
+#### 2. Composite Index for Model Filtering
+
+**Migration:** `0004_dizzy_orphan.sql`
+
+```sql
+-- Composite index for user + model filtering with sorting
+CREATE INDEX chat_user_model_updated_idx ON chats
+  USING btree (user_id, model_id, updated_at);
+```
+
+**Purpose:** Enables efficient filtering by user and model with sorting by update time.
+
+**Performance:**
+
+- Query pattern: `WHERE user_id = ? AND model_id IN (?) ORDER BY updated_at DESC`
+- Avg query time: **0.55ms** with provider/model filters
+- Supports multi-select model filtering
+
+**How it works:**
+
+- Composite B-tree index on three columns
+- PostgreSQL can use the index for both filtering and sorting
+- Covers queries that filter by user and model, then sort by update time
+- Most selective column first (user_id), then model_id, then updated_at for sorting
+
+**Example Query:**
+
+```typescript
+const results = await db
+  .select()
+  .from(chats)
+  .innerJoin(models, eq(chats.modelId, models.id))
+  .where(and(eq(chats.userId, userId), inArray(models.id, selectedModelIds)))
+  .orderBy(desc(chats.updatedAt));
+```
+
+#### 3. Date Range Index
+
+**Migration:** `0005_ambiguous_killer_shrike.sql`
+
+```sql
+-- B-tree index for date range queries on created_at
+CREATE INDEX chat_created_at_idx ON chats
+  USING btree (created_at);
+```
+
+**Purpose:** Enables efficient date range filtering on chat creation time.
+
+**Performance:**
+
+- Query pattern: `WHERE created_at >= ? AND created_at <= ?`
+- Avg query time: **<1ms** with date range filters
+- Works with existing `chat_updated_at_idx` for updatedAt ranges
+
+**How it works:**
+
+- B-tree indexes are optimal for range queries
+- PostgreSQL can efficiently scan the index range between two dates
+- Supports `>=`, `<=`, `>`, `<`, `BETWEEN` operators
+
+**Example Query:**
+
+```typescript
+const results = await db
+  .select()
+  .from(chats)
+  .where(
+    and(
+      eq(chats.userId, userId),
+      gte(chats.createdAt, new Date(dateFrom)),
+      lte(chats.createdAt, new Date(dateTo))
+    )
+  );
+```
+
+### Search API Usage
+
+The search functionality is exposed through the `orpc.chat.search` API endpoint.
+
+**API Schema:**
+
+```typescript
+interface ChatSearchInput {
+  query?: string;                // Search text for titles and messages
+  folderId?: string;             // Filter by folder
+  showPinnedOnly?: boolean;      // Show only pinned chats
+  providers?: Provider[];        // Filter by AI providers (array)
+  modelIds?: string[];           // Filter by model IDs (array)
+  dateFrom?: string;             // ISO date string (start of range)
+  dateTo?: string;               // ISO date string (end of range)
+  searchInMessages?: boolean;    // Enable full-text message search
+}
+
+interface Provider {
+  'openai' | 'anthropic' | 'google' | 'groq' | 'ollama' | 'custom';
+}
+```
+
+**Search Response:**
+
+```typescript
+interface ChatSearchResult {
+  id: string;
+  title: string;
+  modelId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  // ... other chat fields
+
+  // Optional: When searchInMessages=true and matches found
+  matchingMessages?: Array<{
+    id: string;
+    chatId: string;
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+    createdAt: Date;
+  }>;
+}
+```
+
+### Performance Benchmarks
+
+Performance tested with dataset of **120 chats** and **1,200 messages**:
+
+| Query Type               | Avg Time | Threshold | Status       |
+| ------------------------ | -------- | --------- | ------------ |
+| No filters               | 0.69ms   | 500ms     | ✅ Excellent |
+| Text query only          | 0.66ms   | 1000ms    | ✅ Excellent |
+| Provider filter          | 0.55ms   | 1500ms    | ✅ Excellent |
+| Full-text message search | 2.69ms   | 2000ms    | ✅ Excellent |
+| Combined filters         | <5ms     | 3000ms    | ✅ Excellent |
+
+**Performance Optimization Tips:**
+
+1. **Use specific filters** - Adding provider/model filters reduces search space
+2. **Date ranges** - Limiting by date dramatically improves performance
+3. **Avoid overly broad searches** - Short search terms (1-2 chars) are slower
+4. **Message snippets limited** - Only top 3 matching messages per chat returned
+
+### Index Maintenance
+
+**View index usage:**
+
+```sql
+-- Check which indexes are being used
+SELECT schemaname, tablename, indexname, idx_scan, idx_tup_read
+FROM pg_stat_user_indexes
+WHERE tablename IN ('chats', 'messages')
+ORDER BY idx_scan DESC;
+
+-- See index sizes
+SELECT indexname, pg_size_pretty(pg_relation_size(indexrelid))
+FROM pg_stat_user_indexes
+WHERE tablename IN ('chats', 'messages')
+ORDER BY pg_relation_size(indexrelid) DESC;
+```
+
+**Reindex if needed:**
+
+```bash
+# Rebuild all indexes (maintains data, rebuilds index structure)
+bun run db:studio
+# Run: REINDEX TABLE chats;
+# Run: REINDEX TABLE messages;
+```
+
+### Search Query Examples
+
+**Basic search in titles:**
+
+```typescript
+const results = await orpc.chat.search({
+  query: 'python tutorial',
+  searchInMessages: false, // Only search titles
+});
+```
+
+**Full-text search across messages:**
+
+```typescript
+const results = await orpc.chat.search({
+  query: 'recursive function',
+  searchInMessages: true, // Search both titles and message content
+});
+```
+
+**Filter by provider:**
+
+```typescript
+const results = await orpc.chat.search({
+  query: 'machine learning',
+  providers: ['openai', 'anthropic'], // Multiple providers
+});
+```
+
+**Filter by specific models:**
+
+```typescript
+const results = await orpc.chat.search({
+  query: 'code review',
+  modelIds: ['gpt-4', 'claude-3-5-sonnet'], // Specific model IDs
+});
+```
+
+**Date range filter:**
+
+```typescript
+const results = await orpc.chat.search({
+  query: 'api integration',
+  dateFrom: '2026-01-01', // ISO date format
+  dateTo: '2026-01-31',
+});
+```
+
+**Combined filters:**
+
+```typescript
+const results = await orpc.chat.search({
+  query: 'react components',
+  providers: ['openai'],
+  modelIds: ['gpt-4'],
+  dateFrom: '2026-01-01',
+  dateTo: '2026-01-15',
+  searchInMessages: true,
+});
+```
+
+### Search Result Highlighting
+
+Search results include HTML-highlighted text to help users identify relevant content:
+
+**Frontend implementation:**
+
+```typescript
+// Highlight matching text in chat titles and message snippets
+function highlightText(text: string, query: string): string {
+  if (!query) return text;
+
+  // Escape special regex characters
+  const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  // Create regex with case-insensitive flag
+  const regex = new RegExp(`(${escapedQuery})`, 'gi');
+
+  // Wrap matches in <mark> tag
+  return text.replace(regex, '<mark>$1</mark>');
+}
+```
+
+**Visual styling:**
+
+```css
+mark {
+  background-color: hsl(var(--primary) / 0.2);
+  color: hsl(var(--primary));
+  border-radius: 2px;
+  padding: 0 2px;
+}
+```
+
+### Search Index Migration History
+
+| Migration | Date       | Description                                                               |
+| --------- | ---------- | ------------------------------------------------------------------------- |
+| 0003      | 2026-01-20 | Added `message_content_trgm_idx` - GIN index for full-text search         |
+| 0004      | 2026-01-20 | Added `chat_user_model_updated_idx` - Composite index for model filtering |
+| 0005      | 2026-01-20 | Added `chat_created_at_idx` - B-tree index for date range queries         |
 
 ---
 
@@ -919,8 +1268,8 @@ DATABASE_URL=postgresql://sambungchat:sambungchat@localhost:5432/sambungchat
 
 ```typescript
 import { db } from '@sambung-chat/db';
-import { chats, messages } from '@sambung-chat/db/schema';
-import { eq, and, desc, asc } from 'drizzle-orm';
+import { chats, messages, models } from '@sambung-chat/db/schema';
+import { eq, and, desc, asc, gte, lte, inArray, sql } from 'drizzle-orm';
 
 // Get user's chats with message count
 const userChats = await db
@@ -944,12 +1293,36 @@ const chatWithMessages = await db.query.chats.findFirst({
   },
 });
 
-// Full-text search on prompts
+// Full-text search on chat titles and message content
 const searchResults = await db
-  .select()
-  .from(prompts)
+  .selectDistinct()
+  .from(chats)
+  .innerJoin(messages, eq(chats.id, messages.chatId))
   .where(
-    sql`${prompts.name} ILIKE ${`%${searchTerm}%`} OR ${prompts.content} ILIKE ${`%${searchTerm}%`}`
+    and(
+      eq(chats.userId, userId),
+      sql`${chats.title} ILIKE ${`%${searchTerm}%`} OR ${messages.content} ILIKE ${`%${searchTerm}%`}`
+    )
+  )
+  .orderBy(desc(chats.updatedAt));
+
+// Search with provider filter
+const searchByProvider = await db
+  .select()
+  .from(chats)
+  .innerJoin(models, eq(chats.modelId, models.id))
+  .where(and(eq(chats.userId, userId), inArray(models.provider, ['openai', 'anthropic'])));
+
+// Search with date range filter
+const searchByDateRange = await db
+  .select()
+  .from(chats)
+  .where(
+    and(
+      eq(chats.userId, userId),
+      gte(chats.createdAt, new Date('2026-01-01')),
+      lte(chats.createdAt, new Date('2026-01-31'))
+    )
   );
 ```
 

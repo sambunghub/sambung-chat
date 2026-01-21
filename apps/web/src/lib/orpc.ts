@@ -3,25 +3,29 @@ import type { AppRouterClient } from '@sambung-chat/api/routers/index';
 import { createORPCClient } from '@orpc/client';
 import { RPCLink } from '@orpc/client/fetch';
 
-// Get API URL dynamically - use same origin for cookie forwarding
+// Get API URL dynamically
+// In development: Connect directly to backend server (port 3000)
+// In production: Use same origin for cookie forwarding
 const getApiUrl = (): string => {
+  const isDev = import.meta.env.DEV;
+  const serverPort = import.meta.env.SERVER_PORT || '3000';
+
   if (typeof window !== 'undefined') {
-    // CSR: Use current origin for same-origin requests (cookies work)
-    // e.g., "http://localhost:5174"
+    // CSR: Use backend server URL in development, current origin in production
+    if (isDev) {
+      return `http://localhost:${serverPort}`;
+    }
     return window.location.origin;
   }
   // SSR: Need full URL from env
+  if (isDev) {
+    return `http://localhost:${serverPort}`;
+  }
   return import.meta.env.PUBLIC_API_URL || 'http://localhost:5174';
 };
 
-// Initial API URL (will be updated in browser if needed)
-let API_URL = getApiUrl();
-
-// Update API URL when DOM is ready
-if (typeof window !== 'undefined') {
-  // Ensure we have the correct origin after page load
-  API_URL = window.location.origin;
-}
+// API URL is determined dynamically by getApiUrl()
+const API_URL = getApiUrl();
 
 /**
  * CSRF Token Manager

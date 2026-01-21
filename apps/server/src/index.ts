@@ -207,11 +207,11 @@ app.post('/api/ai', async (c) => {
       }
     }
 
-    // Get active model from database
     const { db } = await import('@sambung-chat/db');
     const { models } = await import('@sambung-chat/db/schema/model');
     const { apiKeys } = await import('@sambung-chat/db/schema/api-key');
 
+    // Always use active model (ignore modelId from request)
     const modelResults = await db
       .select()
       .from(models)

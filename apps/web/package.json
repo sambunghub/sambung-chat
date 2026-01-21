@@ -24,6 +24,7 @@
     "clsx": "^2.1.1",
     "dotenv": "catalog:",
     "isomorphic-dompurify": "^2.35.0",
+    "jszip": "^3.10.1",
     "marked": "^17.0.1",
     "mode-watcher": "^1.1.0",
     "svelte-sonner": "^1.0.7",

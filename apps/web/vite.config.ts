@@ -52,7 +52,7 @@ export default defineConfig({
     // PUBLIC_API_URL is for client-side fetch calls to be same-origin
     // Backend server runs on SERVER_PORT (default: 3000)
     proxy: {
-      '/ai': {
+      '/api': {
         target: process.env.SERVER_URL || `http://localhost:${process.env.SERVER_PORT || 3000}`,
         changeOrigin: true,
         secure: false,

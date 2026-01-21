@@ -5,6 +5,191 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.18] - 2026-01-21
+
+### Fixed
+
+- **CSS Import Order**: Move KaTeX import to top of app.css for proper cascade priority ([apps/web/src/app.css](apps/web/src/app.css:5))
+- **Variable Shadowing**: Fix shadowed exportFormat variable in ChatList.svelte ([apps/web/src/lib/components/secondary-sidebar/ChatList.svelte](apps/web/src/lib/components/secondary-sidebar/ChatList.svelte:107))
+- **Type Safety**: Remove unnecessary type assertions in ChatList ORPC calls ([apps/web/src/lib/components/secondary-sidebar/ChatList.svelte](apps/web/src/lib/components/secondary-sidebar/ChatList.svelte:265))
+- **XSS Prevention**: Fix XSS vulnerability in ChatListItem highlightText function ([apps/web/src/lib/components/secondary-sidebar/ChatListItem.svelte](apps/web/src/lib/components/secondary-sidebar/ChatListItem.svelte:106))
+  - Add HTML escaping before applying search highlight markup
+  - Prevent malicious script injection through search queries
+- **Dialog Components**: Fix dialog and dialog-trigger to properly render children ([apps/web/src/lib/components/ui/dialog/dialog.svelte](apps/web/src/lib/components/ui/dialog/dialog.svelte:8), [apps/web/src/lib/components/ui/dialog/dialog-trigger.svelte](apps/web/src/lib/components/ui/dialog/dialog-trigger.svelte:8))
+  - Add snippet children pattern for Svelte 5 compatibility
+- **Client-Side API URL**: Fix getApiUrl logic in orpc.ts to preserve development backend path ([apps/web/src/lib/orpc.ts](apps/web/src/lib/orpc.ts:27))
+- **HTML Sanitization**: Sanitize stoppedMessageContent before rendering with {@html} ([apps/web/src/routes/app/chat/[id]/+page.svelte](apps/web/src/routes/app/chat/[id]/+page.svelte:799))
+  - Pass content through renderMarkdownSync which includes DOMPurify sanitization
+- **Environment Variables**: Replace server-only SERVER_PORT with PUBLIC_API_URL in chat pages ([apps/web/src/routes/app/chat/[id]/+page.svelte](apps/web/src/routes/app/chat/[id]/+page.svelte:28), [apps/web/src/routes/app/chat/+page.svelte](apps/web/src/routes/app/chat/+page.svelte:17))
+- **Test Cleanup**: Improve test cleanup with batch operations and env var fallbacks ([packages/api/src/routers/chat.test.ts](packages/api/src/routers/chat.test.ts:65))
+  - Use inArray for batch deletes instead of one-by-one operations
+  - Add error handling for cleanup failures
+- **N+1 Query Performance**: Fix N+1 query problem in chat.ts with batch-fetching ([packages/api/src/routers/chat.ts](packages/api/src/routers/chat.ts:32))
+  - Batch-fetch all messages for all chats in single query
+  - Batch-fetch all folders for all chats in single query
+  - Reduces database queries from O(2N) to O(1) for N chats
+- **Promise Error Handling**: Change Promise.all to Promise.allSettled in chat page ([apps/web/src/routes/app/chat/[id]/+page.svelte](apps/web/src/routes/app/chat/[id]/+page.svelte:279))
+  - Keep chat display unaffected by model-fetch failures
+  - Set activeModel to null when model promise rejects
+- **Type Assertions**: Remove unsafe 'as any' casts in tests ([packages/api/src/routers/chat.test.ts](packages/api/src/routers/chat.test.ts:50))
+  - Remove 'role as any' cast when inserting messages
+  - Add const assertion to providers array for strong typing
+  - Remove 'provider as any' cast when inserting models
+- **SQL Builder Guards**: Add Array.isArray checks before inArray clauses ([packages/api/src/routers/chat.ts](packages/api/src/routers/chat.ts:365))
+  - Prevent empty IN () clauses when providers/modelIds are empty arrays
+  - Validate array type and length before adding conditions
+- **Date Validation**: Use Zod coercion for date fields in search schema ([packages/api/src/routers/chat.ts](packages/api/src/routers/chat.ts:314))
+  - Replace z.string() with z.coerce.date() for dateFrom/dateTo
+  - Zod now validates and coerces input to Date objects automatically
+  - Remove redundant new Date() wrapping in date filter logic
+- **Empty Array Guards**: Add guards for empty chatIds in export functions ([packages/api/src/routers/chat.ts](packages/api/src/routers/chat.ts:34))
+  - Guard getAllChatsWithMessages against empty chatIds to prevent invalid SQL
+  - Guard getChatsByFolder against empty chatIds to prevent invalid SQL
+  - Return early with empty structures when no chats exist
+- **Query Normalization**: Normalize search query by trimming whitespace ([packages/api/src/routers/chat.ts](packages/api/src/routers/chat.ts:342))
+  - Trim leading/trailing whitespace to prevent searching for empty/whitespace-only strings
+  - Use normalized query throughout search logic for consistency
+  - Use Boolean() for explicit needsMessagesJoin conversion
+
+## [0.0.17] - 2026-01-21
+
+### Added
+
+- **Consistent Sidebar Toggle**: Add global secondary sidebar toggle functionality across all pages ([apps/web/src/lib/stores/secondary-sidebar.ts](apps/web/src/lib/stores/secondary-sidebar.ts:1))
+  - Create `secondarySidebarStore` for global state management using Svelte stores
+  - Create reusable `SecondarySidebarTrigger` component for consistent toggle button
+  - Update agents, prompts, chat, and chat/[id] pages to use the trigger
+  - Remove duplicate collapse button from ChatList to avoid UX confusion
+
+- **Settings Navigation Sidebar**: Add dedicated settings navigation in secondary sidebar ([apps/web/src/lib/components/secondary-sidebar/SettingsNav.svelte](apps/web/src/lib/components/secondary-sidebar/SettingsNav.svelte:1))
+  - Settings pages now use consistent secondary sidebar pattern
+  - Navigation items: Account, API Keys, Models (in that order)
+  - Active state highlighting for current settings page
+
+- **Account Settings Page**: Create new account settings page with profile and security sections ([apps/web/src/routes/app/settings/account/+page.svelte](apps/web/src/routes/app/settings/account/+page.svelte:1))
+  - Display user profile information (name, email, avatar with initials)
+  - Account details section (display name, email, account ID)
+  - Security section with password change functionality
+  - Danger zone with account deletion option
+
+- **Models Settings Route**: Move models management to dedicated route ([apps/web/src/routes/app/settings/models/+page.svelte](apps/web/src/routes/app/settings/models/+page.svelte:1))
+  - Models page now at `/app/settings/models` instead of `/app/settings`
+  - Cleaner routing structure with dedicated settings routes
+
+### Changed
+
+- **Settings Routes Restructure**: Reorganize settings routing for better UX ([apps/web/src/routes/app/settings/+page.server.ts](apps/web/src/routes/app/settings/+page.server.ts:1))
+  - `/app/settings` now redirects to `/app/settings/account` (default settings page)
+  - `/app/settings/account` - Account settings page
+  - `/app/settings/api-keys` - API Keys management (existing)
+  - `/app/settings/models` - Models management (moved from root settings)
+
+- **NavUser Menu Updates**: Simplify and reorganize user dropdown menu ([apps/web/src/lib/components/nav-user.svelte](apps/web/src/lib/components/nav-user.svelte:1))
+  - Remove "Settings", "Billing", and "Upgrade to Pro" menu items
+  - Reorder menu: Account → API Keys → Models
+  - Add user initials extraction from name for avatar fallback
+  - Update menu items to link to new settings routes
+
+- **Settings Header Pattern**: Apply consistent header pattern across all settings pages ([apps/web/src/routes/app/settings/+page.svelte](apps/web/src/routes/app/settings/+page.svelte:1), [apps/web/src/routes/app/settings/api-keys/+page.svelte](apps/web/src/routes/app/settings/api-keys/+page.svelte:1))
+  - All settings pages now use `SecondarySidebarTrigger` component
+  - Consistent breadcrumb navigation with proper hierarchy
+  - Removed custom sidebars from individual settings pages
+
+### Fixed
+
+- **User Avatar Initials**: Display actual user initials instead of hardcoded "CN" ([apps/web/src/lib/components/nav-user.svelte](apps/web/src/lib/components/nav-user.svelte:19-28))
+  - Extract initials from user name (first letter of each word, max 2 characters)
+  - Applied to both trigger button and dropdown menu avatars
+  - Works with single or multi-word names
+
+---
+
+## [0.0.16] - 2026-01-21
+
+### Fixed
+
+- **Missing API Key Router Export**: Add apiKeyRouter to main ORPC appRouter export ([packages/api/src/routers/index.ts](packages/api/src/routers/index.ts:9,63))
+  - apiKeyRouter was not imported or exported, causing 404 errors on `/rpc/apiKey/*` endpoints
+  - All other RPC routes (chat, model, folder, message) were working correctly
+  - Added import: `import { apiKeyRouter } from './api-keys'`
+  - Added export: `apiKey: apiKeyRouter` to appRouter object
+  - Fixes `/rpc/apiKey/getAll`, `/rpc/apiKey/create`, `/rpc/apiKey/update`, `/rpc/apiKey/delete`
+
+- **API Key Dropdown Not Showing**: Re-enable loadApiKeys function in model settings ([apps/web/src/routes/app/settings/models-manager.svelte](apps/web/src/routes/app/settings/models-manager.svelte:110-119))
+  - Function was commented out with TODO note, causing API key dropdown to be empty
+  - Now that apiKeyRouter is fixed, re-enabled the function to load API keys
+  - API keys are now properly fetched and displayed in dropdown when creating/editing models
+
+- **LaTeX/KaTeX Rendering Fix**: Fix LaTeX placeholder format to avoid markdown interpretation ([apps/web/src/lib/markdown-renderer.ts](apps/web/src/lib/markdown-renderer.ts:69,81))
+  - Changed placeholder from `__LATEX_BLOCK_N__` to `%%%LATEX_BLOCK_N%%%`
+  - Double underscores were being interpreted as markdown bold syntax
+  - LaTeX math formulas now render correctly with KaTeX
+
+- **Direct Backend Connection**: Frontend now connects directly to backend server in development ([apps/web/src/lib/orpc.ts](apps/web/src/lib/orpc.ts:6-25), [apps/web/src/routes/app/chat/+page.svelte](apps/web/src/routes/app/chat/+page.svelte:13-20), [apps/web/src/routes/app/chat/[id]/+page.svelte](apps/web/src/routes/app/chat/[id]/+page.svelte:24-31))
+  - Eliminates need for Vite proxy configuration restarts
+  - ORPC client uses `http://localhost:SERVER_PORT` in development (default: 3000)
+  - Chat AI endpoint uses direct backend connection in development
+  - Production still uses same-origin via PUBLIC_API_URL (behind proxy)
+  - Fixes 404 errors on `/rpc/*` routes caused by proxy issues
+  - Resolves "violates CSP directive" errors by allowing backend URL in CSP
+
+- **CSP Backend Server URL**: Fix CSP violation by adding backend server URL to connect-src directive ([apps/web/src/lib/security/headers.ts](apps/web/src/lib/security/headers.ts:59-111))
+  - CSP now correctly includes backend server URL (from SERVER_PORT env var) in development
+  - Previously used PUBLIC_API_URL (frontend URL) which caused CSP to block connections to backend
+  - In development: uses `http://localhost:SERVER_PORT` (default: 3000)
+  - In production: uses PUBLIC_API_URL (backend is behind proxy)
+  - Fixes error: "Connecting to 'http://localhost:3000/api/ai' violates CSP directive"
+
+- **Vite Proxy Configuration**: Add `/api` route to Vite proxy to forward API requests to backend server ([apps/web/vite.config.ts](apps/web/vite.config.ts:55-74))
+  - Previously only proxied `/rpc` and `/ai`, but AI endpoint moved to `/api/ai` in v0.0.12
+  - Now all `/api/*` requests are properly proxied to backend server
+  - Removed obsolete `/ai` proxy route (replaced by `/api`)
+
+- **Worker CSP Directive**: Add worker-src CSP directive to allow blob: URLs for Vite HMR ([apps/web/src/lib/security/headers.ts](apps/web/src/lib/security/headers.ts:122-123))
+  - Fixes error: "Creating a worker from 'blob:' violates CSP directive"
+  - Allows blob: URLs for workers in development for Vite's module workers
+  - Uses 'self' only in production for stricter security
+
+### Documentation
+
+- **API & RPC Endpoint Reference**: Add comprehensive endpoint documentation to CLAUDE.md ([CLAUDE.md](CLAUDE.md:143-261))
+  - Complete list of all REST API endpoints (`/api/auth/*`, `/api/ai`, `/rpc/*`, etc.)
+  - Complete list of all ORPC procedures (chat, message, folder, model, apiKey)
+  - Connection architecture explanation (dev direct connection vs production proxy)
+  - Endpoint routing flow diagram
+  - Common issues & solutions (404, CSP violations, CSRF errors, AI endpoint errors)
+  - Critical for understanding endpoint routing and avoiding similar issues
+
+---
+
+## [0.0.15] - 2026-01-21
+
+### Added
+
+- **KaTeX & Mermaid.js Support**: Add LaTeX math and diagram rendering for markdown content ([apps/web/src/lib/markdown-renderer.ts](apps/web/src/lib/markdown-renderer.ts:1))
+  - Support inline math with `$...$` syntax
+  - Support display math with `$$...$$` syntax
+  - Support Mermaid diagrams: flowchart, sequence, class, state, etc.
+  - Auto-detect and apply theme (light/dark mode) for diagrams
+  - Add KaTeX CSS import to app styles ([apps/web/src/app.css](apps/web/src/app.css:121-123))
+  - Initialize Mermaid on page mount with theme detection ([apps/web/src/routes/+layout.svelte](apps/web/src/routes/+layout.svelte:1))
+  - Add Mermaid.js CDN to CSP script-src whitelist ([apps/web/src/lib/security/headers.ts](apps/web/src/lib/security/headers.ts:104))
+
+### Changed
+
+- **Active Model for All Chats**: Backend now always uses the active model instead of requested modelId from chat ([apps/server/src/index.ts](apps/server/src/index.ts:210-220))
+  - Removes modelId logic from `/api/ai` endpoint
+  - Always queries active model from database for authenticated user
+  - Ignores modelId from request body to prevent using outdated models
+  - Fixes issue where old chats with deleted modelIds would fail with "Model not found" error
+
+- **Model Display in Chat Header**: Show active model name in chat interface header ([apps/web/src/routes/app/chat/[id]/+page.svelte](apps/web/src/routes/app/chat/[id]/+page.svelte:681-686))
+  - Fetches active model in parallel with chat data using Promise.all
+  - Displays model name with code icon next to chat statistics (messages, words, last activity)
+  - Removed modelId from authenticatedFetch to let backend use active model
+
+---
+
 ## [0.0.14] - 2026-01-21
 
 ### Security
@@ -247,6 +432,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Comprehensive logging and security warnings
   - Environment-aware defaults (production vs development)
 
+- **Advanced Chat Search**: Enhanced search functionality with full-text search across both chat titles and message content ([packages/api/src/routers/chat.ts](packages/api/src/routers/chat.ts))
+- **Provider Filter**: Multi-select dropdown to filter search results by AI provider (OpenAI, Anthropic, Google, Groq, Ollama, Custom) ([apps/web/src/lib/components/secondary-sidebar/ChatList.svelte](apps/web/src/lib/components/secondary-sidebar/ChatList.svelte))
+- **Model Filter**: Multi-select dropdown to filter search results by specific AI models (e.g., GPT-4, Claude 3.5 Sonnet) with alphabetical sorting ([apps/web/src/lib/components/secondary-sidebar/ChatList.svelte](apps/web/src/lib/components/secondary-sidebar/ChatList.svelte))
+- **Date Range Filter**: Date range picker (from/to) to filter conversations by creation date using native HTML5 date inputs ([apps/web/src/lib/components/secondary-sidebar/ChatList.svelte](apps/web/src/lib/components/secondary-sidebar/ChatList.svelte))
+- **Message Snippets**: Display up to 3 matching message snippets below chat title with role labels (You/AI) and highlighted search terms ([apps/web/src/lib/components/secondary-sidebar/ChatListItem.svelte](apps/web/src/lib/components/secondary-sidebar/ChatListItem.svelte))
+- **Clear All Filters**: Quick reset button to clear all active filters and return to default view ([apps/web/src/lib/components/secondary-sidebar/ChatList.svelte](apps/web/src/lib/components/secondary-sidebar/ChatList.svelte))
+- **Database Indexes**: Added 3 new PostgreSQL indexes for search performance optimization ([packages/db/src/migrations](packages/db/src/migrations))
+  - `message_content_trgm_idx` - GIN index for full-text search on message content
+  - `chat_user_model_updated_idx` - Composite index for model filtering
+  - `chat_created_at_idx` - B-tree index for date range queries
+- **Search Performance Tests**: Comprehensive test suite verifying search performance with large datasets (120 chats, 1,200 messages) - all queries complete in <3ms ([packages/api/src/routers/chat.test.ts](packages/api/src/routers/chat.test.ts))
+- **Filter Combination Tests**: 15 tests covering all possible filter combinations (provider, model, date, query) to ensure correct filtering logic ([packages/api/src/routers/chat.test.ts](packages/api/src/routers/chat.test.ts))
+- **Search Highlighting Tests**: 31 automated tests verifying proper highlighting of search terms including special characters, Unicode, and edge cases ([apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts](apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts))
+- **E2E Search Tests**: 60+ Playwright tests covering complete search workflow including all filters, result display, accessibility, and performance ([tests/e2e/search.spec.ts](tests/e2e/search.spec.ts))
+- **Testing Documentation**: Created comprehensive testing guides for manual verification of search functionality ([packages/api/src/routers/TESTING_GUIDE.md](packages/api/src/routers/TESTING_GUIDE.md), [apps/web/src/lib/components/secondary-sidebar/HIGHLIGHT_TESTING_GUIDE.md](apps/web/src/lib/components/secondary-sidebar/HIGHLIGHT_TESTING_GUIDE.md), [tests/e2e/SEARCH_E2E_TESTS.md](tests/e2e/SEARCH_E2E_TESTS.md))
+
 ### Changed
 
 - **Better Auth Configuration**: Update cookie configuration to use dynamic SameSite setting ([packages/auth/src/index.ts](packages/auth/src/index.ts:60))
@@ -263,6 +464,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Extract IP from X-Forwarded-For, X-Real-IP, or CF-Connecting-IP headers
   - Fallback to 'unknown' if headers not available
   - Used for rate limiting anonymous requests
+
+- **Search API**: Extended chat search API to support multiple filter parameters (providers array, modelIds array, dateFrom, dateTo, searchInMessages) ([packages/api/src/routers/chat.ts](packages/api/src/routers/chat.ts))
+- **Search Query Logic**: Implemented conditional SQL joins with models and messages tables for efficient filtering based on active search parameters ([packages/api/src/routers/chat.ts](packages/api/src/routers/chat.ts))
+- **Search Results**: Enhanced search results to include matching message snippets with role, content, and timestamp fields when searching in message content ([packages/api/src/routers/chat.ts](packages/api/src/routers/chat.ts))
+- **Markdown Export Format**: Enhanced Markdown export with improved readability and structure ([apps/web/src/lib/utils/chat-export.ts](apps/web/src/lib/utils/chat-export.ts:103-180))
+  - Added blockquote-style metadata header with emojis and clear formatting
+  - Message-level timestamps with consistent date formatting
+  - Clear horizontal rule separators between messages
+  - Enhanced metadata section with bullet points and code formatting
+  - Support for system messages with dedicated icon
+  - Added message count and folder information to header
 
 ### Documentation
 
@@ -312,6 +524,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Token Storage**: Use in-memory storage for CSRF tokens (cleared on page refresh)
 - **Automatic Cleanup**: Rate limiter automatically removes old entries every 5 minutes
 - **Concurrent Request Prevention**: CSRF token manager prevents duplicate token fetches
+- Search with no filters: 0.69ms average (well under 500ms threshold)
+- Search with text query: 0.66ms average (well under 1000ms threshold)
+- Search with provider filter: 0.55ms average (well under 1500ms threshold)
+- Full-text search across messages: 2.69ms average (well under 2000ms threshold)
+- All performance tests pass with excellent margins, ensuring fast search even with hundreds of chats
 
 ---
 

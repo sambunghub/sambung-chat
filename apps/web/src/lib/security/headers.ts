@@ -56,17 +56,34 @@ export function getCSPHeader(config: CSPConfig = { reportOnly: false }): string 
     console.log(`[CSP] Mode: ${isDev ? 'DEVELOPMENT' : 'PRODUCTION'} (NODE_ENV=${nodeEnv})`);
   }
 
-  // Get PUBLIC_API_URL from server environment, with defensive error handling
-  // In SvelteKit hooks.server.ts, PUBLIC_ vars are available via process.env
-  let publicApiUrl = 'http://localhost:3000'; // Default fallback
-  const publicApiUrlEnv = typeof process !== 'undefined' ? process.env.PUBLIC_API_URL : undefined;
-  if (publicApiUrlEnv) {
-    try {
-      publicApiUrl = new URL(publicApiUrlEnv).origin;
-    } catch {
-      // If PUBLIC_API_URL is malformed, fall back to default
-      console.warn('[SECURITY] Invalid PUBLIC_API_URL, using default: http://localhost:3000');
-      publicApiUrl = 'http://localhost:3000';
+  // Get backend server URL for CSP connect-src
+  // In development, allow direct connections to backend server (SERVER_PORT)
+  // In production with proxy, PUBLIC_API_URL is sufficient
+  let backendServerUrl = 'http://localhost:3000'; // Default fallback
+  const serverPort = typeof process !== 'undefined' ? process.env.SERVER_PORT : undefined;
+  const serverUrl = typeof process !== 'undefined' ? process.env.SERVER_URL : undefined;
+
+  if (isDev) {
+    // In development, always allow connections to backend server
+    // Use SERVER_URL if provided, otherwise construct from SERVER_PORT
+    if (serverUrl) {
+      try {
+        backendServerUrl = new URL(serverUrl).origin;
+      } catch {
+        backendServerUrl = `http://localhost:${serverPort || 3000}`;
+      }
+    } else {
+      backendServerUrl = `http://localhost:${serverPort || 3000}`;
+    }
+  } else {
+    // In production, backend is behind proxy, so use PUBLIC_API_URL
+    const publicApiUrlEnv = typeof process !== 'undefined' ? process.env.PUBLIC_API_URL : undefined;
+    if (publicApiUrlEnv) {
+      try {
+        backendServerUrl = new URL(publicApiUrlEnv).origin;
+      } catch {
+        backendServerUrl = 'http://localhost:3000';
+      }
     }
   }
 
@@ -85,8 +102,8 @@ export function getCSPHeader(config: CSPConfig = { reportOnly: false }): string 
 
   // Build connect-src with API endpoints and Keycloak
   const connectSources = [
-    "'self'", // Same origin
-    publicApiUrl, // Backend API
+    "'self'", // Same origin (frontend)
+    backendServerUrl, // Backend API server
     keycloakUrl, // Keycloak OAuth
     ...(config.connectSources || []),
   ]
@@ -98,9 +115,12 @@ export function getCSPHeader(config: CSPConfig = { reportOnly: false }): string 
     // Default policy for all content types
     `default-src 'self'`,
 
-    // Scripts: Only allow same-origin (no external scripts)
+    // Scripts: Allow same-origin and Mermaid.js CDN for diagrams
     // Allow unsafe-eval and unsafe-inline in development for Vite HMR
-    `script-src 'self'${isDev ? " 'unsafe-eval' 'unsafe-inline'" : ''}`,
+    `script-src 'self' https://cdn.jsdelivr.net${isDev ? " 'unsafe-eval' 'unsafe-inline'" : ''}`,
+
+    // Workers: Allow blob: URLs for Vite HMR module workers in development
+    ...(isDev ? [`worker-src 'self' blob:`] : [`worker-src 'self'`]),
 
     // Styles: Allow inline styles for shadcn-svelte components
     `style-src 'self' 'unsafe-inline'`,

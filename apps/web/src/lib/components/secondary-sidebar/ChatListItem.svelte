@@ -22,6 +22,14 @@
     updatedAt: Date;
   }
 
+  interface MatchingMessage {
+    id: string;
+    chatId: string;
+    role: string;
+    content: string;
+    createdAt: Date;
+  }
+
   interface Folder {
     id: string;
     name: string;
@@ -40,6 +48,7 @@
     onMoveToFolder: (folderId: string | null) => void;
     onCreateFolder: () => void;
     searchQuery?: string;
+    matchingMessages?: MatchingMessage[];
   }
 
   let {
@@ -53,6 +62,7 @@
     onMoveToFolder,
     onCreateFolder,
     searchQuery = '',
+    matchingMessages = [],
   }: Props = $props();
 
   let isRenaming = $state(false);
@@ -93,15 +103,33 @@
     return new Date(date).toLocaleDateString();
   }
 
+  // HTML escape utility
+  function escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   // Highlight search query in text
   function highlightText(text: string, query: string): string {
     if (!query || !query.trim()) return text;
 
+    // First HTML-escape the text to prevent XSS
+    const escapedText = escapeHtml(text);
+
     const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-    return text.replace(
+    return escapedText.replace(
       regex,
       '<mark class="bg-primary/30 text-foreground rounded px-0.5">$1</mark>'
     );
+  }
+
+  // Truncate text to max length, preserving word boundaries
+  function truncateText(text: string, maxLength: number): string {
+    if (text.length <= maxLength) return text;
+    const truncated = text.substring(0, maxLength);
+    const lastSpace = truncated.lastIndexOf(' ');
+    return truncated.substring(0, lastSpace > 0 ? lastSpace : maxLength) + '...';
   }
 
   // Handle rename submit
@@ -177,6 +205,27 @@
           {getRelativeTime(chat.updatedAt)}
         </span>
       </div>
+
+      <!-- Matching Message Snippets -->
+      {#if searchQuery && matchingMessages && matchingMessages.length > 0}
+        <div class="text-muted-foreground mt-1 space-y-0.5">
+          {#each matchingMessages.slice(0, 2) as msg}
+            <div class="flex items-start gap-1.5 text-xs">
+              <span class="shrink-0 text-[10px] font-medium uppercase opacity-70">
+                {msg.role === 'user' ? 'You' : 'AI'}:
+              </span>
+              <span class="line-clamp-2 flex-1 opacity-80">
+                {@html highlightText(truncateText(msg.content, 80), searchQuery)}
+              </span>
+            </div>
+          {/each}
+          {#if matchingMessages.length > 2}
+            <div class="text-muted-foreground pl-2 text-[10px] italic opacity-60">
+              +{matchingMessages.length - 2} more match{matchingMessages.length - 2 > 1 ? 'es' : ''}
+            </div>
+          {/if}
+        </div>
+      {/if}
     {/if}
   </div>
 

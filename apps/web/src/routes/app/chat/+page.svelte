@@ -6,15 +6,38 @@
   import { fade } from 'svelte/transition';
   import { renderMarkdownSync } from '$lib/markdown-renderer.js';
   import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
+  import { Separator } from '$lib/components/ui/separator/index.js';
   import { orpc } from '$lib/orpc';
   import { goto } from '$app/navigation';
   import ModelSelector from '$lib/components/model-selector.svelte';
+  import SecondarySidebarTrigger from '$lib/components/secondary-sidebar-trigger.svelte';
 
-  // Use PUBLIC_URL for AI endpoint (backend)
-  const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:3000';
+  // Get backend API URL for AI endpoint
+  // Use PUBLIC_API_URL (client-side environment variable)
+  const BACKEND_API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:5174';
 
-  // Custom fetch wrapper to include credentials (cookies)
+  // Custom fetch wrapper to include credentials (cookies) and modelId
   const authenticatedFetch = (input: RequestInfo | URL, init?: RequestInit) => {
+    // For AI API requests, include selected modelId
+    if (typeof input === 'string' && input.includes('/api/ai')) {
+      const body = init?.body ? JSON.parse(init.body as string) : {};
+
+      // Add modelId from selectedModel if available
+      if (selectedModel?.id) {
+        body.modelId = selectedModel.id;
+      }
+
+      return fetch(input, {
+        ...init,
+        credentials: 'include',
+        headers: {
+          ...init?.headers,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+    }
+
     return fetch(input, {
       ...init,
       credentials: 'include',
@@ -42,7 +65,7 @@
 
   const chat = new Chat({
     transport: new DefaultChatTransport({
-      api: `${PUBLIC_API_URL}/api/ai`,
+      api: `${BACKEND_API_URL}/api/ai`,
       fetch: authenticatedFetch,
     }),
   });
@@ -230,13 +253,17 @@
 <header
   class="bg-background sticky top-0 z-10 flex shrink-0 items-center justify-between gap-2 border-b p-4"
 >
-  <Breadcrumb.Root>
-    <Breadcrumb.List>
-      <Breadcrumb.Item>
-        <Breadcrumb.Page>Chat</Breadcrumb.Page>
-      </Breadcrumb.Item>
-    </Breadcrumb.List>
-  </Breadcrumb.Root>
+  <div class="flex items-center gap-2">
+    <SecondarySidebarTrigger class="-ms-1" />
+    <Separator orientation="vertical" class="data-[orientation=vertical]:h-4" />
+    <Breadcrumb.Root>
+      <Breadcrumb.List>
+        <Breadcrumb.Item>
+          <Breadcrumb.Page>Chat</Breadcrumb.Page>
+        </Breadcrumb.Item>
+      </Breadcrumb.List>
+    </Breadcrumb.Root>
+  </div>
 
   <div class="flex items-center gap-2">
     <ModelSelector

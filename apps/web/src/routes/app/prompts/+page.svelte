@@ -2,10 +2,11 @@
   import * as Sidebar from '$lib/components/ui/sidebar/index.js';
   import { Separator } from '$lib/components/ui/separator/index.js';
   import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
+  import SecondarySidebarTrigger from '$lib/components/secondary-sidebar-trigger.svelte';
 </script>
 
 <header class="bg-background sticky top-0 z-10 flex shrink-0 items-center gap-2 border-b p-4">
-  <Sidebar.Trigger class="-ms-1" />
+  <SecondarySidebarTrigger class="-ms-1" />
   <Separator orientation="vertical" class="me-2 data-[orientation=vertical]:h-4" />
   <Breadcrumb.Root>
     <Breadcrumb.List>

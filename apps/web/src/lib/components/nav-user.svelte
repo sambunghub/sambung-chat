@@ -3,9 +3,9 @@
   import BadgeCheckIcon from '@lucide/svelte/icons/badge-check';
   import BellIcon from '@lucide/svelte/icons/bell';
   import ChevronsUpDownIcon from '@lucide/svelte/icons/chevrons-up-down';
-  import CreditCardIcon from '@lucide/svelte/icons/credit-card';
+  import KeyIcon from '@lucide/svelte/icons/key';
   import LogOutIcon from '@lucide/svelte/icons/log-out';
-  import SparklesIcon from '@lucide/svelte/icons/sparkles';
+  import CpuIcon from '@lucide/svelte/icons/cpu';
 
   import * as Avatar from '$lib/components/ui/avatar/index.js';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
@@ -15,6 +15,17 @@
   let { user }: { user: { name: string; email: string; avatar?: string } } = $props();
 
   const sidebar = useSidebar();
+
+  // Get initials from user name
+  function getInitials(name: string): string {
+    return name
+      .split(' ')
+      .map((word) => word.charAt(0).toUpperCase())
+      .join('')
+      .slice(0, 2);
+  }
+
+  const userInitials = $derived(getInitials(user.name));
 
   // SSR-safe: default to desktop during SSR
   let isMobile = $state(false);
@@ -41,7 +52,7 @@
               {#if user.avatar}
                 <Avatar.Image src={user.avatar} alt={user.name} />
               {/if}
-              <Avatar.Fallback class="rounded-lg">CN</Avatar.Fallback>
+              <Avatar.Fallback class="rounded-lg">{userInitials}</Avatar.Fallback>
             </Avatar.Root>
             <div class="grid flex-1 text-start text-sm leading-tight">
               <span class="truncate font-medium">{user.name}</span>
@@ -63,7 +74,7 @@
               {#if user.avatar}
                 <Avatar.Image src={user.avatar} alt={user.name} />
               {/if}
-              <Avatar.Fallback class="rounded-lg">CN</Avatar.Fallback>
+              <Avatar.Fallback class="rounded-lg">{userInitials}</Avatar.Fallback>
             </Avatar.Root>
             <div class="grid flex-1 text-start text-sm leading-tight">
               <span class="truncate font-medium">{user.name}</span>
@@ -73,28 +84,21 @@
         </DropdownMenu.Label>
         <DropdownMenu.Separator />
         <DropdownMenu.Group>
-          <DropdownMenu.Item>
-            <SparklesIcon />
-            Upgrade to Pro
-          </DropdownMenu.Item>
-        </DropdownMenu.Group>
-        <DropdownMenu.Separator />
-        <DropdownMenu.Group>
-          <DropdownMenu.Item>
+          <DropdownMenu.Item onclick={() => goto('/app/settings/account')} class="cursor-pointer">
             <BadgeCheckIcon />
             Account
           </DropdownMenu.Item>
-          <DropdownMenu.Item>
-            <CreditCardIcon />
-            Billing
+          <DropdownMenu.Item onclick={() => goto('/app/settings/api-keys')} class="cursor-pointer">
+            <KeyIcon />
+            API Keys
           </DropdownMenu.Item>
-          <DropdownMenu.Item>
-            <BellIcon />
-            Notifications
+          <DropdownMenu.Item onclick={() => goto('/app/settings/models')} class="cursor-pointer">
+            <CpuIcon />
+            Models
           </DropdownMenu.Item>
         </DropdownMenu.Group>
         <DropdownMenu.Separator />
-        <DropdownMenu.Item onclick={() => goto('/logout')}>
+        <DropdownMenu.Item onclick={() => goto('/logout')} class="cursor-pointer">
           <LogOutIcon />
           Log out
         </DropdownMenu.Item>

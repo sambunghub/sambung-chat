@@ -39,9 +39,11 @@ export const chats = pgTable(
   },
   (table) => [
     index('chat_user_id_idx').on(table.userId),
+    index('chat_created_at_idx').on(table.createdAt),
     index('chat_updated_at_idx').on(table.updatedAt),
     index('chat_pinned_idx').on(table.pinned),
     index('chat_folder_id_idx').on(table.folderId),
+    index('chat_user_model_updated_idx').on(table.userId, table.modelId, table.updatedAt),
   ]
 );
 

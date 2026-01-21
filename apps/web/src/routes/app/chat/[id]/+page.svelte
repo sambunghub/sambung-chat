@@ -1,11 +1,13 @@
 <script lang="ts">
   import { page } from '$app/stores';
   import { onMount } from 'svelte';
+  import { fade } from 'svelte/transition';
   import { orpc } from '$lib/orpc';
   import { Chat } from '@ai-sdk/svelte';
   import { DefaultChatTransport } from 'ai';
-  import { renderMarkdownSync } from '$lib/markdown-renderer.js';
+  import { renderMarkdownSync, initMermaidDiagrams } from '$lib/markdown-renderer.js';
   import { Button } from '$lib/components/ui/button/index.js';
+  import { Separator } from '$lib/components/ui/separator/index.js';
   import { exportChat } from '$lib/utils/chat-export';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import DownloadIcon from '@lucide/svelte/icons/download';
@@ -19,9 +21,11 @@
   import ClockIcon from '@lucide/svelte/icons/clock';
   import TokenDisplay from '$lib/components/token-display.svelte';
   import ErrorDisplay from '$lib/components/error-display.svelte';
+  import SecondarySidebarTrigger from '$lib/components/secondary-sidebar-trigger.svelte';
 
-  // Use PUBLIC_URL for AI endpoint (backend)
-  const PUBLIC_API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:3000';
+  // Get backend API URL for AI endpoint
+  // Use PUBLIC_API_URL (client-side environment variable)
+  const BACKEND_API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:5174';
 
   let input = $state('');
   let errorMessage = $state('');
@@ -36,6 +40,7 @@
   let stoppedMessageContent = $state<string | null>(null);
   let isSubmitting = $state(false);
   let chatData = $state<Awaited<ReturnType<typeof orpc.chat.getById>> | null>(null);
+  let activeModel = $state<Awaited<ReturnType<typeof orpc.model.getActive>> | null>(null);
   let loading = $state(true);
   const MAX_RETRIES = 3;
 
@@ -46,8 +51,27 @@
     new Map()
   );
 
-  // Custom fetch wrapper to include credentials (cookies)
+  // Custom fetch wrapper to include credentials (cookies) and modelId
   const authenticatedFetch = (input: RequestInfo | URL, init?: RequestInit) => {
+    // For AI API requests, include modelId from chat
+    if (typeof input === 'string' && input.includes('/api/ai')) {
+      const body = init?.body ? JSON.parse(init.body as string) : {};
+
+      // Don't send modelId - let backend use the active model instead
+      // This ensures chats always use the current active model, not outdated modelId
+      delete body.modelId;
+
+      return fetch(input, {
+        ...init,
+        credentials: 'include',
+        headers: {
+          ...init?.headers,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+    }
+
     return fetch(input, {
       ...init,
       credentials: 'include',
@@ -59,7 +83,7 @@
 
   const chat = new Chat({
     transport: new DefaultChatTransport({
-      api: `${PUBLIC_API_URL}/api/ai`,
+      api: `${BACKEND_API_URL}/api/ai`,
       fetch: authenticatedFetch,
     }),
   });
@@ -67,11 +91,14 @@
   let messagesContainer: HTMLDivElement | null = $state(null);
   let inputField: HTMLTextAreaElement | null = $state(null);
 
+  // Reactive messages array for streaming updates
+  let messages = $derived(chat.messages);
+
   // Chat statistics
   let chatStats = $derived(() => {
-    const userMessages = chat.messages.filter((m) => m.role === 'user');
-    const assistantMessages = chat.messages.filter((m) => m.role === 'assistant');
-    const totalWords = chat.messages.reduce((sum, msg) => {
+    const userMessages = messages.filter((m) => m.role === 'user');
+    const assistantMessages = messages.filter((m) => m.role === 'assistant');
+    const totalWords = messages.reduce((sum, msg) => {
       const textPart = msg.parts?.find(
         (p): p is Extract<typeof p, { type: 'text' }> => p.type === 'text'
       );
@@ -80,7 +107,7 @@
     }, 0);
 
     return {
-      messageCount: chat.messages.length,
+      messageCount: messages.length,
       userMessageCount: userMessages.length,
       assistantMessageCount: assistantMessages.length,
       totalWords,
@@ -96,7 +123,7 @@
 
   // Auto-scroll to bottom
   $effect(() => {
-    if (chat.messages.length > 0 && messagesContainer) {
+    if (messages.length > 0 && messagesContainer) {
       // Scroll to bottom immediately without animation on mount
       requestAnimationFrame(() => {
         messagesContainer?.scrollTo({
@@ -109,7 +136,7 @@
 
   // Auto-scroll when new messages arrive
   $effect(() => {
-    if (chat.messages.length > 0 && messagesContainer) {
+    if (messages.length > 0 && messagesContainer) {
       requestAnimationFrame(() => {
         messagesContainer?.scrollTo({
           top: messagesContainer.scrollHeight,
@@ -121,7 +148,7 @@
 
   // Focus input when not streaming
   $effect(() => {
-    if (!isStreamingResponse && !isRetrying && !isSubmitting && chat.messages.length > 0) {
+    if (!isStreamingResponse && !isRetrying && !isSubmitting && messages.length > 0) {
       setTimeout(() => {
         inputField?.focus();
       }, 100);
@@ -130,7 +157,7 @@
 
   // Clear error when not streaming and when user starts typing
   $effect(() => {
-    if (chat.messages.length > 0 && !isStreaming() && input.length > 0) {
+    if (messages.length > 0 && !isStreaming() && input.length > 0) {
       clearError();
     }
   });
@@ -210,8 +237,8 @@
 
   // Track tokens during streaming
   $effect(() => {
-    if (isStreamingResponse && chat.messages.length > 0) {
-      const lastMessage = chat.messages[chat.messages.length - 1];
+    if (isStreamingResponse && messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
       if (lastMessage && lastMessage.role === 'assistant') {
         streamingMessageId = lastMessage.id || null;
         const textPart = lastMessage.parts?.find(
@@ -224,6 +251,10 @@
       // Streaming just ended, keep the last token count
       streamingMessageId = null;
       streamingTokenCount = 0;
+      // Initialize Mermaid diagrams after streaming completes
+      requestAnimationFrame(() => {
+        initMermaidDiagrams();
+      });
     }
   });
 
@@ -244,7 +275,20 @@
 
     loading = true;
     try {
-      const data = await orpc.chat.getById({ id: chatId()! });
+      // Fetch chat data and active model in parallel
+      const results = await Promise.allSettled([
+        orpc.chat.getById({ id: chatId()! }),
+        orpc.model.getActive(),
+      ]);
+
+      // Extract chat result (fulfilled or rejected)
+      const chatResult = results[0];
+      const data = chatResult.status === 'fulfilled' ? chatResult.value : null;
+
+      // Extract model result (fulfilled or rejected, set to null on rejection)
+      const modelResult = results[1];
+      const model = modelResult.status === 'fulfilled' ? modelResult.value : null;
+
       if (data) {
         chatData = data;
 
@@ -287,6 +331,9 @@
           }
         }
       }
+
+      // Store active model for display (always set, even if data is null)
+      activeModel = model;
     } catch (err) {
       console.error('Failed to load chat:', err);
       const errorObj = err instanceof Error ? err : new Error('Failed to load chat');
@@ -299,6 +346,10 @@
       errorType = categorized.type;
     } finally {
       loading = false;
+      // Initialize Mermaid diagrams after loading chat
+      requestAnimationFrame(() => {
+        initMermaidDiagrams();
+      });
     }
   }
 
@@ -577,18 +628,13 @@
     try {
       const exportData = {
         ...chatData,
-        messages: chat.messages.map((msg, idx) => {
-          const textPart = msg.parts?.find(
-            (p): p is Extract<typeof p, { type: 'text' }> => p.type === 'text'
-          );
-          const content = textPart && 'text' in textPart ? textPart.text : '';
-          return {
-            id: chatId() || '', // Use ULID string
-            role: msg.role,
-            content: content,
-            createdAt: new Date(),
-          };
-        }),
+        messages: chatData.messages.map((msg) => ({
+          id: msg.id,
+          role: msg.role as 'user' | 'assistant' | 'system',
+          content: msg.content,
+          metadata: msg.metadata || undefined,
+          createdAt: msg.createdAt,
+        })),
       };
       exportChat(exportData, format, chatId() || undefined);
     } catch (err) {
@@ -624,31 +670,36 @@
   <!-- Header -->
   <div class="shrink-0 border-b px-6 py-4">
     <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-foreground text-xl font-semibold">
-          {loading ? 'Loading...' : chatData?.title || 'Chat'}
-        </h1>
-        {#if chatData}
-          <p class="text-muted-foreground flex items-center gap-3 text-sm">
-            <span class="flex items-center gap-1">
-              <MessageCircleIcon class="size-3" />
-              {chatStats().messageCount} messages
-            </span>
-            <span class="flex items-center gap-1">
-              <AlignLeftIcon class="size-3" />
-              {chatStats().totalWords} words
-            </span>
-            <span class="flex items-center gap-1">
-              <ClockIcon class="size-3" />
-              {chatStats().lastActivity || 'N/A'}
-            </span>
-            {#if chatData.modelId}
-              <span class="text-muted-foreground flex items-center gap-1">
-                <span class="font-masonic text-xs">{chatData.modelId}</span>
+      <div class="flex items-center gap-3">
+        <SecondarySidebarTrigger class="-ms-1" />
+        <Separator orientation="vertical" class="data-[orientation=vertical]:h-4" />
+        <div>
+          <h1 class="text-foreground text-xl font-semibold">
+            {loading ? 'Loading...' : chatData?.title || 'Chat'}
+          </h1>
+          {#if chatData}
+            <p class="text-muted-foreground flex items-center gap-3 text-sm">
+              <span class="flex items-center gap-1">
+                <MessageCircleIcon class="size-3" />
+                {chatStats().messageCount} messages
               </span>
-            {/if}
-          </p>
-        {/if}
+              <span class="flex items-center gap-1">
+                <AlignLeftIcon class="size-3" />
+                {chatStats().totalWords} words
+              </span>
+              <span class="flex items-center gap-1">
+                <ClockIcon class="size-3" />
+                {chatStats().lastActivity || 'N/A'}
+              </span>
+              {#if activeModel}
+                <span class="flex items-center gap-1">
+                  <CodeIcon class="size-3" />
+                  {activeModel.name}
+                </span>
+              {/if}
+            </p>
+          {/if}
+        </div>
       </div>
       <div class="flex gap-2">
         <DropdownMenu.DropdownMenu>
@@ -683,7 +734,7 @@
       <div class="flex h-full items-center justify-center">
         <div class="text-muted-foreground">Loading chat...</div>
       </div>
-    {:else if chat.messages.length === 0}
+    {:else if messages.length === 0}
       <div class="flex h-full items-center justify-center">
         <div class="text-muted-foreground text-center">
           <p class="mb-2 text-lg">Start a conversation</p>
@@ -692,22 +743,71 @@
       </div>
     {:else}
       <div class="mx-auto max-w-3xl space-y-6">
-        {#each chat.messages as message, index (message.id || index)}
+        {#each messages as message, index (message.id || index)}
+          {@const isLast = index === messages.length - 1}
+          {@const isStreamingMessage =
+            message.role === 'assistant' && isLast && isStreamingResponse && !wasStopped}
+          {@const isStoppedMessage =
+            message.role === 'assistant' && isLast && wasStopped && !isStreamingResponse}
+          {@const isThisStoppedMessage = message.id === stoppedMessageId}
+          {@const messageText =
+            (message.parts?.find((p): p is Extract<typeof p, { type: 'text' }> => p.type === 'text')
+              ?.text as string) || ''}
           <div class="flex {message.role === 'user' ? 'justify-end' : 'justify-start'}">
             <div
-              class="max-w-[80%] rounded-lg px-4 py-2 {message.role === 'user'
-                ? 'bg-accent text-accent-foreground'
-                : 'bg-muted text-card-foreground'}"
+              class="group max-w-[85%] rounded-2xl px-4 py-3 text-sm transition-all duration-200 hover:shadow-lg md:text-base {message.role ===
+              'user'
+                ? 'bg-accent text-accent-foreground rounded-tr-sm'
+                : 'bg-muted text-card-foreground rounded-tl-sm'}"
             >
+              <p
+                class="mb-1.5 text-xs font-medium opacity-70"
+                class:text-accent-foreground={message.role === 'user'}
+                class:text-muted-foreground={message.role === 'assistant'}
+              >
+                {message.role === 'user' ? 'You' : 'AI Assistant'}
+                {#if isStreamingMessage}
+                  <span class="ml-2 inline-flex items-center gap-1">
+                    <span class="animate-pulse">●</span>
+                    <span class="animate-pulse" style="animation-delay: 0.2s">●</span>
+                    <span class="animate-pulse" style="animation-delay: 0.4s">●</span>
+                  </span>
+                {:else if isStoppedMessage}
+                  <span class="text-muted-foreground ml-2 inline-flex items-center gap-1">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <rect x="6" y="6" width="12" height="12" rx="1" />
+                    </svg>
+                    <span>Stopped</span>
+                  </span>
+                {/if}
+              </p>
+
               {#if message.role === 'assistant'}
                 <div
-                  class="prose-p:text-card-foreground prose prose-sm max-w-none dark:prose-invert"
+                  class="markdown-content prose-p:text-card-foreground prose prose-sm max-w-none dark:prose-invert"
+                  class:opacity-70={isThisStoppedMessage}
                 >
-                  {@html renderMarkdownSync(
-                    (message.parts?.find(
-                      (p): p is Extract<typeof p, { type: 'text' }> => p.type === 'text'
-                    )?.text as string) || ''
-                  )}
+                  {#if isThisStoppedMessage && stoppedMessageContent}
+                    <!-- eslint-disable-next-line svelte/no-at-html-tags -- sanitized by DOMPurify in markdown-renderer.ts -->
+                    {@html renderMarkdownSync(stoppedMessageContent)}
+                  {:else}
+                    <!-- eslint-disable-next-line svelte/no-at-html-tags -- sanitized by DOMPurify in markdown-renderer.ts -->
+                    {@html renderMarkdownSync(messageText)}
+                    {#if isStreamingMessage && !messageText}
+                      <span class="ml-1 inline-block h-4 w-2 animate-pulse bg-current opacity-50"
+                      ></span>
+                    {/if}
+                  {/if}
                 </div>
                 <!-- Token display for assistant messages -->
                 <div class="mt-2">
@@ -725,13 +825,32 @@
                   {/if}
                 </div>
               {:else}
-                <div class="whitespace-pre-wrap">
-                  {(message.parts?.find(
-                    (p): p is Extract<typeof p, { type: 'text' }> => p.type === 'text'
-                  )?.text as string) || ''}
-                </div>
+                <div class="whitespace-pre-wrap">{messageText}</div>
               {/if}
             </div>
+
+            {#if isStoppedMessage}
+              <div
+                in:fade={{ duration: 300 }}
+                class="text-muted-foreground mt-2 ml-4 flex items-center gap-2 text-sm"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="shrink-0"
+                >
+                  <rect x="6" y="6" width="12" height="12" rx="1" />
+                </svg>
+                <span class="italic">Generation stopped by user</span>
+              </div>
+            {/if}
           </div>
         {/each}
       </div>

@@ -6,6 +6,7 @@ import { chatRouter } from './chat';
 import { messageRouter } from './message';
 import { folderRouter } from './folder';
 import { modelRouter } from './model';
+import { apiKeyRouter } from './api-keys';
 import { generateCsrfToken } from '../utils/csrf';
 import { csrfRateLimiter } from '../utils/rate-limiter';
 
@@ -59,6 +60,7 @@ export const appRouter = {
   message: messageRouter,
   folder: folderRouter,
   model: modelRouter,
+  apiKey: apiKeyRouter,
 };
 export type AppRouter = typeof appRouter;
 export type AppRouterClient = RouterClient<typeof appRouter>;

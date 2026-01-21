@@ -8,15 +8,32 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { autofocus } from '$lib/actions/autofocus.js';
+  import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
+  import * as Dialog from '$lib/components/ui/dialog/index.js';
+  import { exportAllChats, type ChatsByFolder } from '$lib/utils/chat-export';
+  import DownloadIcon from '@lucide/svelte/icons/download';
+  import FileJsonIcon from '@lucide/svelte/icons/file-json';
+  import CodeIcon from '@lucide/svelte/icons/code';
+  import PackageIcon from '@lucide/svelte/icons/package';
   import PlusIcon from '@lucide/svelte/icons/plus';
-  import PanelLeftCloseIcon from '@lucide/svelte/icons/panel-left-close';
   import FolderIcon from '@lucide/svelte/icons/folder';
   import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
   import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
   import PencilIcon from '@lucide/svelte/icons/pencil';
   import Trash2Icon from '@lucide/svelte/icons/trash-2';
+  import FilterIcon from '@lucide/svelte/icons/filter';
+  import RotateCcwIcon from '@lucide/svelte/icons/rotate-ccw';
+  import SlidersHorizontalIcon from '@lucide/svelte/icons/sliders-horizontal';
 
   // Types
+  interface MatchingMessage {
+    id: string;
+    chatId: string;
+    role: string;
+    content: string;
+    createdAt: Date;
+  }
+
   interface Chat {
     id: string;
     title: string;
@@ -25,6 +42,7 @@
     folderId: string | null;
     createdAt: Date;
     updatedAt: Date;
+    matchingMessages?: MatchingMessage[];
   }
 
   interface Folder {
@@ -34,22 +52,49 @@
     createdAt: Date;
   }
 
-  interface Props {
-    currentChatId?: string;
-    onToggleCollapse?: () => void;
+  interface Model {
+    id: string;
+    provider: string;
+    modelId: string;
+    name: string;
+    baseUrl?: string;
+    apiKeyId?: string;
+    isActive: boolean;
+    avatarUrl?: string;
+    settings?: {
+      temperature?: number;
+      maxTokens?: number;
+      topP?: number;
+      topK?: number;
+      frequencyPenalty?: number;
+      presencePenalty?: number;
+    };
+    createdAt: Date;
+    updatedAt: Date;
   }
 
-  let { currentChatId, onToggleCollapse }: Props = $props();
+  interface Props {
+    currentChatId?: string;
+  }
+
+  let { currentChatId }: Props = $props();
 
   // State
   let chats = $state<Chat[]>([]);
   let folders = $state<Folder[]>([]);
+  let models = $state<Model[]>([]);
   let loading = $state(true);
   let searching = $state(false);
   let error = $state<string | null>(null);
   let searchQuery = $state('');
   let selectedFolderId = $state<string>('');
   let showPinnedOnly = $state(false);
+  let selectedProviders = $state<
+    Array<'openai' | 'anthropic' | 'google' | 'groq' | 'ollama' | 'custom'>
+  >([]);
+  let selectedModelIds = $state<Array<string>>([]);
+  let dateFrom = $state<string>('');
+  let dateTo = $state<string>('');
   let collapsedFolders = $state<Record<string, boolean>>({});
   let isInitialLoad = $state(true);
 
@@ -57,8 +102,64 @@
   let renamingFolderId = $state<string | null>(null);
   let folderRenameValue = $state('');
 
+  // Export state
+  let exporting = $state(false);
+  let exportFormat = $state<'json' | 'md' | 'zip' | 'zip-optimized' | null>(null);
+
+  // Filter dialog state
+  let showFilterDialog = $state(false);
+
   // Computed - filtered chats (API handles filtering, just return chats)
   let filteredChats = $derived(() => chats);
+
+  // Computed - unique providers from user's models
+  let availableProviders = $derived(() => {
+    const providerSet = new Set(models.map((m) => m.provider));
+    return Array.from(providerSet).sort() as Array<
+      'openai' | 'anthropic' | 'google' | 'groq' | 'ollama' | 'custom'
+    >;
+  });
+
+  // Computed - available models filtered by selected providers
+  let availableModels = $derived(() => {
+    if (selectedProviders.length === 0) {
+      return models.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    return models
+      .filter((m) => selectedProviders.includes(m.provider as any))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  });
+
+  // Computed - provider labels for display
+  const providerLabels: Record<string, string> = {
+    openai: 'OpenAI',
+    anthropic: 'Anthropic',
+    google: 'Google',
+    groq: 'Groq',
+    ollama: 'Ollama',
+    custom: 'Custom',
+  };
+
+  // Computed - check if advanced filters are active (for filter button state)
+  let hasActiveFilters = $derived(
+    !isInitialLoad &&
+      (selectedProviders.length > 0 ||
+        selectedModelIds.length > 0 ||
+        dateFrom !== '' ||
+        dateTo !== '')
+  );
+
+  // Computed - check if any filters are active (for showing "Clear All" button)
+  let hasAnyFilters = $derived(
+    !isInitialLoad &&
+      (searchQuery !== '' ||
+        selectedFolderId !== '' ||
+        showPinnedOnly ||
+        selectedProviders.length > 0 ||
+        selectedModelIds.length > 0 ||
+        dateFrom !== '' ||
+        dateTo !== '')
+  );
 
   // Group chats by folder and time period
   let groupedChats = $derived(() => {
@@ -118,6 +219,38 @@
     }
   }
 
+  function handleProvidersChange() {
+    if (!isInitialLoad) {
+      // Clear model selection when providers change
+      selectedModelIds = [];
+      loadChats();
+    }
+  }
+
+  function handleModelsChange() {
+    if (!isInitialLoad) {
+      loadChats();
+    }
+  }
+
+  function handleDateChange() {
+    if (!isInitialLoad) {
+      loadChats();
+    }
+  }
+
+  // Clear all filters and reset to default view
+  function handleClearAllFilters() {
+    searchQuery = '';
+    selectedFolderId = '';
+    showPinnedOnly = false;
+    selectedProviders = [];
+    selectedModelIds = [];
+    dateFrom = '';
+    dateTo = '';
+    loadChats();
+  }
+
   // Load chats with search & filters
   async function loadChats() {
     // Use searching state for filter changes, loading for initial load
@@ -131,10 +264,15 @@
     try {
       const result = await orpc.chat.search({
         query: searchQuery || undefined,
+        searchInMessages: searchQuery ? true : undefined,
         folderId: selectedFolderId || undefined,
         pinnedOnly: showPinnedOnly || undefined,
+        providers: selectedProviders.length > 0 ? selectedProviders : undefined,
+        modelIds: selectedModelIds.length > 0 ? selectedModelIds : undefined,
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
       });
-      chats = result as Chat[];
+      chats = result;
     } catch (err) {
       console.error('Failed to load chats:', err);
       // Only set error if it's a network/fetch error (not cancellation)
@@ -167,10 +305,21 @@
     }
   }
 
+  // Load models
+  async function loadModels() {
+    try {
+      const result = await orpc.model.getAll();
+      models = result as Model[];
+    } catch (err) {
+      console.error('Failed to load models:', err);
+    }
+  }
+
   // Initial load
   onMount(() => {
     loadChats();
     loadFolders();
+    loadModels();
   });
 
   // Handle chat selection
@@ -353,6 +502,59 @@
       alert('Failed to delete folder. Please try again.');
     }
   }
+
+  // Handle export all chats
+  async function handleExportAll(format: 'json' | 'md' | 'zip') {
+    if (exporting) return;
+
+    exporting = true;
+    exportFormat = format;
+
+    try {
+      // Fetch all chats with messages and folder information
+      const chatsByFolder = await orpc.chat.getChatsByFolder();
+
+      // Map format from UI to export utility format
+      if (format === 'zip') {
+        exportFormat = 'zip-optimized'; // Use optimized ZIP with both formats
+      } else {
+        exportFormat = format;
+      }
+
+      // Export with progress tracking
+      const result = await exportAllChats(chatsByFolder as ChatsByFolder, exportFormat, {
+        onProgress: (current, total, message) => {
+          // Progress tracking could be added here in future
+          // For now, the export operation shows loading state
+        },
+        onError: (chat, error) => {
+          // Log error but continue exporting
+          console.warn(`Failed to export chat "${chat.title}":`, error);
+          return true; // Continue with remaining chats
+        },
+      });
+
+      // Show success message
+      if (result.success) {
+        alert(`Successfully exported ${result.exported} chat(s)!`);
+      } else {
+        // Partial success - some chats failed
+        alert(
+          `Export completed with warnings:\n` +
+            `✓ Exported: ${result.exported} chat(s)\n` +
+            `✗ Failed: ${result.failed} chat(s)\n\n` +
+            `Check console for details.`
+        );
+      }
+    } catch (err) {
+      console.error('Failed to export chats:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      alert(`Failed to export chats: ${errorMessage}\n\nPlease try again.`);
+    } finally {
+      exporting = false;
+      exportFormat = null;
+    }
+  }
 </script>
 
 <div class="flex h-full flex-col">
@@ -361,17 +563,38 @@
     <div class="mb-3 flex items-center justify-between">
       <h2 class="text-lg font-semibold">Chats</h2>
       <div class="flex gap-2">
-        {#if onToggleCollapse}
-          <Button
-            size="sm"
-            onclick={onToggleCollapse}
-            variant="ghost"
-            title="Collapse chat list"
-            class="h-8 w-8 p-0"
+        <DropdownMenu.DropdownMenu>
+          <DropdownMenu.DropdownMenuTrigger
+            class="bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-8 items-center justify-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors"
+            disabled={exporting}
+            title="Export all chats"
           >
-            <PanelLeftCloseIcon class="size-4" />
-          </Button>
-        {/if}
+            <DownloadIcon class="size-4" />
+          </DropdownMenu.DropdownMenuTrigger>
+          <DropdownMenu.DropdownMenuContent>
+            <DropdownMenu.DropdownMenuItem
+              onclick={() => handleExportAll('json')}
+              disabled={exporting}
+            >
+              <FileJsonIcon class="mr-2 size-4" />
+              <span>Export All as JSON</span>
+            </DropdownMenu.DropdownMenuItem>
+            <DropdownMenu.DropdownMenuItem
+              onclick={() => handleExportAll('md')}
+              disabled={exporting}
+            >
+              <CodeIcon class="mr-2 size-4" />
+              <span>Export All as Markdown</span>
+            </DropdownMenu.DropdownMenuItem>
+            <DropdownMenu.DropdownMenuItem
+              onclick={() => handleExportAll('zip')}
+              disabled={exporting}
+            >
+              <PackageIcon class="mr-2 size-4" />
+              <span>Export All as ZIP</span>
+            </DropdownMenu.DropdownMenuItem>
+          </DropdownMenu.DropdownMenuContent>
+        </DropdownMenu.DropdownMenu>
         <Button size="sm" onclick={createNewChat} variant="default">
           <PlusIcon class="mr-1 size-4" />
           New Chat
@@ -380,25 +603,39 @@
     </div>
 
     <!-- Search Input (press Enter to search) -->
-    <div class="mb-3">
-      <Input
-        type="text"
-        placeholder="Search chats... (press Enter)"
-        bind:value={searchQuery}
-        onkeydown={handleSearchKeydown}
-        class="h-8"
-      />
+    <div class="mb-2">
+      <div class="flex items-center gap-2">
+        <Input
+          type="text"
+          placeholder="Search chats... (press Enter)"
+          bind:value={searchQuery}
+          onkeydown={handleSearchKeydown}
+          class="h-8 flex-1"
+        />
+        <Button
+          size="sm"
+          onclick={() => (showFilterDialog = true)}
+          variant={hasActiveFilters ? 'default' : 'outline'}
+          class="h-8 px-3"
+          title={hasActiveFilters ? 'Filters active - click to view' : 'Filter chats'}
+        >
+          <SlidersHorizontalIcon class="size-4" />
+          {#if hasActiveFilters}
+            <span class="ml-1.5 text-xs">Active</span>
+          {/if}
+        </Button>
+      </div>
     </div>
 
-    <!-- Filter Controls -->
-    <div class="flex items-center justify-between gap-2">
+    <!-- Inline Filters: Folder and Pinned -->
+    <div class="flex items-center gap-2">
       <select
         value={selectedFolderId}
         onchange={(e) => {
           selectedFolderId = e.currentTarget.value;
           handleFolderChange();
         }}
-        class="border-input bg-background focus:ring-ring flex-1 rounded-md border px-2 py-1 text-sm focus:ring-1 focus:outline-none"
+        class="border-input bg-background focus:ring-ring flex-1 rounded-md border px-2 py-1.5 text-sm focus:ring-1 focus:outline-none"
       >
         <option value="">All Folders</option>
         {#each folders as folder}
@@ -477,6 +714,7 @@
                   onMoveToFolder={(folderId) => moveChatToFolder(chat.id, folderId)}
                   onCreateFolder={() => createFolder(chat.id)}
                   {searchQuery}
+                  matchingMessages={chat.matchingMessages}
                 />
               {/each}
             </div>
@@ -593,6 +831,7 @@
                       onMoveToFolder={(folderId) => moveChatToFolder(chat.id, folderId)}
                       onCreateFolder={() => createFolder(chat.id)}
                       {searchQuery}
+                      matchingMessages={chat.matchingMessages}
                     />
                   {/each}
                 {/if}
@@ -620,6 +859,7 @@
                   onMoveToFolder={(folderId) => moveChatToFolder(chat.id, folderId)}
                   onCreateFolder={() => createFolder(chat.id)}
                   {searchQuery}
+                  matchingMessages={chat.matchingMessages}
                 />
               {/each}
             </div>
@@ -629,3 +869,170 @@
     {/if}
   </Sidebar.Content>
 </div>
+
+<!-- Filter Dialog -->
+<Dialog.Root bind:open={showFilterDialog}>
+  <Dialog.Content class="max-w-md">
+    <Dialog.Header>
+      <Dialog.Title>Advanced Filters</Dialog.Title>
+      <Dialog.Description>Filter by AI provider, model, and date range</Dialog.Description>
+    </Dialog.Header>
+
+    <div class="space-y-4 py-4">
+      <!-- Provider Filter -->
+      {#if availableProviders().length > 0}
+        <div class="space-y-2">
+          <label class="text-sm font-medium">Providers</label>
+          <DropdownMenu.DropdownMenu>
+            <DropdownMenu.Trigger
+              class="border-input bg-background hover:bg-accent hover:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground focus:ring-ring flex w-full items-center justify-between rounded-md border px-3 py-2 text-left text-sm focus:ring-1 focus:outline-none"
+              type="button"
+            >
+              <div class="flex items-center gap-2">
+                <FilterIcon class="size-4" />
+                <span class="text-muted-foreground">
+                  {selectedProviders.length === 0
+                    ? 'All Providers'
+                    : `${selectedProviders.length} provider${selectedProviders.length > 1 ? 's' : ''} selected`}
+                </span>
+              </div>
+              <ChevronDownIcon class="size-4" />
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content class="w-56">
+              {#each availableProviders() as provider (provider)}
+                {@const isSelected = selectedProviders.includes(provider)}
+                <DropdownMenu.CheckboxItem
+                  checked={isSelected}
+                  onselect={() => {
+                    if (isSelected) {
+                      selectedProviders = selectedProviders.filter((p) => p !== provider);
+                    } else {
+                      selectedProviders = [...selectedProviders, provider];
+                    }
+                    handleProvidersChange();
+                  }}
+                >
+                  <span class="flex-1">{providerLabels[provider] || provider}</span>
+                </DropdownMenu.CheckboxItem>
+              {/each}
+              {#if selectedProviders.length > 0}
+                <DropdownMenu.Separator />
+                <DropdownMenu.Item
+                  onclick={() => {
+                    selectedProviders = [];
+                    handleProvidersChange();
+                  }}
+                >
+                  Clear providers
+                </DropdownMenu.Item>
+              {/if}
+            </DropdownMenu.Content>
+          </DropdownMenu.DropdownMenu>
+        </div>
+      {/if}
+
+      <!-- Model Filter -->
+      {#if availableModels().length > 0}
+        <div class="space-y-2">
+          <label class="text-sm font-medium">Models</label>
+          <DropdownMenu.DropdownMenu>
+            <DropdownMenu.Trigger
+              class="border-input bg-background hover:bg-accent hover:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground focus:ring-ring flex w-full items-center justify-between rounded-md border px-3 py-2 text-left text-sm focus:ring-1 focus:outline-none"
+              type="button"
+            >
+              <div class="flex items-center gap-2">
+                <FilterIcon class="size-4" />
+                <span class="text-muted-foreground">
+                  {selectedModelIds.length === 0
+                    ? 'All Models'
+                    : `${selectedModelIds.length} model${selectedModelIds.length > 1 ? 's' : ''} selected`}
+                </span>
+              </div>
+              <ChevronDownIcon class="size-4" />
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content class="max-h-80 w-56 overflow-y-auto">
+              {#each availableModels() as model (model.id)}
+                {@const isSelected = selectedModelIds.includes(model.id)}
+                <DropdownMenu.CheckboxItem
+                  checked={isSelected}
+                  onselect={() => {
+                    if (isSelected) {
+                      selectedModelIds = selectedModelIds.filter((id) => id !== model.id);
+                    } else {
+                      selectedModelIds = [...selectedModelIds, model.id];
+                    }
+                    handleModelsChange();
+                  }}
+                >
+                  <span class="flex-1 truncate" title={model.name}>{model.name}</span>
+                </DropdownMenu.CheckboxItem>
+              {/each}
+              {#if selectedModelIds.length > 0}
+                <DropdownMenu.Separator />
+                <DropdownMenu.Item
+                  onclick={() => {
+                    selectedModelIds = [];
+                    handleModelsChange();
+                  }}
+                >
+                  Clear models
+                </DropdownMenu.Item>
+              {/if}
+            </DropdownMenu.Content>
+          </DropdownMenu.DropdownMenu>
+        </div>
+      {/if}
+
+      <!-- Date Range Filter -->
+      <div class="space-y-2">
+        <label class="text-sm font-medium">Date Range</label>
+        <div class="flex items-center gap-2">
+          <div class="flex-1">
+            <Input
+              type="date"
+              value={dateFrom}
+              onchange={(e) => {
+                dateFrom = e.currentTarget.value;
+                handleDateChange();
+              }}
+              class="h-9 text-sm"
+              placeholder="From date"
+            />
+          </div>
+          <span class="text-muted-foreground text-sm">to</span>
+          <div class="flex-1">
+            <Input
+              type="date"
+              value={dateTo}
+              onchange={(e) => {
+                dateTo = e.currentTarget.value;
+                handleDateChange();
+              }}
+              class="h-9 text-sm"
+              placeholder="To date"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <Dialog.Footer>
+      <div class="flex w-full items-center justify-between">
+        <Button
+          variant="ghost"
+          onclick={handleClearAllFilters}
+          disabled={!hasAnyFilters}
+          class="text-muted-foreground"
+        >
+          <RotateCcwIcon class="mr-2 size-4" />
+          Clear All
+        </Button>
+        <div class="flex gap-2">
+          <Dialog.Close>
+            <Button variant="outline">Close</Button>
+          </Dialog.Close>
+        </div>
+      </div>
+    </Dialog.Footer>
+  </Dialog.Content>
+</Dialog.Root>

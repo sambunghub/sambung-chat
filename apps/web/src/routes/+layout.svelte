@@ -3,6 +3,7 @@
   import { onMount } from 'svelte';
   import { ModeWatcher } from 'mode-watcher';
   import { Toaster } from 'svelte-sonner';
+  import { setupMermaidThemeObserver } from '$lib/markdown-renderer';
   import '../app.css';
 
   const { children } = $props();
@@ -12,6 +13,8 @@
 
   onMount(() => {
     mounted = true;
+    // Setup Mermaid theme observer to detect theme changes
+    setupMermaidThemeObserver();
   });
 </script>
 
