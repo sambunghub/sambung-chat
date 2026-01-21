@@ -139,7 +139,9 @@ jobs:
           done
 
       - name: Setup database
-        run: bun run db:push
+        run: |
+          cd packages/db
+          bunx drizzle-kit push --config=drizzle.config.ts
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test
 
