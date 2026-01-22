@@ -131,12 +131,6 @@
     })
   );
 
-  // Get unique categories from prompts
-  let availableCategories = $derived(() => {
-    const categorySet = new Set(prompts.map((p) => p.category));
-    return Array.from(categorySet);
-  });
-
   // Open create dialog
   function openCreateDialog() {
     formData = {

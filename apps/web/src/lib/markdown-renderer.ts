@@ -387,10 +387,21 @@ export async function ensureMarkdownDependencies(): Promise<void> {
     // Load KaTeX and CSS if not already loaded
     if (!cachedKatex && !katexLoadInProgress) {
       katexLoadInProgress = loadKatex();
-      cachedKatex = await katexLoadInProgress;
+      try {
+        cachedKatex = await katexLoadInProgress;
+      } finally {
+        // Always clear the in-progress flag, even on failure
+        katexLoadInProgress = null;
+      }
     } else if (katexLoadInProgress) {
       // Wait for existing load to complete
-      cachedKatex = await katexLoadInProgress;
+      try {
+        cachedKatex = await katexLoadInProgress;
+      } catch {
+        // If load failed and initiator didn't clean up, reset for retry
+        katexLoadInProgress = null;
+        throw new Error('KaTeX load failed');
+      }
     }
 
     // Load KaTeX CSS (using static import)

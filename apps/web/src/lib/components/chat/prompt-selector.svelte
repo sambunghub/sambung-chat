@@ -3,7 +3,6 @@
   import { onMount } from 'svelte';
   import { orpc } from '$lib/orpc';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
-  import CheckIcon from '@lucide/svelte/icons/check';
   import { categories } from '$lib/components/prompt-library-form-types';
 
   type Prompt = {
@@ -175,7 +174,6 @@
               </span>
             </div>
           </div>
-          <CheckIcon class="ml-auto size-4 opacity-0 group-data-[selected]:opacity-100" />
         </DropdownMenu.Item>
       {/each}
     </DropdownMenu.Content>
