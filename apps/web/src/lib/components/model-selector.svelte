@@ -32,11 +32,7 @@
     errorMessage = '';
     try {
       const result = await orpc.model.getAll();
-      console.log('[MODEL-SELECTOR] Received result:', result);
-      console.log('[MODEL-SELECTOR] Result type:', typeof result);
-      console.log('[MODEL-SELECTOR] Is array?', Array.isArray(result));
       models = (result as Model[]) || [];
-      console.log('[MODEL-SELECTOR] Models after assignment:', models);
     } catch (error) {
       console.error('Failed to load models:', error);
       errorMessage = 'Failed to load models';

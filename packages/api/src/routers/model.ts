@@ -44,13 +44,11 @@ export const modelRouter = {
     .use(cacheHeadersMiddleware(o)(CACHE_DURATIONS.MEDIUM))
     .handler(async ({ context }) => {
       const userId = context.session.user.id;
-      const result = await db
+      return await db
         .select()
         .from(models)
         .where(eq(models.userId, userId))
         .orderBy(asc(models.createdAt));
-      console.log('[MODEL] getAll for user:', userId, 'result:', result);
-      return result;
     }),
 
   // Get model by ID

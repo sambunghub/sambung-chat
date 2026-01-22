@@ -143,9 +143,6 @@ export const link = new RPCLink({
       credentials: 'include',
     };
 
-    // Log URL for debugging
-    console.log('[ORPC] Fetching:', url.toString());
-
     // Add CSRF token to request headers
     const csrfToken = await csrfManager.getToken();
 
@@ -158,9 +155,6 @@ export const link = new RPCLink({
 
     // Make the request
     let response = await fetch(url, modifiedOptions);
-
-    // Log response status for debugging
-    console.log('[ORPC] Response status:', response.status, response.statusText);
 
     // Handle 403 Forbidden errors (potentially expired/invalid CSRF token)
     if (response.status === 403 && csrfToken) {
