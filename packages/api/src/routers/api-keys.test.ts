@@ -12,6 +12,8 @@ import { apiKeys } from '@sambung-chat/db/schema/api-key';
 import { user } from '@sambung-chat/db/schema/auth';
 import { eq, and, inArray } from 'drizzle-orm';
 import { generateULID } from '@sambung-chat/db/utils/ulid';
+import { ApiKeyService } from '../services/api-key-service';
+import { ORPCError } from '@orpc/server';
 
 // Note: DATABASE_URL and other test environment variables are set by vitest.config.ts
 process.env.BETTER_AUTH_SECRET =
@@ -82,10 +84,171 @@ describe('API Keys Router Tests', () => {
     }
   });
 
+  describe('ApiKeyService Validation', () => {
+    it('should validate key length requirements', async () => {
+      if (!databaseAvailable) {
+        expect(true).toBe(true);
+        return;
+      }
+
+      // Test key that is too short (< 8 characters)
+      await expect(
+        ApiKeyService.encryptAndStore({
+          userId: testUserId,
+          provider: 'openai',
+          name: 'Too Short Key',
+          key: 'abc',
+        })
+      ).rejects.toThrow(ORPCError);
+
+      // Test key that is too long (> 500 characters)
+      const tooLongKey = 'sk-' + 'a'.repeat(500);
+      await expect(
+        ApiKeyService.encryptAndStore({
+          userId: testUserId,
+          provider: 'openai',
+          name: 'Too Long Key',
+          key: tooLongKey,
+        })
+      ).rejects.toThrow(ORPCError);
+
+      // Test key that is just right (8 characters)
+      const validKey = 'sk-12345';
+      const result = await ApiKeyService.encryptAndStore({
+        userId: testUserId,
+        provider: 'openai',
+        name: 'Just Right Key',
+        key: validKey,
+      });
+      createdApiKeyIds.push(result.id);
+      expect(result).toBeDefined();
+      expect(result.id).toBeDefined();
+    });
+
+    it('should validate key is non-empty string', async () => {
+      if (!databaseAvailable) {
+        expect(true).toBe(true);
+        return;
+      }
+
+      // Test empty string
+      await expect(
+        ApiKeyService.encryptAndStore({
+          userId: testUserId,
+          provider: 'openai',
+          name: 'Empty Key',
+          key: '',
+        })
+      ).rejects.toThrow(ORPCError);
+
+      // Test null
+      await expect(
+        ApiKeyService.encryptAndStore({
+          userId: testUserId,
+          provider: 'openai',
+          name: 'Null Key',
+          key: null as any,
+        })
+      ).rejects.toThrow(ORPCError);
+
+      // Test undefined
+      await expect(
+        ApiKeyService.encryptAndStore({
+          userId: testUserId,
+          provider: 'openai',
+          name: 'Undefined Key',
+          key: undefined as any,
+        })
+      ).rejects.toThrow(ORPCError);
+    });
+
+    it('should validate name length', async () => {
+      if (!databaseAvailable) {
+        expect(true).toBe(true);
+        return;
+      }
+
+      // Test empty name
+      await expect(
+        ApiKeyService.encryptAndStore({
+          userId: testUserId,
+          provider: 'openai',
+          name: '',
+          key: 'sk-test-key-1234567890abcdef',
+        })
+      ).rejects.toThrow();
+
+      // Test name that is too long (> 100 characters)
+      const tooLongName = 'a'.repeat(101);
+      await expect(
+        ApiKeyService.encryptAndStore({
+          userId: testUserId,
+          provider: 'openai',
+          name: tooLongName,
+          key: 'sk-test-key-1234567890abcdef',
+        })
+      ).rejects.toThrow();
+
+      // Test valid name (exactly 100 characters)
+      const validName = 'a'.repeat(100);
+      const result = await ApiKeyService.encryptAndStore({
+        userId: testUserId,
+        provider: 'openai',
+        name: validName,
+        key: 'sk-test-key-1234567890abcdef',
+      });
+      createdApiKeyIds.push(result.id);
+      expect(result.name).toBe(validName);
+    });
+
+    it('should validate provider type', async () => {
+      if (!databaseAvailable) {
+        expect(true).toBe(true);
+        return;
+      }
+
+      // Test invalid provider
+      await expect(
+        ApiKeyService.encryptAndStore({
+          userId: testUserId,
+          provider: 'invalid-provider' as any,
+          name: 'Invalid Provider',
+          key: 'sk-test-key-1234567890abcdef',
+        })
+      ).rejects.toThrow();
+    });
+  });
+
   describe('API Key CRUD Operations', () => {
     it('should create a new API key', async () => {
-      // This test will be implemented in subtask-1-3
-      expect(true).toBe(true);
+      if (!databaseAvailable) {
+        expect(true).toBe(true);
+        return;
+      }
+
+      const apiKeyData = {
+        userId: testUserId,
+        name: 'Test API Key',
+        provider: 'openai' as const,
+        apiKey: 'sk-test-1234567890abcdefghijklmnop',
+        lastFour: 'nopq',
+        isActive: true,
+      };
+
+      const [apiKey] = await db.insert(apiKeys).values(apiKeyData).returning();
+      createdApiKeyIds.push(apiKey.id);
+
+      // Verify the API key was created
+      expect(apiKey).toBeDefined();
+      expect(apiKey.id).toBeDefined();
+      expect(apiKey.name).toBe(apiKeyData.name);
+      expect(apiKey.provider).toBe(apiKeyData.provider);
+      expect(apiKey.isActive).toBe(apiKeyData.isActive);
+      expect(apiKey.userId).toBe(testUserId);
+
+      // Verify timestamps
+      expect(apiKey.createdAt).toBeInstanceOf(Date);
+      expect(apiKey.updatedAt).toBeInstanceOf(Date);
     });
 
     it('should get all API keys for user', async () => {
@@ -234,25 +397,217 @@ describe('API Keys Router Tests', () => {
 
   describe('API Key Encryption', () => {
     it('should encrypt API key before storing', async () => {
-      // This test will be implemented in subtask-1-3
-      expect(true).toBe(true);
+      if (!databaseAvailable) {
+        expect(true).toBe(true);
+        return;
+      }
+
+      const originalKey = 'sk-test-encryption-key-1234567890abcdef';
+
+      const apiKeyData = {
+        userId: testUserId,
+        name: 'Encryption Test',
+        provider: 'openai' as const,
+        apiKey: originalKey,
+        lastFour: 'cdef',
+        isActive: true,
+      };
+
+      const [apiKey] = await db.insert(apiKeys).values(apiKeyData).returning();
+      createdApiKeyIds.push(apiKey.id);
+
+      // Verify the stored key is NOT the plaintext
+      expect(apiKey.encryptedKey).toBeDefined();
+      expect(apiKey.encryptedKey).not.toBe(originalKey);
+      expect(apiKey.encryptedKey).not.toContain(originalKey);
+
+      // Verify the encrypted data is base64-encoded
+      expect(apiKey.encryptedKey).toMatch(/^[A-Za-z0-9+/]+=*$/);
+
+      // Verify the encrypted data is different from plaintext (longer due to IV + auth tag)
+      expect(apiKey.encryptedKey.length).toBeGreaterThan(originalKey.length);
     });
 
     it('should store last 4 characters separately', async () => {
-      // This test will be implemented in subtask-1-3
-      expect(true).toBe(true);
+      if (!databaseAvailable) {
+        expect(true).toBe(true);
+        return;
+      }
+
+      const testKey = 'sk-test-key-1234567890qrstuvwxyz';
+      const expectedLast4 = 'tyuv'; // Last 4 characters
+
+      const apiKeyData = {
+        userId: testUserId,
+        name: 'Last Four Test',
+        provider: 'anthropic' as const,
+        apiKey: testKey,
+        lastFour: expectedLast4,
+        isActive: true,
+      };
+
+      const [apiKey] = await db.insert(apiKeys).values(apiKeyData).returning();
+      createdApiKeyIds.push(apiKey.id);
+
+      // Verify keyLast4 is stored separately
+      expect(apiKey.keyLast4).toBe(expectedLast4);
+
+      // Verify keyLast4 is NOT in the encrypted data
+      expect(apiKey.encryptedKey).not.toContain(expectedLast4);
+
+      // Verify keyLast4 matches the last 4 chars of original key
+      expect(apiKey.keyLast4).toBe(testKey.slice(-4));
     });
 
     it('should decrypt API key when retrieving by ID', async () => {
-      // This test will be implemented in subtask-1-3
-      expect(true).toBe(true);
+      if (!databaseAvailable) {
+        expect(true).toBe(true);
+        return;
+      }
+
+      // Import decrypt function
+      const { decrypt } = await import('../lib/encryption');
+
+      const originalKey = 'sk-test-decryption-1234567890abcdef';
+
+      const apiKeyData = {
+        userId: testUserId,
+        name: 'Decryption Test',
+        provider: 'google' as const,
+        apiKey: originalKey,
+        lastFour: 'cdef',
+        isActive: true,
+      };
+
+      const [apiKey] = await db.insert(apiKeys).values(apiKeyData).returning();
+      createdApiKeyIds.push(apiKey.id);
+
+      // Retrieve the encrypted key from database
+      const results = await db
+        .select()
+        .from(apiKeys)
+        .where(and(eq(apiKeys.id, apiKey.id), eq(apiKeys.userId, testUserId)));
+
+      expect(results.length).toBe(1);
+
+      // Decrypt the key
+      const decryptedKey = decrypt(results[0].encryptedKey);
+
+      // Verify decryption returns original key
+      expect(decryptedKey).toBe(originalKey);
+
+      // Verify decrypted key matches what we stored
+      expect(decryptedKey).toBe(apiKeyData.apiKey);
+    });
+
+    it('should produce different encrypted values for same key', async () => {
+      if (!databaseAvailable) {
+        expect(true).toBe(true);
+        return;
+      }
+
+      const sameKey = 'sk-test-same-key-1234567890abcdef';
+
+      // Create two API keys with the same actual key
+      const apiKeyData1 = {
+        userId: testUserId,
+        name: 'Same Key Test 1',
+        provider: 'openai' as const,
+        apiKey: sameKey,
+        lastFour: 'cdef',
+        isActive: true,
+      };
+      const apiKeyData2 = {
+        userId: testUserId,
+        name: 'Same Key Test 2',
+        provider: 'openai' as const,
+        apiKey: sameKey,
+        lastFour: 'cdef',
+        isActive: true,
+      };
+
+      const [apiKey1] = await db.insert(apiKeys).values(apiKeyData1).returning();
+      const [apiKey2] = await db.insert(apiKeys).values(apiKeyData2).returning();
+      createdApiKeyIds.push(apiKey1.id, apiKey2.id);
+
+      // Encrypted values should be different (due to random IV)
+      expect(apiKey1.encryptedKey).not.toBe(apiKey2.encryptedKey);
+
+      // But both should decrypt to the same original key
+      const { decrypt } = await import('../lib/encryption');
+      expect(decrypt(apiKey1.encryptedKey)).toBe(sameKey);
+      expect(decrypt(apiKey2.encryptedKey)).toBe(sameKey);
     });
   });
 
   describe('API Key Provider Types', () => {
     it('should support all provider types', async () => {
-      // This test will be implemented in subtask-1-3
-      expect(true).toBe(true);
+      if (!databaseAvailable) {
+        expect(true).toBe(true);
+        return;
+      }
+
+      const providers: Array<'openai' | 'anthropic' | 'google' | 'groq' | 'ollama' | 'openrouter' | 'other'> =
+        ['openai', 'anthropic', 'google', 'groq', 'ollama', 'openrouter', 'other'];
+
+      const createdKeys: string[] = [];
+
+      // Create one API key for each provider type
+      for (const provider of providers) {
+        const apiKeyData = {
+          userId: testUserId,
+          name: `${provider.charAt(0).toUpperCase() + provider.slice(1)} Test Key`,
+          provider,
+          apiKey: `test-key-${provider}-1234567890abcdef`,
+          lastFour: 'cdef',
+          isActive: true,
+        };
+
+        const [apiKey] = await db.insert(apiKeys).values(apiKeyData).returning();
+        createdKeys.push(apiKey.id);
+
+        // Verify the provider was stored correctly
+        expect(apiKey.provider).toBe(provider);
+        expect(apiKey.name).toContain(provider.charAt(0).toUpperCase() + provider.slice(1));
+      }
+
+      // Add all created keys to cleanup list
+      createdApiKeyIds.push(...createdKeys);
+
+      // Verify all providers are stored in database
+      const results = await db
+        .select()
+        .from(apiKeys)
+        .where(eq(apiKeys.userId, testUserId));
+
+      const storedProviders = results.map((r) => r.provider);
+      for (const provider of providers) {
+        expect(storedProviders).toContain(provider);
+      }
+    });
+
+    it('should handle provider names case-sensitively', async () => {
+      if (!databaseAvailable) {
+        expect(true).toBe(true);
+        return;
+      }
+
+      const apiKeyData = {
+        userId: testUserId,
+        name: 'OpenAI Test',
+        provider: 'openai' as const,
+        apiKey: 'sk-test-openai-1234567890abcdef',
+        lastFour: 'cdef',
+        isActive: true,
+      };
+
+      const [apiKey] = await db.insert(apiKeys).values(apiKeyData).returning();
+      createdApiKeyIds.push(apiKey.id);
+
+      // Verify provider is stored in lowercase
+      expect(apiKey.provider).toBe('openai');
+      expect(apiKey.provider).not.toBe('OpenAI');
+      expect(apiKey.provider).not.toBe('OPENAI');
     });
   });
 
