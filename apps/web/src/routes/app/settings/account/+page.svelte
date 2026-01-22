@@ -20,6 +20,7 @@
       changePassword: (input: any) => Promise<any>;
       getSessions: () => Promise<any[]>;
       revokeSession: (input: { token: string }) => Promise<void>;
+      deleteAccount: () => Promise<void>;
     },
   };
 
@@ -39,6 +40,8 @@
   let changingPassword = $state(false);
   let showChangePasswordDialog = $state(false);
   let passwordError = $state('');
+  let showDeleteAccountDialog = $state(false);
+  let deletingAccount = $state(false);
 
   // Sessions state
   let sessions = $state<SessionData[]>([]);
@@ -209,6 +212,38 @@
       });
     }
   }
+
+  async function handleDeleteAccount() {
+    deletingAccount = true;
+
+    try {
+      await userClient.user.deleteAccount();
+
+      toast.success('Account deleted successfully', {
+        description: 'Your account has been permanently deleted',
+      });
+
+      // Redirect to home page after a short delay
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1000);
+    } catch (error) {
+      toast.error('Failed to delete account', {
+        description: error instanceof Error ? error.message : 'Please try again',
+        action: {
+          label: 'Retry',
+          onClick: () => handleDeleteAccount(),
+        },
+      });
+    } finally {
+      deletingAccount = false;
+      showDeleteAccountDialog = false;
+    }
+  }
+
+  function openDeleteAccountDialog() {
+    showDeleteAccountDialog = true;
+  }
 </script>
 
 <header class="bg-background sticky top-0 z-10 flex shrink-0 items-center gap-2 border-b p-4">
@@ -349,6 +384,7 @@
                 undone.
               </p>
               <button
+                onclick={openDeleteAccountDialog}
                 class="bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-ring inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-1 focus-visible:outline-none"
               >
                 Delete Account
@@ -377,5 +413,56 @@
       onsubmit={handleChangePassword}
       oncancel={() => showChangePasswordDialog = false}
     />
+  </Dialog.Content>
+</Dialog.Root>
+
+<!-- Delete Account Dialog -->
+<Dialog.Root bind:open={showDeleteAccountDialog} onOpenChange={(open) => showDeleteAccountDialog = open}>
+  <Dialog.Content class="max-w-md">
+    <Dialog.Header>
+      <Dialog.Title>Delete Account</Dialog.Title>
+      <Dialog.Description>
+        Are you sure you want to delete your account? This action cannot be undone.
+      </Dialog.Description>
+    </Dialog.Header>
+
+    <div class="space-y-4 py-4">
+      <div class="rounded-md bg-destructive/10 p-4 border border-destructive/20">
+        <p class="text-destructive text-sm font-medium">Warning:</p>
+        <ul class="text-destructive mt-2 space-y-1 text-sm">
+          <li>• All your data will be permanently deleted</li>
+          <li>• Your chats, messages, and settings will be lost</li>
+          <li>• This action cannot be undone</li>
+        </ul>
+      </div>
+
+      <div class="flex justify-end gap-2">
+        <button
+          onclick={() => showDeleteAccountDialog = false}
+          disabled={deletingAccount}
+          class="border-input bg-background hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex items-center justify-center rounded-md border px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Cancel
+        </button>
+        <button
+          onclick={handleDeleteAccount}
+          disabled={deletingAccount}
+          class="bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-ring inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {#if deletingAccount}
+            <div
+              class="border-destructive-foreground border-t-transparent mr-2 h-4 w-4 animate-spin rounded-full"
+              role="status"
+              aria-label="Deleting account"
+            >
+              <span class="sr-only">Deleting...</span>
+            </div>
+            Deleting...
+          {:else}
+            Delete Account
+          {/if}
+        </button>
+      </div>
+    </div>
   </Dialog.Content>
 </Dialog.Root>
