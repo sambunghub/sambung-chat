@@ -16,13 +16,30 @@ import { transformToAvailableModel } from '../lib/model-types';
 import type { AvailableModel } from '../lib/model-types';
 
 // Note: Environment variables are set by vitest.config.ts
-process.env.BETTER_AUTH_SECRET =
-  process.env.BETTER_AUTH_SECRET || 'sambungchat-dev-secret-key-at-least-32-chars-long';
-process.env.BETTER_AUTH_URL = process.env.BETTER_AUTH_URL || 'http://localhost:3000';
-process.env.ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '1234567890abcdef1234567890abcdef';
-process.env.NODE_ENV = process.env.NODE_ENV || 'test';
+const originalEnv = {
+  BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
+  BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
+  ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
+  NODE_ENV: process.env.NODE_ENV,
+};
 
 describe('Model Router - getAvailableModels Transformation', () => {
+  beforeAll(() => {
+    // Set test environment variables
+    process.env.BETTER_AUTH_SECRET =
+      process.env.BETTER_AUTH_SECRET || 'sambungchat-dev-secret-key-at-least-32-chars-long';
+    process.env.BETTER_AUTH_URL = process.env.BETTER_AUTH_URL || 'http://localhost:3000';
+    process.env.ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '1234567890abcdef1234567890abcdef';
+    process.env.NODE_ENV = process.env.NODE_ENV || 'test';
+  });
+
+  afterAll(() => {
+    // Restore original environment variables
+    process.env.BETTER_AUTH_SECRET = originalEnv.BETTER_AUTH_SECRET;
+    process.env.BETTER_AUTH_URL = originalEnv.BETTER_AUTH_URL;
+    process.env.ENCRYPTION_KEY = originalEnv.ENCRYPTION_KEY;
+    process.env.NODE_ENV = originalEnv.NODE_ENV;
+  });
   // This simulates what getAvailableModels does
   const getAvailableModelsResult = () => ({
     openai: openaiModels.map(transformToAvailableModel),

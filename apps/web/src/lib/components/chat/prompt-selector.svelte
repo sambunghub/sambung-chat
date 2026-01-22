@@ -4,6 +4,7 @@
   import { orpc } from '$lib/orpc';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import CheckIcon from '@lucide/svelte/icons/check';
+  import { categories } from '$lib/components/prompt-library-form-types';
 
   type Prompt = {
     id: string;
@@ -11,15 +12,36 @@
     name: string;
     content: string;
     variables: string[];
-    category: string;
+    category: string | null;
     isPublic: boolean;
     createdAt: Date;
     updatedAt: Date;
   };
 
-  let {
-    onInsertPrompt,
-  }: { onInsertPrompt: (prompt: Prompt) => void } = $props();
+  // Map legacy category values to canonical categories from prompt-library-form-types
+  // Legacy values may exist in database from previous versions
+  function mapLegacyCategory(category: string): string {
+    const categoryMap: Record<string, string> = {
+      // Map old 'development' to canonical 'coding'
+      development: 'coding',
+      // Map old 'education' to canonical 'general'
+      education: 'general',
+      // Map old 'analysis' (kept for consistency)
+      analysis: 'analysis',
+    };
+    return categoryMap[category] || category;
+  }
+
+  // Get canonical category value for display
+  function getCanonicalCategory(category: string | null): string {
+    if (!category) return 'general';
+    const mapped = mapLegacyCategory(category);
+    // Validate against canonical categories
+    const isValid = categories.some((c) => c.value === mapped);
+    return isValid ? mapped : 'general';
+  }
+
+  let { onInsertPrompt }: { onInsertPrompt: (prompt: Prompt) => void } = $props();
 
   let prompts = $state<Prompt[]>([]);
   let loading = $state(true);
@@ -33,8 +55,7 @@
     loading = true;
     errorMessage = '';
     try {
-      const result = await (orpc as any).prompt.getAll();
-      prompts = result as Prompt[];
+      prompts = await orpc.prompt.getAll();
     } catch (error) {
       console.error('Failed to load prompts:', error);
       errorMessage = 'Failed to load prompts';
@@ -43,9 +64,10 @@
     }
   }
 
-  function getCategoryIcon(category: string) {
-    switch (category) {
-      case 'development':
+  function getCategoryIcon(category: string | null) {
+    const canonical = getCanonicalCategory(category);
+    switch (canonical) {
+      case 'coding':
         return '💻';
       case 'writing':
         return '✍️';
@@ -55,17 +77,18 @@
         return '🎨';
       case 'business':
         return '💼';
-      case 'education':
-        return '📚';
+      case 'custom':
+        return '🔧';
       case 'general':
       default:
         return '📝';
     }
   }
 
-  function getCategoryColor(category: string) {
-    switch (category) {
-      case 'development':
+  function getCategoryColor(category: string | null) {
+    const canonical = getCanonicalCategory(category);
+    switch (canonical) {
+      case 'coding':
         return 'bg-blue-500/10 text-blue-500';
       case 'writing':
         return 'bg-purple-500/10 text-purple-500';
@@ -75,8 +98,8 @@
         return 'bg-pink-500/10 text-pink-500';
       case 'business':
         return 'bg-amber-500/10 text-amber-500';
-      case 'education':
-        return 'bg-cyan-500/10 text-cyan-500';
+      case 'custom':
+        return 'bg-orange-500/10 text-orange-500';
       case 'general':
       default:
         return 'bg-gray-500/10 text-gray-500';
@@ -133,16 +156,22 @@
               <span class="text-lg">{getCategoryIcon(prompt.category)}</span>
               <span class="font-medium">{prompt.name}</span>
               {#if prompt.isPublic}
-                <span class="border-border bg-muted text-muted-foreground rounded border px-1.5 py-0.5 text-xs">
+                <span
+                  class="border-border bg-muted text-muted-foreground rounded border px-1.5 py-0.5 text-xs"
+                >
                   Public
                 </span>
               {/if}
             </div>
             <div class="flex items-center gap-2">
-              <span class="{getCategoryColor(prompt.category)} rounded px-1.5 py-0.5 text-xs font-medium capitalize">
+              <span
+                class="{getCategoryColor(
+                  prompt.category
+                )} rounded px-1.5 py-0.5 text-xs font-medium capitalize"
+              >
                 {prompt.category}
               </span>
-              <span class="text-muted-foreground text-xs truncate" title={prompt.content}>
+              <span class="text-muted-foreground truncate text-xs" title={prompt.content}>
                 {truncateContent(prompt.content)}
               </span>
             </div>

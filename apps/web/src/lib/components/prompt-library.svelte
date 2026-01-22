@@ -14,7 +14,7 @@
     DropdownMenuTrigger,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuSeparator
+    DropdownMenuSeparator,
   } from '$lib/components/ui/dropdown-menu/index.js';
   import MoreVerticalIcon from '@lucide/svelte/icons/more-vertical';
   import EyeIcon from '@lucide/svelte/icons/eye';
@@ -25,7 +25,7 @@
     Dialog,
     DialogContent,
     DialogHeader,
-    DialogTitle
+    DialogTitle,
   } from '$lib/components/ui/dialog/index.js';
 
   /**
@@ -36,7 +36,7 @@
     name: string;
     content: string;
     variables: string[];
-    category: string;
+    category: string | null;
     isPublic: boolean;
     createdAt: Date | string;
     updatedAt: Date | string;
@@ -123,8 +123,7 @@
         prompt.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         prompt.content.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesCategory =
-        selectedCategory === 'all' || prompt.category === selectedCategory;
+      const matchesCategory = selectedCategory === 'all' || prompt.category === selectedCategory;
 
       return matchesSearch && matchesCategory;
     })
@@ -206,7 +205,7 @@
   }
 
   // Get category badge color
-  function getCategoryBadgeColor(category: string): string {
+  function getCategoryBadgeColor(category: string | null): string {
     const colors: Record<string, string> = {
       coding: 'bg-primary/10 text-primary hover:bg-primary/20',
       writing: 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/20',
@@ -216,7 +215,7 @@
       general: 'bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20',
       custom: 'bg-pink-500/10 text-pink-500 hover:bg-pink-500/20',
     };
-    return colors[category] || colors.general;
+    return colors[category || 'general'] || colors.general;
   }
 
   // Truncate content
@@ -295,7 +294,7 @@
       {/each}
     </div>
 
-  <!-- Empty State -->
+    <!-- Empty State -->
   {:else if prompts.length === 0}
     <Card>
       <CardContent class="py-12">
@@ -313,21 +312,19 @@
       </CardContent>
     </Card>
 
-  <!-- No Results State -->
+    <!-- No Results State -->
   {:else if filteredPrompts.length === 0}
     <Card>
       <CardContent class="py-12">
         <div class="text-center">
           <SearchIcon class="text-muted-foreground mx-auto mb-4 size-12 opacity-50" />
           <h4 class="text-foreground mb-2 text-lg font-semibold">No prompts found</h4>
-          <p class="text-muted-foreground text-sm">
-            Try adjusting your search or filter criteria
-          </p>
+          <p class="text-muted-foreground text-sm">Try adjusting your search or filter criteria</p>
         </div>
       </CardContent>
     </Card>
 
-  <!-- Prompt Grid -->
+    <!-- Prompt Grid -->
   {:else}
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {#each filteredPrompts as prompt (prompt.id)}
@@ -335,15 +332,20 @@
           <CardHeader class="space-y-2">
             <div class="flex items-start justify-between">
               <div class="flex flex-col gap-1">
-                <h4 class="text-foreground text-base font-semibold leading-tight">
+                <h4 class="text-foreground text-base leading-tight font-semibold">
                   {prompt.name}
                 </h4>
                 <div class="flex items-center gap-2">
-                  <span class={getCategoryBadgeColor(prompt.category) + ' rounded px-2 py-0.5 text-xs font-medium'}>
+                  <span
+                    class={getCategoryBadgeColor(prompt.category) +
+                      ' rounded px-2 py-0.5 text-xs font-medium'}
+                  >
                     {categories.find((c) => c.value === prompt.category)?.label || prompt.category}
                   </span>
                   {#if prompt.isPublic}
-                    <span class="border-border rounded border px-2 py-0.5 text-xs font-medium">Public</span>
+                    <span class="border-border rounded border px-2 py-0.5 text-xs font-medium"
+                      >Public</span
+                    >
                   {/if}
                 </div>
               </div>
@@ -453,7 +455,9 @@
       {@const isPublic = selectedPrompt.isPublic}
       <div class="space-y-4">
         <div class="flex items-center gap-2">
-          <span class={getCategoryBadgeColor(category) + ' rounded px-2 py-0.5 text-xs font-medium'}>
+          <span
+            class={getCategoryBadgeColor(category) + ' rounded px-2 py-0.5 text-xs font-medium'}
+          >
             {categories.find((c) => c.value === category)?.label || category}
           </span>
           {#if isPublic}
@@ -462,7 +466,7 @@
         </div>
 
         <div class="bg-muted/50 rounded-md border p-4">
-          <p class="text-foreground whitespace-pre-wrap text-sm">{selectedPrompt.content}</p>
+          <p class="text-foreground text-sm whitespace-pre-wrap">{selectedPrompt.content}</p>
         </div>
 
         {#if selectedPrompt.variables.length > 0}

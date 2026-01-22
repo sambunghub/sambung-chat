@@ -8,7 +8,7 @@
 
 import { marked } from 'marked';
 import DOMPurify from 'isomorphic-dompurify';
-import { loadKatex, loadMermaid, isKatexLoaded, isMermaidLoaded } from '$lib/utils/lazy-load';
+import { loadKatex, loadKatexCss, loadMermaid, isMermaidLoaded } from '$lib/utils/lazy-load';
 
 /**
  * Configure marked renderer with basic code styling
@@ -29,7 +29,7 @@ function escapeHtml(text: string): string {
     '"': '&quot;',
     "'": '&#039;',
   };
-  return text.replace(/[&<>"']/g, (m) => map[m]);
+  return text.replace(/[&<>"']/g, (m) => map[m] || m);
 }
 
 /**
@@ -55,6 +55,10 @@ async function renderLatex(latex: string, displayMode: boolean): Promise<string>
         katexLoadInProgress = loadKatex();
         cachedKatex = await katexLoadInProgress;
       }
+    }
+
+    if (!cachedKatex) {
+      throw new Error('KaTeX failed to load');
     }
 
     return cachedKatex.renderToString(latex, {
@@ -112,7 +116,7 @@ function protectLatexDelimiters(text: string): {
   let placeholderIndex = 0;
 
   // Protect block math ($$...$$)
-  processed = processed.replace(/\$\$([\s\S]*?)\$\$/g, (match, latex) => {
+  processed = processed.replace(/\$\$([\s\S]*?)\$\$/g, (_match, latex) => {
     const placeholder = `%%%LATEX_BLOCK_${placeholderIndex}%%%`;
     latexMap.set(placeholder, { latex: latex.trim(), displayMode: true });
     placeholderIndex++;
@@ -335,7 +339,8 @@ export async function initMermaidDiagrams() {
     }
 
     // Render each diagram individually
-    for (const diagram of diagrams) {
+    const diagramArray = Array.from(diagrams);
+    for (const diagram of diagramArray) {
       try {
         const definition = diagram.textContent || '';
         const id =
@@ -385,8 +390,7 @@ export async function ensureMarkdownDependencies(): Promise<void> {
       cachedKatex = await katexLoadInProgress;
     }
 
-    // Load KaTeX CSS
-    const { loadKatexCss } = await import('$lib/utils/lazy-load');
+    // Load KaTeX CSS (using static import)
     await loadKatexCss();
 
     // Load Mermaid if not already loaded

@@ -57,6 +57,18 @@ describe('Prompt Router Tests', () => {
     createdPromptIds = [];
   });
 
+  afterEach(async () => {
+    // Clean up orphaned prompts after each test
+    // This provides additional cleanup in case tests fail mid-execution
+    if (createdPromptIds.length > 0) {
+      try {
+        await db.delete(prompts).where(inArray(prompts.id, createdPromptIds));
+      } catch (error) {
+        console.error('Error during afterEach cleanup:', error);
+      }
+    }
+  });
+
   describe('Prompt CRUD Operations', () => {
     it('should create a new prompt', async () => {
       const promptData = {

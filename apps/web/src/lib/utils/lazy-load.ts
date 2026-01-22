@@ -121,17 +121,34 @@ export async function loadMermaid(): Promise<void> {
       script.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
       script.async = true;
 
-      // Wait for load
+      // Wait for load with polling for mermaid readiness
       const loadPromise = new Promise<void>((resolve, reject) => {
+        const timeoutMs = 5000; // 5 second timeout
+        const pollIntervalMs = 50; // Check every 50ms
+        const startTime = Date.now();
+
         script.onload = () => {
-          // Wait a bit for mermaid to initialize
-          setTimeout(() => {
+          // Poll for mermaid availability instead of fixed setTimeout
+          const pollForMermaid = () => {
+            const elapsed = Date.now() - startTime;
+
+            // Check timeout
+            if (elapsed > timeoutMs) {
+              reject(new Error('Mermaid load timeout: mermaid not available after 5 seconds'));
+              return;
+            }
+
+            // Check if mermaid is available
             if ((window as any).mermaid) {
               resolve();
             } else {
-              reject(new Error('Mermaid loaded but not available on window'));
+              // Continue polling
+              setTimeout(pollForMermaid, pollIntervalMs);
             }
-          }, 100);
+          };
+
+          // Start polling
+          pollForMermaid();
         };
         script.onerror = () => reject(new Error('Failed to load Mermaid script'));
       });

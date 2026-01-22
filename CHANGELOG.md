@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.20] - 2026-01-22
+
+### Fixed
+
+- **CodeRabbit Feedback Part 2**: Address remaining CodeRabbit feedback items ([apps/web/src/lib/components/chat/prompt-selector.svelte](apps/web/src/lib/components/chat/prompt-selector.svelte), [apps/web/src/lib/utils/lazy-load.ts](apps/web/src/lib/utils/lazy-load.ts))
+  - Align prompt-selector categories with canonical categories from prompt-library-form-types
+  - Implement polling for mermaid readiness instead of fixed setTimeout
+  - Remove empty handler overrides in prompts page
+  - Use static import instead of dynamic import for loadKatexCss
+  - Add afterEach cleanup hook for orphaned prompts
+  - Isolate environment variables with beforeAll/afterAll in model tests
+  - Improve ineffective placeholder security tests in orpc-caching
+  - Fix duplicate generateETag function in cache-headers middleware
+
+- **Server Response Type**: Fix Hono newResponse type casting for status and headers ([apps/server/src/index.ts](apps/server/src/index.ts:213-222))
+  - Cast status code to proper StatusCode union type
+  - Cast headers via unknown to satisfy HeaderRecord constraint
+
 ## [0.0.19] - 2026-01-22
 
 ### Added

@@ -22,11 +22,11 @@
   async function loadPrompts() {
     try {
       loading = true;
-      const data = await (orpc as any).prompt.getAll();
-      prompts = data.map((p: any) => ({
+      const data = await orpc.prompt.getAll();
+      prompts = data.map((p) => ({
         ...p,
         createdAt: new Date(p.createdAt),
-        updatedAt: new Date(p.updatedAt)
+        updatedAt: new Date(p.updatedAt),
       }));
     } catch (error) {
       console.error('Failed to load prompts:', error);
@@ -46,7 +46,7 @@
   }) {
     try {
       submitting = true;
-      await (orpc as any).prompt.create(data);
+      await orpc.prompt.create(data);
       await loadPrompts();
       toast.success('Prompt created successfully');
     } catch (error) {
@@ -57,27 +57,25 @@
     }
   }
 
-  function openCreateDialog() {
-    // Dialog is managed internally by PromptLibrary component
-  }
-
-  function handleEdit(id: string) {
-    // Dialog is managed internally by PromptLibrary component
-  }
-
   async function handleUpdate(
     id: string,
     data: {
       name: string;
       content: string;
       variables: string[];
-      category: string;
+      category: string | null;
       isPublic: boolean;
     }
   ) {
     try {
       submitting = true;
-      await (orpc as any).prompt.update({ id, data });
+      // Convert null to undefined for API (optional fields)
+      const { category, ...rest } = data;
+      await orpc.prompt.update({
+        id,
+        ...rest,
+        ...(category !== null && { category }),
+      });
       await loadPrompts();
       toast.success('Prompt updated successfully');
     } catch (error) {
@@ -91,7 +89,7 @@
   async function handleDelete(id: string) {
     try {
       submitting = true;
-      await (orpc as any).prompt.delete({ id });
+      await orpc.prompt.delete({ id });
       await loadPrompts();
       toast.success('Prompt deleted successfully');
     } catch (error) {
@@ -100,10 +98,6 @@
     } finally {
       submitting = false;
     }
-  }
-
-  function handleView(id: string) {
-    // Dialog is managed internally by PromptLibrary component
   }
 
   async function handleCopy(content: string) {
@@ -134,12 +128,9 @@
     {prompts}
     {loading}
     {submitting}
-    onadd={openCreateDialog}
     oncreate={handleCreate}
-    onedit={handleEdit}
     onupdate={handleUpdate}
     ondelete={handleDelete}
-    onview={handleView}
     oncopy={handleCopy}
   />
 </main>

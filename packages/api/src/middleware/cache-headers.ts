@@ -153,36 +153,6 @@ export function isValidCacheOptions(options: unknown): boolean {
 }
 
 /**
- * Generate an ETag for the given data
- *
- * ETags are used for cache validation. The client can send the ETag
- * in an If-None-Match header, and if the data hasn't changed, the
- * server returns 304 Not Modified with no body.
- *
- * This function creates a strong ETag by computing a SHA-256 hash
- * of the JSON-serialized data.
- *
- * @param data - The data to generate an ETag for
- * @returns An ETag string (with quotes, e.g., "abc123...")
- *
- * @example
- * ```ts
- * const etag = generateETag({ id: 1, name: 'Test' });
- * // Returns: "3389da0c..."
- * ```
- */
-export function generateETag(data: unknown): string {
-  // Serialize data to JSON string with stable sorting
-  const jsonString = JSON.stringify(data, Object.keys(data instanceof Object ? data : {}).sort());
-
-  // Create SHA-256 hash
-  const hash = createHash('sha256').update(jsonString, 'utf-8').digest('hex');
-
-  // Return ETag with quotes (HTTP spec requirement)
-  return `"${hash}"`;
-}
-
-/**
  * Check if the client's ETag matches the current ETag
  *
  * This function checks the If-None-Match header against the
@@ -280,18 +250,7 @@ export function buildCacheControl(options: Partial<CacheOptions> = {}): string {
  * ```
  */
 export const cacheHeadersMiddleware =
-  <
-    T extends {
-      middleware: (
-        handler: (args: {
-          context: Context & { headers?: Headers };
-          next: () => Promise<unknown>;
-        }) => Promise<unknown>
-      ) => any;
-    },
-  >(
-    o: T
-  ) =>
+  (o: any) =>
   (options: Partial<CacheOptions> = {}) => {
     return o.middleware(
       async ({
