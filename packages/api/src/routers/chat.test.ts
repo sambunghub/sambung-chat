@@ -113,7 +113,7 @@ describe('Chat Router Tests', () => {
   });
 
   describe('Chat CRUD Operations', () => {
-    it('should create a new chat', async () => {
+    it('create procedure should create a new chat', async () => {
       const chatData = {
         userId: testUserId,
         title: 'Test Chat',
@@ -133,7 +133,7 @@ describe('Chat Router Tests', () => {
       expect(chat.folderId).toBeNull();
     });
 
-    it('should get all chats for user', async () => {
+    it('getAll procedure should get all chats for user', async () => {
       // Create multiple chats
       const chatData1 = {
         userId: testUserId,
@@ -164,7 +164,7 @@ describe('Chat Router Tests', () => {
       expect(results.some((r) => r.id === chat2.id)).toBe(true);
     });
 
-    it('should get chat by ID', async () => {
+    it('getById procedure should get chat by ID', async () => {
       const chatData = {
         userId: testUserId,
         title: 'Get By ID Test',
@@ -185,7 +185,7 @@ describe('Chat Router Tests', () => {
       expect(results[0].title).toBe(chatData.title);
     });
 
-    it('should return null for non-existent chat ID', async () => {
+    it('getById procedure should return null for non-existent chat ID', async () => {
       const nonExistentId = generateULID();
 
       const results = await db
@@ -196,7 +196,7 @@ describe('Chat Router Tests', () => {
       expect(results.length).toBe(0);
     });
 
-    it('should update chat title', async () => {
+    it('update procedure should update chat title', async () => {
       const chatData = {
         userId: testUserId,
         title: 'Original Title',
@@ -219,7 +219,7 @@ describe('Chat Router Tests', () => {
       expect(results[0].title).toBe(updatedTitle);
     });
 
-    it('should update chat model', async () => {
+    it('update procedure should update chat model', async () => {
       // Create another model
       const [newModel] = await db
         .insert(models)
