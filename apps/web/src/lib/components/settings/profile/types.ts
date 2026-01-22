@@ -6,3 +6,12 @@ export type ProfileFormData = {
   name: string;
   bio: string;
 };
+
+/**
+ * Change password form data structure
+ */
+export type ChangePasswordFormData = {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+};
