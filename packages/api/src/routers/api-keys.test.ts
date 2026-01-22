@@ -340,13 +340,73 @@ describe('API Keys Router Tests', () => {
     });
 
     it('should update API key', async () => {
-      // This test will be implemented in subtask-1-4
-      expect(true).toBe(true);
+      if (!databaseAvailable) {
+        expect(true).toBe(true);
+        return;
+      }
+
+      const apiKeyData = {
+        userId: testUserId,
+        name: 'Original Name',
+        provider: 'openai' as const,
+        apiKey: 'sk-test-update-1234567890abcdef',
+        lastFour: 'cdef',
+        isActive: true,
+      };
+
+      const [apiKey] = await db.insert(apiKeys).values(apiKeyData).returning();
+      createdApiKeyIds.push(apiKey.id);
+
+      // Update API key
+      const updatedData = {
+        name: 'Updated Name',
+        provider: 'anthropic' as const,
+      };
+
+      const results = await db
+        .update(apiKeys)
+        .set(updatedData)
+        .where(and(eq(apiKeys.id, apiKey.id), eq(apiKeys.userId, testUserId)))
+        .returning();
+
+      expect(results.length).toBe(1);
+      expect(results[0].name).toBe(updatedData.name);
+      expect(results[0].provider).toBe(updatedData.provider);
     });
 
     it('should delete API key', async () => {
-      // This test will be implemented in subtask-1-4
-      expect(true).toBe(true);
+      if (!databaseAvailable) {
+        expect(true).toBe(true);
+        return;
+      }
+
+      const apiKeyData = {
+        userId: testUserId,
+        name: 'To Be Deleted',
+        provider: 'openai' as const,
+        apiKey: 'sk-test-delete-1234567890abcdef',
+        lastFour: 'cdef',
+        isActive: true,
+      };
+
+      const [apiKey] = await db.insert(apiKeys).values(apiKeyData).returning();
+      createdApiKeyIds.push(apiKey.id); // Track for cleanup in case test fails
+
+      // Verify API key exists
+      let results = await db.select().from(apiKeys).where(eq(apiKeys.id, apiKey.id));
+
+      expect(results.length).toBe(1);
+
+      // Delete API key
+      await db.delete(apiKeys).where(eq(apiKeys.id, apiKey.id));
+
+      // Verify API key is deleted
+      results = await db.select().from(apiKeys).where(eq(apiKeys.id, apiKey.id));
+
+      expect(results.length).toBe(0);
+
+      // Remove from createdApiKeyIds since it's already deleted
+      createdApiKeyIds = createdApiKeyIds.filter((id) => id !== apiKey.id);
     });
 
     it('should not allow accessing API keys from other users', async () => {
@@ -613,8 +673,43 @@ describe('API Keys Router Tests', () => {
 
   describe('API Key Active Status', () => {
     it('should handle isActive field', async () => {
-      // This test will be implemented in subtask-1-4
-      expect(true).toBe(true);
+      if (!databaseAvailable) {
+        expect(true).toBe(true);
+        return;
+      }
+
+      const apiKeyData = {
+        userId: testUserId,
+        name: 'Active Status Test',
+        provider: 'openai' as const,
+        apiKey: 'sk-test-active-1234567890abcdef',
+        lastFour: 'cdef',
+        isActive: true,
+      };
+
+      const [apiKey] = await db.insert(apiKeys).values(apiKeyData).returning();
+      createdApiKeyIds.push(apiKey.id);
+
+      // Verify initial status
+      expect(apiKey.isActive).toBe(true);
+
+      // Update isActive to false
+      const [deactivatedKey] = await db
+        .update(apiKeys)
+        .set({ isActive: false })
+        .where(and(eq(apiKeys.id, apiKey.id), eq(apiKeys.userId, testUserId)))
+        .returning();
+
+      expect(deactivatedKey.isActive).toBe(false);
+
+      // Update isActive back to true
+      const [reactivatedKey] = await db
+        .update(apiKeys)
+        .set({ isActive: true })
+        .where(and(eq(apiKeys.id, apiKey.id), eq(apiKeys.userId, testUserId)))
+        .returning();
+
+      expect(reactivatedKey.isActive).toBe(true);
     });
   });
 });
