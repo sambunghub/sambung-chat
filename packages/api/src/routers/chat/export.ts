@@ -2,7 +2,7 @@ import { db } from '@sambung-chat/db';
 import { chats, folders } from '@sambung-chat/db/schema/chat';
 import { messages } from '@sambung-chat/db/schema/chat';
 import { eq, and, desc, asc, inArray } from 'drizzle-orm';
-import { protectedProcedure } from '../index';
+import { protectedProcedure } from '../../index';
 
 export const exportRouter = {
   // Get all chats with messages and folder information for export

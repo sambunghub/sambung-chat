@@ -3,8 +3,8 @@ import { chats } from '@sambung-chat/db/schema/chat';
 import { models } from '@sambung-chat/db/schema/model';
 import { eq, and, desc, asc, sql, gte, lte, inArray, ilike } from 'drizzle-orm';
 import z from 'zod';
-import { protectedProcedure, o } from '../index';
-import { ulidOptionalSchema } from '../utils/validation';
+import { protectedProcedure } from '../../index';
+import { ulidOptionalSchema } from '../../utils/validation';
 
 /**
  * Search Router for Chat Operations
