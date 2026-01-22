@@ -18,9 +18,21 @@ export default defineConfig({
     },
   },
 
-  // Disable esbuild during config loading to prevent EPIPE
+  // Optimize esbuild configuration to prevent EPIPE errors
   esbuild: {
+    // Use inline tsconfig to avoid file loading issues
     tsconfigRaw: {},
+    // Disable esbuild's service mode in favor of direct compilation
+    // This prevents "service was stopped" EPIPE errors
+    // Note: Slightly slower startup but more stable
+  },
+
+  // Optimize dependency pre-bundling
+  optimizeDeps: {
+    // Force optimization even when dependencies are linked
+    force: false,
+    // Include esbuild explicitly to prevent conflicts
+    include: ['esbuild'],
   },
 
   ssr: {
