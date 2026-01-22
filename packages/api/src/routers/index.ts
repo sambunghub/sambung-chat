@@ -8,6 +8,7 @@ import { folderRouter } from './folder';
 import { modelRouter } from './model';
 import { apiKeyRouter } from './api-keys';
 import { promptRouter } from './prompt';
+import { userRouter } from './user';
 import { generateCsrfToken } from '../utils/csrf';
 import { csrfRateLimiter } from '../utils/rate-limiter';
 
@@ -63,6 +64,7 @@ export const appRouter = {
   model: modelRouter,
   apiKey: apiKeyRouter,
   prompt: promptRouter,
+  user: userRouter,
 };
 export type AppRouter = typeof appRouter;
 export type AppRouterClient = RouterClient<typeof appRouter>;
