@@ -1,6 +1,6 @@
 import { db } from '@sambung-chat/db';
 import { prompts } from '@sambung-chat/db/schema/prompt';
-import { eq, and, desc, asc, ilike, gte, lte, sql } from 'drizzle-orm';
+import { eq, and, desc, gte, lte, sql } from 'drizzle-orm';
 import z from 'zod';
 import { ORPCError } from '@orpc/server';
 import { protectedProcedure, withCsrfProtection } from '../index';
