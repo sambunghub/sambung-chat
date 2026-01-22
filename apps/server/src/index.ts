@@ -191,8 +191,12 @@ app.use('/rpc/*', async (c, next) => {
       }
 
       // Clean up cache metadata from response body before sending
-      if (typeof responseBody === 'object' && responseBody !== null && !Array.isArray(responseBody)) {
-        const cleanBody = { ...responseBody as Record<string, unknown> };
+      if (
+        typeof responseBody === 'object' &&
+        responseBody !== null &&
+        !Array.isArray(responseBody)
+      ) {
+        const cleanBody = { ...(responseBody as Record<string, unknown>) };
         delete cleanBody._orpcCacheControl;
         delete cleanBody._orpcETag;
         delete cleanBody._orpcCacheStatus;
@@ -206,7 +210,11 @@ app.use('/rpc/*', async (c, next) => {
           c.header('ETag', cacheMetadata.etag);
         }
 
-        return c.json(cleanBody);
+        // Preserve original RPC status and headers
+        return c.newResponse(JSON.stringify(cleanBody), {
+          status: rpcResult.response.status,
+          headers: rpcResult.response.headers,
+        });
       }
 
       // For non-object responses, pass through with cache headers

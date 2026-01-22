@@ -8,6 +8,8 @@ dist
 build
 *.tsbuildinfo
 .svelte-kit
+build-results.txt
+typecheck-results.txt
 
 # Environment variables
 .env

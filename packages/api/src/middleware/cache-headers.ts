@@ -1,3 +1,7 @@
+import { createHash } from 'crypto';
+import { z } from 'zod';
+import type { Context } from '../context';
+
 /**
  * Cache Headers Middleware
  *
@@ -18,14 +22,65 @@
  * }));
  *
  * // Or manually generate ETag
- * const etag = generateETag({ data: 'example' });
- * const cacheControl = buildCacheControl({ maxAge: 300, scope: 'private' });
+ * const etag = generateETag({ id: 1, name: 'Test' });
+ * // Returns: "3389da0c..."
  * ```
  */
 
-import { createHash } from 'crypto';
-import { z } from 'zod';
-import type { Context } from '../context';
+/**
+ * Stable JSON stringify that recursively sorts object keys
+ * This ensures consistent ETags for identical structures regardless of key order
+ */
+function stableStringify(data: unknown): string {
+  if (data === null || data === undefined) {
+    return String(data);
+  }
+
+  if (typeof data !== 'object' || data === null) {
+    return JSON.stringify(data);
+  }
+
+  if (Array.isArray(data)) {
+    return `[${data.map(stableStringify).join(',')}]`;
+  }
+
+  // For plain objects, sort keys recursively
+  const sortedKeys = Object.keys(data).sort();
+  const keyValuePairs = sortedKeys.map((key) => {
+    const value = (data as Record<string, unknown>)[key];
+    return `"${key}":${stableStringify(value)}`;
+  });
+
+  return `{${keyValuePairs.join(',')}}`;
+}
+
+/**
+ * Generate ETag from data using SHA-256 hash
+ *
+ * This function creates a stable ETag by:
+ * 1. Serializing data to JSON with sorted keys (deterministic)
+ * 2. Creating a SHA-256 hash of the serialized data
+ * 3. Returning the hash as an ETag (with quotes per HTTP spec)
+ *
+ * @param data - The data to generate an ETag for
+ * @returns An ETag string (e.g., "3389da0c...")
+ *
+ * @example
+ * ```ts
+ * const etag = generateETag({ id: 1, name: 'Test' });
+ * // Returns: "3389da0c..."
+ * ```
+ */
+export function generateETag(data: unknown): string {
+  // Serialize data to JSON string with stable sorting (including nested objects)
+  const jsonString = stableStringify(data);
+
+  // Create SHA-256 hash
+  const hash = createHash('sha256').update(jsonString, 'utf-8').digest('hex');
+
+  // Return ETag with quotes (HTTP spec requirement)
+  return `"${hash}"`;
+}
 
 /**
  * Cache scope - determines who can cache the response
@@ -224,53 +279,74 @@ export function buildCacheControl(options: Partial<CacheOptions> = {}): string {
  * };
  * ```
  */
-export const cacheHeadersMiddleware = (o: any) => (options: Partial<CacheOptions> = {}) => {
-  return o.middleware(async ({ context, next }: { context: Context & { headers?: Headers }; next: () => Promise<unknown> }) => {
-    // Get the If-None-Match header from the request
-    const ifNoneMatch = context.headers?.get('if-none-match') || undefined;
+export const cacheHeadersMiddleware =
+  <
+    T extends {
+      middleware: (
+        handler: (args: {
+          context: Context & { headers?: Headers };
+          next: () => Promise<unknown>;
+        }) => Promise<unknown>
+      ) => any;
+    },
+  >(
+    o: T
+  ) =>
+  (options: Partial<CacheOptions> = {}) => {
+    return o.middleware(
+      async ({
+        context,
+        next,
+      }: {
+        context: Context & { headers?: Headers };
+        next: () => Promise<unknown>;
+      }) => {
+        // Get the If-None-Match header from the request
+        const ifNoneMatch = context.headers?.get('if-none-match') || undefined;
 
-    // Execute the procedure to get the response data
-    const result = await next();
+        // Execute the procedure to get the response data
+        const result = await next();
 
-    // Generate ETag from the response data
-    const etag = generateETag(result);
+        // Generate ETag from the response data
+        const etag = generateETag(result);
 
-    // Check if we should return 304 Not Modified
-    if (shouldReturn304(etag, ifNoneMatch)) {
-      // The client's cached version is still valid
-      // Return the result with cache metadata
-      if (typeof result === 'object' && result !== null && !Array.isArray(result)) {
+        // Check if we should return 304 Not Modified
+        if (shouldReturn304(etag, ifNoneMatch)) {
+          // The client's cached version is still valid
+          // Return the result with cache metadata
+          if (typeof result === 'object' && result !== null && !Array.isArray(result)) {
+            return {
+              ...result,
+              _orpcCacheStatus: 304,
+              _orpcETag: etag,
+            };
+          }
+          // For primitives or arrays, wrap in an object
+          return {
+            _data: result,
+            _orpcCacheStatus: 304,
+            _orpcETag: etag,
+          };
+        }
+
+        // Add cache headers metadata to the response
+        // These will be processed by the server's response interceptor
+        if (typeof result === 'object' && result !== null && !Array.isArray(result)) {
+          return {
+            ...result,
+            _orpcCacheControl: buildCacheControl(options),
+            _orpcETag: etag,
+          };
+        }
+        // For primitives or arrays, wrap in an object
         return {
-          ...result,
-          _orpcCacheStatus: 304,
+          _data: result,
+          _orpcCacheControl: buildCacheControl(options),
           _orpcETag: etag,
         };
       }
-      // For primitives or arrays, wrap in an object
-      return {
-        _data: result,
-        _orpcCacheStatus: 304,
-        _orpcETag: etag,
-      };
-    }
-
-    // Add cache headers metadata to the response
-    // These will be processed by the server's response interceptor
-    if (typeof result === 'object' && result !== null && !Array.isArray(result)) {
-      return {
-        ...result,
-        _orpcCacheControl: buildCacheControl(options),
-        _orpcETag: etag,
-      };
-    }
-    // For primitives or arrays, wrap in an object
-    return {
-      _data: result,
-      _orpcCacheControl: buildCacheControl(options),
-      _orpcETag: etag,
-    };
-  });
-};
+    );
+  };
 
 /**
  * Cache duration presets for common scenarios

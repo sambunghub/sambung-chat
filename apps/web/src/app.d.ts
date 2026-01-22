@@ -24,7 +24,7 @@ declare global {
    */
   interface Window {
     mermaid?: {
-      initialize: (config: any) => Promise<void>;
+      initialize: (config: Record<string, unknown>) => Promise<void>;
       render: (id: string, text: string) => Promise<{ svg: string }>;
     };
 

@@ -58,6 +58,7 @@ Run the provided verification script:
 ```
 
 This script will:
+
 - Check if the server is running
 - Test multiple endpoints (folder.getAll, model.getAll, chat.getAll)
 - Verify ETag generation
@@ -77,7 +78,8 @@ curl -i -X POST \
 ```
 
 **Expected Response Headers:**
-```
+
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json
 Cache-Control: private, max-age=900, no-transform
@@ -100,7 +102,8 @@ curl -i -X POST \
 ```
 
 **Expected Response:**
-```
+
+```http
 HTTP/1.1 304 Not Modified
 Cache-Control: private, max-age=900, no-transform
 ETag: "33a64df551425fcc55e4d42a148795d9f25f89d4"
@@ -120,7 +123,8 @@ curl -i -X POST \
 ```
 
 **Expected Response:**
-```
+
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json
 Cache-Control: private, max-age=900, no-transform
@@ -134,18 +138,21 @@ Should return fresh data (full response body).
 ## Test Endpoints
 
 ### 1. folder.getAll
+
 - **Cache Duration:** 900 seconds (15 minutes)
 - **Expected Cache-Control:** `private, max-age=900, no-transform`
 - **Should ETag:** Yes
 - **Should support 304:** Yes
 
 ### 2. model.getAll
+
 - **Cache Duration:** 300 seconds (5 minutes)
 - **Expected Cache-Control:** `private, max-age=300, no-transform`
 - **Should ETag:** Yes
 - **Should support 304:** Yes
 
 ### 3. chat.getAll
+
 - **Cache Duration:** 60 seconds (1 minute)
 - **Expected Cache-Control:** `private, max-age=60, no-transform`
 - **Should ETag:** Yes
@@ -154,21 +161,25 @@ Should return fresh data (full response body).
 ## Success Criteria
 
 ✅ **ETag Generation:**
+
 - All endpoints return `ETag` header in response
 - ETag format is valid (quoted string)
 - ETag is consistent for the same data
 
 ✅ **304 Not Modified:**
+
 - Matching ETag returns `304 Not Modified` status
 - Response body is empty for 304 responses
 - Cache-Control and ETag headers are still present in 304 response
 
 ✅ **Fresh Data:**
+
 - Non-matching ETag returns `200 OK` status
 - Response body contains fresh data
 - New ETag is generated if data changed
 
 ✅ **Cache-Control Headers:**
+
 - All endpoints return `Cache-Control` header
 - Correct max-age value for each endpoint
 - Includes `private` and `no-transform` directives
@@ -180,6 +191,7 @@ Should return fresh data (full response body).
 **Cause:** Missing authentication cookie
 
 **Solution:** The endpoints require authentication. You may need to:
+
 1. Sign in through the web interface first
 2. Extract the session cookie from browser DevTools
 3. Use the cookie in curl requests
@@ -189,6 +201,7 @@ Should return fresh data (full response body).
 **Cause:** Cache middleware not applied or not working
 
 **Solution:**
+
 - Verify `cacheHeadersMiddleware` is applied to the procedure
 - Check server logs for errors
 - Verify TypeScript compilation succeeded: `bun run check:types`
@@ -198,6 +211,7 @@ Should return fresh data (full response body).
 **Cause:** Server middleware not handling 304 correctly
 
 **Solution:**
+
 - Verify `extractCacheMetadata()` in server index.ts
 - Check that response body is emptied when `_orpcCacheStatus === "hit"`
 
@@ -206,6 +220,7 @@ Should return fresh data (full response body).
 **Cause:** ETag generation includes timestamp or non-deterministic data
 
 **Solution:**
+
 - Review ETag generation in `generateETag()` function
 - Ensure only response data is hashed, not metadata
 
@@ -220,7 +235,7 @@ You can also verify caching in the browser:
 5. Check Response Headers:
    - `Cache-Control: private, max-age=...`
    - `ETag: "..."`6. Reload the page
-7. Second request should show:
+6. Second request should show:
    - Status: `304 Not Modified`
    - Size: smaller than first request (from cache)
 

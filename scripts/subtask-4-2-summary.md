@@ -7,6 +7,7 @@
 ## Objective
 
 Manually verify that the ORPC caching implementation correctly:
+
 1. Generates ETag headers for cached responses
 2. Returns 304 Not Modified status for conditional requests with matching ETags
 3. Returns fresh data (200 OK) for conditional requests with non-matching ETags
@@ -44,6 +45,7 @@ Manually verify that the ORPC caching implementation correctly:
 To execute the verification, the following infrastructure must be available:
 
 1. **PostgreSQL Database**
+
    ```bash
    bun run db:start
    ```
@@ -76,6 +78,7 @@ To execute the verification, the following infrastructure must be available:
 ```
 
 Features:
+
 - Automatic server health check
 - Tests all cached endpoints
 - Validates ETag format and presence
@@ -86,6 +89,7 @@ Features:
 ### 2. Manual Testing Guide
 
 Documented in `scripts/ETAG_VERIFICATION.md`:
+
 - Prerequisites setup
 - Manual curl command examples
 - Expected response headers
@@ -98,18 +102,21 @@ Documented in `scripts/ETAG_VERIFICATION.md`:
 Based on the implementation from previous subtasks:
 
 ### folder.getAll Endpoint
+
 - **Cache-Control:** `private, max-age=900, no-transform`
 - **ETag:** SHA-256 hash of response data
 - **304 Support:** Yes
 - **Cache Duration:** 15 minutes
 
 ### model.getAll Endpoint
+
 - **Cache-Control:** `private, max-age=300, no-transform`
 - **ETag:** SHA-256 hash of response data
 - **304 Support:** Yes
 - **Cache Duration:** 5 minutes
 
 ### chat.getAll Endpoint
+
 - **Cache-Control:** `private, max-age=60, no-transform`
 - **ETag:** SHA-256 hash of response data
 - **304 Support:** Yes
@@ -138,7 +145,7 @@ curl -i -X POST \
   -H "Content-Type: application/json" \
   -H "Cookie: connect.sid=test" \
   -d '{}' \
-  http://localhost:3000/rpc/folder/getall
+  http://localhost:3000/rpc/folder/getAll
 
 # Use returned ETag in conditional request
 curl -i -X POST \
@@ -146,7 +153,7 @@ curl -i -X POST \
   -H "If-None-Match: \"<etag-from-above>\"" \
   -H "Cookie: connect.sid=test" \
   -d '{}' \
-  http://localhost:3000/rpc/folder/getall
+  http://localhost:3000/rpc/folder/getAll
 ```
 
 Expected: Second request returns `304 Not Modified` with empty body.
@@ -154,12 +161,14 @@ Expected: Second request returns `304 Not Modified` with empty body.
 ## Success Criteria
 
 ### ✅ Code Quality
+
 - [x] Verification script created and executable
 - [x] Comprehensive documentation provided
 - [x] No console.log or debugging statements in verification tools
 - [x] Follows project patterns and conventions
 
 ### ⏳ Functional Testing (Requires Infrastructure)
+
 - [ ] folder.getAll returns ETag header
 - [ ] folder.getAll returns 304 for matching ETag
 - [ ] folder.getAll returns 200 for non-matching ETag
@@ -171,6 +180,7 @@ Expected: Second request returns `304 Not Modified` with empty body.
 - [ ] chat.getAll returns 200 for non-matching ETag
 
 ### ⏳ Cache Header Validation (Requires Infrastructure)
+
 - [ ] Cache-Control headers present on all endpoints
 - [ ] Correct max-age values (900, 300, 60)
 - [ ] Private directive present
@@ -203,7 +213,7 @@ From `apps/server/src/index.ts`:
 if (metadata.cacheStatus === 'hit') {
   return new Response(null, {
     status: 304,
-    headers: response.headers
+    headers: response.headers,
   });
 }
 ```
@@ -215,11 +225,13 @@ if (metadata.cacheStatus === 'hit') {
 ## Next Steps
 
 ### Immediate
+
 1. ✅ Verification tools created
 2. ⏳ Execute manual tests when infrastructure is available
 3. ⏳ Document test results
 
 ### For Full Verification
+
 1. Start PostgreSQL database
 2. Configure environment variables
 3. Start development server
@@ -230,6 +242,7 @@ if (metadata.cacheStatus === 'hit') {
 ## Blocking Issues
 
 None. The verification tools are complete and ready. Manual testing requires:
+
 - Running PostgreSQL instance
 - Configured environment (.env file)
 - Running development server
@@ -241,6 +254,7 @@ These are external dependencies and not issues with the implementation itself.
 **Subtask 4-2 Status: Verification Tools Complete**
 
 The ETag generation and 304 Not Modified response functionality has been:
+
 - ✅ Implemented in previous subtasks (Phase 1-3)
 - ✅ Verification tools created (script + documentation)
 - ⏳ Pending manual execution when infrastructure available

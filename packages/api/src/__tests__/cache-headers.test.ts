@@ -566,7 +566,7 @@ describe('Cache Headers Middleware', () => {
     });
 
     it('should handle circular references gracefully', () => {
-      const data: any = { name: 'test' };
+      const data: Record<string, unknown> & { self?: unknown } = { name: 'test' };
       data.self = data;
 
       // JSON.stringify will throw on circular references
@@ -683,7 +683,7 @@ describe('Cache Headers Middleware', () => {
     it('should not leak sensitive information in ETags', () => {
       const sensitiveData = {
         password: 'secret123',
-        apiKey: 'sk-1234567890',
+        apiKey: 'API_KEY_PLACEHOLDER',
       };
 
       const etag = generateETag(sensitiveData);
