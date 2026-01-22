@@ -130,14 +130,13 @@
   </div>
 {:else}
   <DropdownMenu.Root bind:open={isOpen}>
-    <button
+    <DropdownMenu.Trigger
       class="bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-9 items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none disabled:opacity-50"
-      onclick={() => (isOpen = !isOpen)}
       type="button"
     >
       <span class="mr-2 text-lg">📝</span>
       <span class="font-medium">Insert Prompt</span>
-    </button>
+    </DropdownMenu.Trigger>
     <DropdownMenu.Content class="w-80" align="start">
       <DropdownMenu.Label class="px-2 py-1.5 text-sm font-semibold">
         Select a Prompt Template

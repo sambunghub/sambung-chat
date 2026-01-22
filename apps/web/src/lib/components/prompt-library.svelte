@@ -123,7 +123,9 @@
         prompt.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         prompt.content.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesCategory = selectedCategory === 'all' || prompt.category === selectedCategory;
+      // Normalize null category to 'general' before comparison
+      const promptCategory = getCanonicalCategory(prompt.category);
+      const matchesCategory = selectedCategory === 'all' || promptCategory === selectedCategory;
 
       return matchesSearch && matchesCategory;
     })
@@ -197,16 +199,34 @@
   }
 
   // Handle copy
-  function handleCopy(content: string) {
+  async function handleCopy(content: string) {
     if (oncopy) {
-      oncopy(content);
+      await oncopy(content);
     } else {
-      navigator.clipboard.writeText(content);
+      try {
+        await navigator.clipboard.writeText(content);
+      } catch (error) {
+        console.error('Failed to copy to clipboard:', error);
+      }
     }
+  }
+
+  // Normalize category to canonical value (handles null and legacy values)
+  function getCanonicalCategory(category: string | null): string {
+    if (!category) return 'general';
+    const isValid = categories.some((c) => c.value === category);
+    return isValid ? category : 'general';
+  }
+
+  // Get category label from canonical value
+  function getCategoryLabel(category: string | null): string {
+    const canonical = getCanonicalCategory(category);
+    return categories.find((c) => c.value === canonical)?.label || canonical;
   }
 
   // Get category badge color
   function getCategoryBadgeColor(category: string | null): string {
+    const canonical = getCanonicalCategory(category);
     const colors: Record<string, string> = {
       coding: 'bg-primary/10 text-primary hover:bg-primary/20',
       writing: 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/20',
@@ -216,7 +236,7 @@
       general: 'bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20',
       custom: 'bg-pink-500/10 text-pink-500 hover:bg-pink-500/20',
     };
-    return colors[category || 'general'] || colors.general;
+    return colors[canonical] || colors.general;
   }
 
   // Truncate content
@@ -341,7 +361,7 @@
                     class={getCategoryBadgeColor(prompt.category) +
                       ' rounded px-2 py-0.5 text-xs font-medium'}
                   >
-                    {categories.find((c) => c.value === prompt.category)?.label || prompt.category}
+                    {getCategoryLabel(prompt.category)}
                   </span>
                   {#if prompt.isPublic}
                     <span class="border-border rounded border px-2 py-0.5 text-xs font-medium"
@@ -459,7 +479,7 @@
           <span
             class={getCategoryBadgeColor(category) + ' rounded px-2 py-0.5 text-xs font-medium'}
           >
-            {categories.find((c) => c.value === category)?.label || category}
+            {getCategoryLabel(category)}
           </span>
           {#if isPublic}
             <span class="border-border rounded border px-2 py-0.5 text-xs font-medium">Public</span>

@@ -8,7 +8,7 @@
 
 import { marked } from 'marked';
 import DOMPurify from 'isomorphic-dompurify';
-import { loadKatex, loadKatexCss, loadMermaid, isMermaidLoaded } from '$lib/utils/lazy-load';
+import { loadKatex, loadKatexCss, loadMermaid } from '$lib/utils/lazy-load';
 
 /**
  * Configure marked renderer with basic code styling
@@ -397,7 +397,7 @@ export async function ensureMarkdownDependencies(): Promise<void> {
     await loadKatexCss();
 
     // Load Mermaid if not already loaded
-    if (!isMermaidLoaded()) {
+    if (typeof window !== 'undefined' && !(window as any).mermaid) {
       await loadMermaid();
     }
   } catch (error) {
