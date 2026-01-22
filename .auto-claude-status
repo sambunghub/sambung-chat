@@ -1,15 +1,15 @@
 {
   "active": true,
-  "spec": "005-implement-orpc-response-caching-with-cache-control",
+  "spec": "006-extract-repetitive-model-transformation-in-getavai",
   "state": "complete",
   "subtasks": {
-    "completed": 14,
-    "total": 14,
+    "completed": 8,
+    "total": 8,
     "in_progress": 0,
     "failed": 0
   },
   "phase": {
-    "current": "Validation and Optimization",
+    "current": "Final Verification",
     "id": null,
     "total": 3
   },
@@ -18,8 +18,8 @@
     "max": 1
   },
   "session": {
-    "number": 6,
-    "started_at": "2026-01-22T02:10:23.320309"
+    "number": 9,
+    "started_at": "2026-01-22T00:45:22.803827"
   },
-  "last_update": "2026-01-22T02:32:20.561472"
+  "last_update": "2026-01-22T01:36:23.307654"
 }

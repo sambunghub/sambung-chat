@@ -1,0 +1,453 @@
+$ turbo build
+• turbo 2.7.3
+• Packages in scope: @sambung-chat/api, @sambung-chat/auth, @sambung-chat/config, @sambung-chat/db, @sambung-chat/env, server, web
+• Running build in 7 packages
+• Remote caching disabled
+server:build: cache hit, replaying logs d07c96947eb86f20
+server:build: $ tsdown
+server:build: [34mℹ[39m tsdown [2mv0.16.8[22m powered by rolldown [2mv1.0.0-beta.52[22m
+server:build: [34mℹ[39m Using tsdown config: [4m/Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/.auto-claude/worktrees/tasks/006-extract-repetitive-model-transformation-in-getavai/apps/server/tsdown.config.ts[24m
+server:build: [34mℹ[39m entry: [34msrc/index.ts[39m
+server:build: [34mℹ[39m tsconfig: [34mtsconfig.json[39m
+server:build: [34mℹ[39m Build start
+server:build: [34mℹ[39m Cleaning 17 files
+server:build: [34mℹ[39m [2mdist/[22m[1mindex.mjs[22m             [2m215.72 kB[22m [2m│ gzip: 47.40 kB[22m
+server:build: [34mℹ[39m [2mdist/[22msrc-CMyVr_FI.mjs      [2m253.77 kB[22m [2m│ gzip: 55.80 kB[22m
+server:build: [34mℹ[39m [2mdist/[22mapi-key-C95pA8eR.mjs  [2m 91.11 kB[22m [2m│ gzip: 18.05 kB[22m
+server:build: [34mℹ[39m [2mdist/[22msrc-C-Koutxl.mjs      [2m  1.67 kB[22m [2m│ gzip:  0.85 kB[22m
+server:build: [34mℹ[39m [2mdist/[22mmodel-CWjLEUSm.mjs    [2m  1.38 kB[22m [2m│ gzip:  0.65 kB[22m
+server:build: [34mℹ[39m [2mdist/[22msrc-VM4Uu4He.mjs      [2m  0.16 kB[22m [2m│ gzip:  0.12 kB[22m
+server:build: [34mℹ[39m [2mdist/[22mmodel-BR-8F2xs.mjs    [2m  0.13 kB[22m [2m│ gzip:  0.12 kB[22m
+server:build: [34mℹ[39m [2mdist/[22msrc-BaoNGhh-.mjs      [2m  0.13 kB[22m [2m│ gzip:  0.12 kB[22m
+server:build: [34mℹ[39m [2mdist/[22mapi-key-DvwVVT6O.mjs  [2m  0.10 kB[22m [2m│ gzip:  0.10 kB[22m
+server:build: [34mℹ[39m 9 files, total: 564.15 kB
+server:build: [32m✔[39m Build complete in [32m1063ms[39m
+web:build: cache hit, replaying logs 8ddcf205a54b580b
+web:build: $ vite build
+web:build: [dotenv@17.2.3] injecting env (22) from ../../.env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+web:build: vite v7.3.1 building ssr environment for production...
+web:build: transforming...
+web:build: 1:33:45 AM [vite-plugin-svelte] src/routes/app/settings/account/+page.svelte:62:14 A form label must be associated with a control
+web:build: https://svelte.dev/e/a11y_label_has_associated_control
+web:build: 60:           <div class="space-y-4">
+web:build: 61:             <div>
+web:build: 62:               <label class="text-muted-foreground mb-1 block text-sm font-medium"
+web:build:                    ^
+web:build: 63:                 >Display Name</label
+web:build: 64:               >
+web:build: 1:33:45 AM [vite-plugin-svelte] src/routes/app/settings/account/+page.svelte:70:14 A form label must be associated with a control
+web:build: https://svelte.dev/e/a11y_label_has_associated_control
+web:build: 68:             </div>
+web:build: 69:             <div>
+web:build: 70:               <label class="text-muted-foreground mb-1 block text-sm font-medium"
+web:build:                    ^
+web:build: 71:                 >Email Address</label
+web:build: 72:               >
+web:build: 1:33:45 AM [vite-plugin-svelte] src/routes/app/settings/account/+page.svelte:78:14 A form label must be associated with a control
+web:build: https://svelte.dev/e/a11y_label_has_associated_control
+web:build: 76:             </div>
+web:build: 77:             <div>
+web:build: 78:               <label class="text-muted-foreground mb-1 block text-sm font-medium">Account ID</label>
+web:build:                                                                                                         ^
+web:build: 79:               <div class="rounded-md border px-3 py-2 font-mono text-sm">
+web:build: 80:                 {$page.data?.user?.id || 'N/A'}
+web:build: 1:33:45 AM [vite-plugin-svelte] src/routes/app/settings/api-keys/+page.svelte:330:2 Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+web:build: https://svelte.dev/e/a11y_click_events_have_key_events
+web:build: 328: <!-- Add API Key Dialog -->
+web:build: 329: {#if showAddDialog}
+web:build: 330:   <div
+web:build:            ^
+web:build: 331:     class="bg-background/80 fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+web:build: 332:     role="dialog"
+web:build: 1:33:45 AM [vite-plugin-svelte] src/routes/app/settings/api-keys/+page.svelte:359:2 Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+web:build: https://svelte.dev/e/a11y_click_events_have_key_events
+web:build: 357: <!-- Edit API Key Dialog -->
+web:build: 358: {#if showEditDialog && editingKey}
+web:build: 359:   <div
+web:build:            ^
+web:build: 360:     class="bg-background/80 fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+web:build: 361:     role="dialog"
+web:build: 1:33:46 AM [vite-plugin-svelte] src/lib/components/secondary-sidebar/ChatList.svelte:885:10 A form label must be associated with a control
+web:build: https://svelte.dev/e/a11y_label_has_associated_control
+web:build: 883:       {#if availableProviders().length > 0}
+web:build: 884:         <div class="space-y-2">
+web:build: 885:           <label class="text-sm font-medium">Providers</label>
+web:build:                                                                    ^
+web:build: 886:           <DropdownMenu.DropdownMenu>
+web:build: 887:             <DropdownMenu.Trigger
+web:build: 1:33:46 AM [vite-plugin-svelte] src/lib/components/secondary-sidebar/ChatList.svelte:937:10 A form label must be associated with a control
+web:build: https://svelte.dev/e/a11y_label_has_associated_control
+web:build: 935:       {#if availableModels().length > 0}
+web:build: 936:         <div class="space-y-2">
+web:build: 937:           <label class="text-sm font-medium">Models</label>
+web:build:                                                                 ^
+web:build: 938:           <DropdownMenu.DropdownMenu>
+web:build: 939:             <DropdownMenu.Trigger
+web:build: 1:33:46 AM [vite-plugin-svelte] src/lib/components/secondary-sidebar/ChatList.svelte:988:8 A form label must be associated with a control
+web:build: https://svelte.dev/e/a11y_label_has_associated_control
+web:build: 986:       <!-- Date Range Filter -->
+web:build: 987:       <div class="space-y-2">
+web:build: 988:         <label class="text-sm font-medium">Date Range</label>
+web:build:                                                                   ^
+web:build: 989:         <div class="flex items-center gap-2">
+web:build: 990:           <div class="flex-1">
+web:build: "optionsMiddleware" is imported from external module "@better-auth/core/api" but never used in "../../../../../../node_modules/better-auth/dist/api/index.mjs" and "../../../../../../node_modules/better-auth/dist/plugins/index.mjs".
+web:build: "getTelemetryAuthConfig" is imported from external module "@better-auth/telemetry" but never used in "../../../../../../node_modules/better-auth/dist/index.mjs".
+web:build: ✓ 4926 modules transformed.
+web:build: rendering chunks...
+web:build: [dotenv@17.2.3] injecting env (0) from ../../.env -- tip: ⚙️  suppress all logs with { quiet: true }
+web:build: vite v7.3.1 building client environment for production...
+web:build: transforming...
+web:build: 1:34:17 AM [vite-plugin-svelte] src/routes/app/settings/account/+page.svelte:62:14 A form label must be associated with a control
+web:build: https://svelte.dev/e/a11y_label_has_associated_control
+web:build: 60:           <div class="space-y-4">
+web:build: 61:             <div>
+web:build: 62:               <label class="text-muted-foreground mb-1 block text-sm font-medium"
+web:build:                    ^
+web:build: 63:                 >Display Name</label
+web:build: 64:               >
+web:build: 1:34:17 AM [vite-plugin-svelte] src/routes/app/settings/account/+page.svelte:70:14 A form label must be associated with a control
+web:build: https://svelte.dev/e/a11y_label_has_associated_control
+web:build: 68:             </div>
+web:build: 69:             <div>
+web:build: 70:               <label class="text-muted-foreground mb-1 block text-sm font-medium"
+web:build:                    ^
+web:build: 71:                 >Email Address</label
+web:build: 72:               >
+web:build: 1:34:17 AM [vite-plugin-svelte] src/routes/app/settings/account/+page.svelte:78:14 A form label must be associated with a control
+web:build: https://svelte.dev/e/a11y_label_has_associated_control
+web:build: 76:             </div>
+web:build: 77:             <div>
+web:build: 78:               <label class="text-muted-foreground mb-1 block text-sm font-medium">Account ID</label>
+web:build:                                                                                                         ^
+web:build: 79:               <div class="rounded-md border px-3 py-2 font-mono text-sm">
+web:build: 80:                 {$page.data?.user?.id || 'N/A'}
+web:build: 1:34:17 AM [vite-plugin-svelte] src/routes/app/settings/api-keys/+page.svelte:330:2 Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+web:build: https://svelte.dev/e/a11y_click_events_have_key_events
+web:build: 328: <!-- Add API Key Dialog -->
+web:build: 329: {#if showAddDialog}
+web:build: 330:   <div
+web:build:            ^
+web:build: 331:     class="bg-background/80 fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+web:build: 332:     role="dialog"
+web:build: 1:34:17 AM [vite-plugin-svelte] src/routes/app/settings/api-keys/+page.svelte:359:2 Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+web:build: https://svelte.dev/e/a11y_click_events_have_key_events
+web:build: 357: <!-- Edit API Key Dialog -->
+web:build: 358: {#if showEditDialog && editingKey}
+web:build: 359:   <div
+web:build:            ^
+web:build: 360:     class="bg-background/80 fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+web:build: 361:     role="dialog"
+web:build: 1:34:20 AM [vite-plugin-svelte] src/lib/components/secondary-sidebar/ChatList.svelte:885:10 A form label must be associated with a control
+web:build: https://svelte.dev/e/a11y_label_has_associated_control
+web:build: 883:       {#if availableProviders().length > 0}
+web:build: 884:         <div class="space-y-2">
+web:build: 885:           <label class="text-sm font-medium">Providers</label>
+web:build:                                                                    ^
+web:build: 886:           <DropdownMenu.DropdownMenu>
+web:build: 887:             <DropdownMenu.Trigger
+web:build: 1:34:20 AM [vite-plugin-svelte] src/lib/components/secondary-sidebar/ChatList.svelte:937:10 A form label must be associated with a control
+web:build: https://svelte.dev/e/a11y_label_has_associated_control
+web:build: 935:       {#if availableModels().length > 0}
+web:build: 936:         <div class="space-y-2">
+web:build: 937:           <label class="text-sm font-medium">Models</label>
+web:build:                                                                 ^
+web:build: 938:           <DropdownMenu.DropdownMenu>
+web:build: 939:             <DropdownMenu.Trigger
+web:build: 1:34:20 AM [vite-plugin-svelte] src/lib/components/secondary-sidebar/ChatList.svelte:988:8 A form label must be associated with a control
+web:build: https://svelte.dev/e/a11y_label_has_associated_control
+web:build: 986:       <!-- Date Range Filter -->
+web:build: 987:       <div class="space-y-2">
+web:build: 988:         <label class="text-sm font-medium">Date Range</label>
+web:build:                                                                   ^
+web:build: 989:         <div class="flex items-center gap-2">
+web:build: 990:           <div class="flex-1">
+web:build: ✓ 4937 modules transformed.
+web:build: rendering chunks...
+web:build: computing gzip size...
+web:build: .svelte-kit/output/client/_app/version.json                                                 0.03 kB │ gzip:   0.05 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Size3-Regular.CTq5MqoE.woff           4.42 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Size4-Regular.Dl5lxZxV.woff2          4.93 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Size2-Regular.Dy4dx90m.woff2          5.21 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Size1-Regular.mCD8mA8B.woff2          5.47 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Size4-Regular.BF-4gkZK.woff           5.98 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Size2-Regular.oD1tc_U0.woff           6.19 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Size1-Regular.C195tn64.woff           6.50 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Caligraphic-Regular.Di6jR-x-.woff2    6.91 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Caligraphic-Bold.Dq_IR9rO.woff2       6.91 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Size3-Regular.DgpXs0kz.ttf            7.59 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Caligraphic-Regular.CTRA-rTL.woff     7.66 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Caligraphic-Bold.BEiXGLvX.woff        7.72 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Script-Regular.D3wIWfF6.woff2         9.64 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_SansSerif-Regular.DDBCnlJ7.woff2     10.34 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Size4-Regular.DWFBv043.ttf           10.36 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Script-Regular.D5yQViql.woff         10.59 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Fraktur-Regular.CTYiF6lA.woff2       11.32 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Fraktur-Bold.CL6g_b3V.woff2          11.35 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Size2-Regular.B7gKUWhC.ttf           11.51 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_SansSerif-Italic.C3H0VqGB.woff2      12.03 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_SansSerif-Bold.D1sUS0GD.woff2        12.22 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Size1-Regular.Dbsnue_I.ttf           12.23 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_SansSerif-Regular.CS6fqUqJ.woff      12.32 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Caligraphic-Regular.wX97UBjC.ttf     12.34 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Caligraphic-Bold.ATXxdsX0.ttf        12.37 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Fraktur-Regular.Dxdc4cR9.woff        13.21 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Fraktur-Bold.BsDP51OF.woff           13.30 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Typewriter-Regular.CO6r4hn1.woff2    13.57 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_SansSerif-Italic.DN2j7dab.woff       14.11 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_SansSerif-Bold.DbIhKOiC.woff         14.41 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Typewriter-Regular.C0xS9mPB.woff     16.03 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Math-BoldItalic.CZnvNsCZ.woff2       16.40 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Math-Italic.t53AETM-.woff2           16.44 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Script-Regular.C5JkGWo-.ttf          16.65 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Main-BoldItalic.DxDJ3AOS.woff2       16.78 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Main-Italic.NWA7e6Wa.woff2           16.99 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Math-BoldItalic.iY-2wyZ7.woff        18.67 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Math-Italic.DA0__PXp.woff            18.75 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Main-BoldItalic.SpSLRI95.woff        19.41 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_SansSerif-Regular.BNo7hRIc.ttf       19.44 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Fraktur-Regular.CB_wures.ttf         19.57 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Fraktur-Bold.BdnERNNW.ttf            19.58 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Main-Italic.BMLOBm91.woff            19.68 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_SansSerif-Italic.YYjJ1zSn.ttf        22.36 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_SansSerif-Bold.CFMepnvq.ttf          24.50 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Main-Bold.Cx986IdX.woff2             25.32 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Main-Regular.B22Nviop.woff2          26.27 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Typewriter-Regular.D3Ib7_Hf.ttf      27.56 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_AMS-Regular.BQhdFMY1.woff2           28.08 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Main-Bold.Jm3AIy58.woff              29.91 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Main-Regular.Dr94JaBh.woff           30.77 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Math-BoldItalic.B3XSjfu4.ttf         31.20 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Math-Italic.flOr_0UB.ttf             31.31 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Main-BoldItalic.DzxPMmG6.ttf         32.97 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_AMS-Regular.DMm9YOAa.woff            33.52 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Main-Italic.3WenGoN9.ttf             33.58 kB
+web:build: .svelte-kit/output/client/.vite/manifest.json                                              42.65 kB │ gzip:   4.22 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Main-Bold.waoOVXN0.ttf               51.34 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_Main-Regular.ypZvNtVU.ttf            53.58 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/KaTeX_AMS-Regular.DRggAlZN.ttf             63.63 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/9.BevCk6o1.css                              3.61 kB │ gzip:   0.91 kB
+web:build: .svelte-kit/output/client/_app/immutable/assets/0.nNwBg5yp.css                            118.83 kB │ gzip:  24.15 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/69_IOA4Y.js                                 0.03 kB │ gzip:   0.05 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/DIeogL5L.js                                 0.06 kB │ gzip:   0.08 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/DsnmJJEf.js                                 0.07 kB │ gzip:   0.08 kB
+web:build: .svelte-kit/output/client/_app/immutable/nodes/12.DPzO339H.js                               0.10 kB │ gzip:   0.10 kB
+web:build: .svelte-kit/output/client/_app/immutable/entry/start.CzHcHZqh.js                            0.12 kB │ gzip:   0.11 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/jAOdzZg8.js                                 0.19 kB │ gzip:   0.17 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/C83j3UC7.js                                 0.23 kB │ gzip:   0.16 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/B0lePmPW.js                                 0.27 kB │ gzip:   0.22 kB
+web:build: .svelte-kit/output/client/_app/immutable/nodes/2.Yg7Dornc.js                                0.36 kB │ gzip:   0.26 kB
+web:build: .svelte-kit/output/client/_app/immutable/nodes/17.Bw_tXFa-.js                               0.36 kB │ gzip:   0.26 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/DMZTW6UR.js                                 0.38 kB │ gzip:   0.28 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/DktEuee7.js                                 0.44 kB │ gzip:   0.29 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/DPQz98Hv.js                                 0.50 kB │ gzip:   0.35 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/CZHEle19.js                                 0.51 kB │ gzip:   0.35 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/BK877WSz.js                                 0.52 kB │ gzip:   0.35 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/COPZazaH.js                                 0.52 kB │ gzip:   0.33 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/BzqLT90g.js                                 0.60 kB │ gzip:   0.41 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/5KIO4qFl.js                                 0.63 kB │ gzip:   0.39 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/Cidc5sbD.js                                 0.63 kB │ gzip:   0.39 kB
+web:build: .svelte-kit/output/client/_app/immutable/nodes/6.n_emiI93.js                                0.64 kB │ gzip:   0.40 kB
+web:build: .svelte-kit/output/client/_app/immutable/nodes/1.BqpQ4ue4.js                                0.65 kB │ gzip:   0.38 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/DYp0osnJ.js                                 0.67 kB │ gzip:   0.44 kB
+web:build: .svelte-kit/output/client/_app/immutable/nodes/4.uS_qDVd2.js                                0.69 kB │ gzip:   0.44 kB
+web:build: .svelte-kit/output/client/_app/immutable/nodes/3.CkDsiDUT.js                                0.79 kB │ gzip:   0.46 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/Bf4nIK2z.js                                 0.85 kB │ gzip:   0.53 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/Bju8Kr_P.js                                 1.10 kB │ gzip:   0.55 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/w0pU1LiI.js                                 1.31 kB │ gzip:   0.53 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/DQeVouJk.js                                 1.36 kB │ gzip:   0.71 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/BNO3eauV.js                                 1.37 kB │ gzip:   0.73 kB
+web:build: .svelte-kit/output/client/_app/immutable/nodes/16.GoWiAi5x.js                               1.41 kB │ gzip:   0.77 kB
+web:build: .svelte-kit/output/client/_app/immutable/nodes/5.Ds0263L9.js                                1.46 kB │ gzip:   0.75 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/BEbFvUva.js                                 1.53 kB │ gzip:   0.67 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/8WpxwY4c.js                                 1.56 kB │ gzip:   0.79 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/DTotYflU.js                                 1.62 kB │ gzip:   0.80 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/q9oI3EHd.js                                 1.71 kB │ gzip:   0.60 kB
+web:build: .svelte-kit/output/client/_app/immutable/nodes/8.uhvrInI5.js                                1.78 kB │ gzip:   0.93 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/LUBWe4lr.js                                 1.90 kB │ gzip:   0.94 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/BVmJAGhK.js                                 1.97 kB │ gzip:   0.78 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/N5RGbw2u.js                                 2.01 kB │ gzip:   0.96 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/Bp684Qdt.js                                 2.06 kB │ gzip:   1.14 kB
+web:build: .svelte-kit/output/client/_app/immutable/nodes/11.CAZRZkeT.js                               2.14 kB │ gzip:   1.07 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/Ci3F8UeM.js                                 2.63 kB │ gzip:   1.20 kB
+web:build: .svelte-kit/output/client/_app/immutable/nodes/18.ahK94_es.js                               2.77 kB │ gzip:   1.30 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/BQd05fTO.js                                 3.11 kB │ gzip:   1.21 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/DFdTijQD.js                                 3.19 kB │ gzip:   1.18 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/CUA2NJxR.js                                 3.63 kB │ gzip:   1.29 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/CP_KVozJ.js                                 3.82 kB │ gzip:   1.80 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/BLJFKsf0.js                                 3.95 kB │ gzip:   1.79 kB
+web:build: .svelte-kit/output/client/_app/immutable/nodes/13.D3mCw3q5.js                               5.30 kB │ gzip:   1.97 kB
+web:build: .svelte-kit/output/client/_app/immutable/nodes/7.DIfGEGx9.js                                5.52 kB │ gzip:   2.28 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/DOEbEu-R.js                                 5.78 kB │ gzip:   2.67 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/D61ZhBQq.js                                 6.55 kB │ gzip:   2.41 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/CNP7gArP.js                                 6.92 kB │ gzip:   3.21 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/CjPu167z.js                                 7.09 kB │ gzip:   3.16 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/OxEkyKT7.js                                 7.75 kB │ gzip:   3.20 kB
+web:build: .svelte-kit/output/client/_app/immutable/entry/app.BCJRPnKg.js                             10.17 kB │ gzip:   3.85 kB
+web:build: .svelte-kit/output/client/_app/immutable/nodes/9.DXbM1I-y.js                               17.57 kB │ gzip:   6.34 kB
+web:build: .svelte-kit/output/client/_app/immutable/nodes/14.DRBnAORC.js                              20.04 kB │ gzip:   6.84 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/C3zlLFoT.js                                20.80 kB │ gzip:   7.76 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/DvPsKDJD.js                                22.68 kB │ gzip:   8.91 kB
+web:build: .svelte-kit/output/client/_app/immutable/nodes/15.CVaebLkd.js                              23.46 kB │ gzip:   6.92 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/CbaFy7HT.js                                24.29 kB │ gzip:   9.22 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/DGi3CuEQ.js                                25.03 kB │ gzip:   9.98 kB
+web:build: .svelte-kit/output/client/_app/immutable/nodes/10.CUMnx-MA.js                              25.47 kB │ gzip:   8.65 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/D3kk6D5g.js                                32.11 kB │ gzip:   8.92 kB
+web:build: .svelte-kit/output/client/_app/immutable/nodes/0.BvVix4h0.js                               33.21 kB │ gzip:  11.92 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/CoFdV8sQ.js                                34.23 kB │ gzip:  11.42 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/B3-YzT-O.js                                86.49 kB │ gzip:  26.62 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/BC_7qbtj.js                                87.33 kB │ gzip:  23.47 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/HF2g9gmC.js                               104.95 kB │ gzip:  32.75 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/DDPggz-9.js                               137.44 kB │ gzip:  37.57 kB
+web:build: .svelte-kit/output/client/_app/immutable/chunks/nRg_mNVc.js                               334.43 kB │ gzip: 100.47 kB
+web:build: ✓ built in 29.39s
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Size3-Regular.CTq5MqoE.woff           4.42 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Size4-Regular.Dl5lxZxV.woff2          4.93 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Size2-Regular.Dy4dx90m.woff2          5.21 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Size1-Regular.mCD8mA8B.woff2          5.47 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Size4-Regular.BF-4gkZK.woff           5.98 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Size2-Regular.oD1tc_U0.woff           6.19 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Size1-Regular.C195tn64.woff           6.50 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Caligraphic-Regular.Di6jR-x-.woff2    6.91 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Caligraphic-Bold.Dq_IR9rO.woff2       6.91 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Size3-Regular.DgpXs0kz.ttf            7.59 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Caligraphic-Regular.CTRA-rTL.woff     7.66 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Caligraphic-Bold.BEiXGLvX.woff        7.72 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Script-Regular.D3wIWfF6.woff2         9.64 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_SansSerif-Regular.DDBCnlJ7.woff2     10.34 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Size4-Regular.DWFBv043.ttf           10.36 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Script-Regular.D5yQViql.woff         10.59 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Fraktur-Regular.CTYiF6lA.woff2       11.32 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Fraktur-Bold.CL6g_b3V.woff2          11.35 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Size2-Regular.B7gKUWhC.ttf           11.51 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_SansSerif-Italic.C3H0VqGB.woff2      12.03 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_SansSerif-Bold.D1sUS0GD.woff2        12.22 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Size1-Regular.Dbsnue_I.ttf           12.23 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_SansSerif-Regular.CS6fqUqJ.woff      12.32 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Caligraphic-Regular.wX97UBjC.ttf     12.34 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Caligraphic-Bold.ATXxdsX0.ttf        12.37 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Fraktur-Regular.Dxdc4cR9.woff        13.21 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Fraktur-Bold.BsDP51OF.woff           13.30 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Typewriter-Regular.CO6r4hn1.woff2    13.57 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_SansSerif-Italic.DN2j7dab.woff       14.11 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_SansSerif-Bold.DbIhKOiC.woff         14.41 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Typewriter-Regular.C0xS9mPB.woff     16.03 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Math-BoldItalic.CZnvNsCZ.woff2       16.40 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Math-Italic.t53AETM-.woff2           16.44 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Script-Regular.C5JkGWo-.ttf          16.65 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Main-BoldItalic.DxDJ3AOS.woff2       16.78 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Main-Italic.NWA7e6Wa.woff2           16.99 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Math-BoldItalic.iY-2wyZ7.woff        18.67 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Math-Italic.DA0__PXp.woff            18.75 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Main-BoldItalic.SpSLRI95.woff        19.41 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_SansSerif-Regular.BNo7hRIc.ttf       19.44 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Fraktur-Regular.CB_wures.ttf         19.57 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Fraktur-Bold.BdnERNNW.ttf            19.58 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Main-Italic.BMLOBm91.woff            19.68 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_SansSerif-Italic.YYjJ1zSn.ttf        22.36 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_SansSerif-Bold.CFMepnvq.ttf          24.50 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Main-Bold.Cx986IdX.woff2             25.32 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Main-Regular.B22Nviop.woff2          26.27 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Typewriter-Regular.D3Ib7_Hf.ttf      27.56 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_AMS-Regular.BQhdFMY1.woff2           28.08 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Main-Bold.Jm3AIy58.woff              29.91 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Main-Regular.Dr94JaBh.woff           30.77 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Math-BoldItalic.B3XSjfu4.ttf         31.20 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Math-Italic.flOr_0UB.ttf             31.31 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Main-BoldItalic.DzxPMmG6.ttf         32.97 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_AMS-Regular.DMm9YOAa.woff            33.52 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Main-Italic.3WenGoN9.ttf             33.58 kB
+web:build: .svelte-kit/output/server/.vite/manifest.json                                              37.46 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Main-Bold.waoOVXN0.ttf               51.34 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_Main-Regular.ypZvNtVU.ttf            53.58 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/KaTeX_AMS-Regular.DRggAlZN.ttf             63.63 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/_page.BevCk6o1.css                          3.61 kB
+web:build: .svelte-kit/output/server/_app/immutable/assets/_layout.BiE1G5kJ.css                      120.05 kB
+web:build: .svelte-kit/output/server/chunks/false.js                                                   0.04 kB
+web:build: .svelte-kit/output/server/entries/pages/app/settings/_page.svelte.js                        0.08 kB
+web:build: .svelte-kit/output/server/entries/pages/dashboard/_page.server.ts.js                        0.12 kB
+web:build: .svelte-kit/output/server/entries/pages/_layout.server.ts.js                                0.13 kB
+web:build: .svelte-kit/output/server/entries/pages/app/_layout.server.ts.js                            0.13 kB
+web:build: .svelte-kit/output/server/entries/pages/app/settings/_page.server.ts.js                     0.14 kB
+web:build: .svelte-kit/output/server/chunks/html.js                                                    0.14 kB
+web:build: .svelte-kit/output/server/entries/pages/(auth)/_layout.svelte.js                            0.28 kB
+web:build: .svelte-kit/output/server/entries/pages/login-01/_page.svelte.js                            0.30 kB
+web:build: .svelte-kit/output/server/internal.js                                                       0.33 kB
+web:build: .svelte-kit/output/server/chunks/index-server.js                                            0.34 kB
+web:build: .svelte-kit/output/server/entries/pages/(auth)/login/_page.server.ts.js                     0.35 kB
+web:build: .svelte-kit/output/server/entries/pages/(auth)/register/_page.server.ts.js                  0.35 kB
+web:build: .svelte-kit/output/server/chunks/state.svelte.js                                            0.38 kB
+web:build: .svelte-kit/output/server/entries/pages/(auth)/logout/_page.svelte.js                       0.51 kB
+web:build: .svelte-kit/output/server/chunks/escaping.js                                                0.53 kB
+web:build: .svelte-kit/output/server/entries/pages/_page.svelte.js                                     0.54 kB
+web:build: .svelte-kit/output/server/chunks/client.js                                                  0.64 kB
+web:build: .svelte-kit/output/server/chunks/environment.js                                             0.68 kB
+web:build: .svelte-kit/output/server/chunks/stores.js                                                  0.69 kB
+web:build: .svelte-kit/output/server/entries/fallbacks/error.svelte.js                                 0.70 kB
+web:build: .svelte-kit/output/server/chunks/utils2.js                                                  0.95 kB
+web:build: .svelte-kit/output/server/entries/pages/app/_layout.svelte.js                               0.99 kB
+web:build: .svelte-kit/output/server/entries/pages/dashboard/_page.svelte.js                           1.05 kB
+web:build: .svelte-kit/output/server/chunks/utils.js                                                   1.15 kB
+web:build: .svelte-kit/output/server/chunks/index.js                                                   1.46 kB
+web:build: .svelte-kit/output/server/chunks/chevron-right.js                                           1.48 kB
+web:build: .svelte-kit/output/server/chunks/context.js                                                 1.68 kB
+web:build: .svelte-kit/output/server/chunks/breadcrumb-link.js                                         1.81 kB
+web:build: .svelte-kit/output/server/entries/pages/(auth)/login/_page.svelte.js                        1.81 kB
+web:build: .svelte-kit/output/server/chunks/copy.js                                                    1.85 kB
+web:build: .svelte-kit/output/server/chunks/secondary-sidebar.js                                       1.89 kB
+web:build: .svelte-kit/output/server/chunks/square-pen.js                                              1.99 kB
+web:build: .svelte-kit/output/server/chunks/input.js                                                   2.20 kB
+web:build: .svelte-kit/output/server/entries/pages/app/agents/_page.svelte.js                          2.32 kB
+web:build: .svelte-kit/output/server/chunks/breadcrumb-page.js                                         2.39 kB
+web:build: .svelte-kit/output/server/entries/pages/app/prompts/_page.svelte.js                         2.68 kB
+web:build: .svelte-kit/output/server/chunks/orpc.js                                                    2.93 kB
+web:build: .svelte-kit/output/server/chunks/button.js                                                  2.94 kB
+web:build: .svelte-kit/output/server/chunks/chat.svelte.js                                             2.94 kB
+web:build: .svelte-kit/output/server/chunks/separator.js                                               3.24 kB
+web:build: .svelte-kit/output/server/chunks/url.js                                                     3.32 kB
+web:build: .svelte-kit/output/server/chunks/events.js                                                  3.93 kB
+web:build: .svelte-kit/output/server/chunks/bun-sqlite-dialect.js                                      4.28 kB
+web:build: .svelte-kit/output/server/chunks/node-sqlite-dialect.js                                     4.29 kB
+web:build: .svelte-kit/output/server/chunks/field-description.js                                       4.43 kB
+web:build: .svelte-kit/output/server/chunks/secondary-sidebar-trigger.js                               4.71 kB
+web:build: .svelte-kit/output/server/chunks/markdown-renderer.js                                       5.17 kB
+web:build: .svelte-kit/output/server/chunks/file-braces.js                                             5.34 kB
+web:build: .svelte-kit/output/server/chunks/exports.js                                                 5.59 kB
+web:build: .svelte-kit/output/server/chunks/toast-state.svelte.js                                      5.65 kB
+web:build: .svelte-kit/output/server/chunks/label.js                                                   5.77 kB
+web:build: .svelte-kit/output/server/entries/pages/sidebar-09/_page.svelte.js                          6.08 kB
+web:build: .svelte-kit/output/server/chunks/trash-2.js                                                 6.27 kB
+web:build: .svelte-kit/output/server/entries/pages/app/settings/account/_page.svelte.js                7.54 kB
+web:build: .svelte-kit/output/server/chunks/login-form.js                                              8.38 kB
+web:build: .svelte-kit/output/server/chunks/index3.js                                                  9.30 kB
+web:build: .svelte-kit/output/server/entries/pages/app/chat/_id_/_page.svelte.js                       9.95 kB
+web:build: .svelte-kit/output/server/entries/pages/(auth)/register/_page.svelte.js                    11.27 kB
+web:build: .svelte-kit/output/server/entries/pages/app/chat/_page.svelte.js                           11.61 kB
+web:build: .svelte-kit/output/server/chunks/utils3.js                                                 13.08 kB
+web:build: .svelte-kit/output/server/chunks/dropdown-menu-trigger.js                                  13.79 kB
+web:build: .svelte-kit/output/server/chunks/index4.js                                                 14.33 kB
+web:build: .svelte-kit/output/server/chunks/shared.js                                                 17.71 kB
+web:build: .svelte-kit/output/server/remote-entry.js                                                  18.86 kB
+web:build: .svelte-kit/output/server/chunks/auth-client.js                                            20.56 kB
+web:build: .svelte-kit/output/server/chunks/internal.js                                               26.60 kB
+web:build: .svelte-kit/output/server/entries/pages/app/settings/api-keys/_page.svelte.js              37.12 kB
+web:build: .svelte-kit/output/server/entries/pages/app/settings/models/_page.svelte.js                42.70 kB
+web:build: .svelte-kit/output/server/entries/pages/_layout.svelte.js                                  43.26 kB
+web:build: .svelte-kit/output/server/chunks/sheet-content.js                                          58.06 kB
+web:build: .svelte-kit/output/server/chunks/index2.js                                                 80.74 kB
+web:build: .svelte-kit/output/server/chunks/popper-layer-force-mount.js                              100.44 kB
+web:build: .svelte-kit/output/server/index.js                                                        126.65 kB
+web:build: .svelte-kit/output/server/chunks/app-sidebar.js                                           178.37 kB
+web:build: .svelte-kit/output/server/chunks/hooks.server.js                                          351.41 kB
+web:build: ✓ built in 1m 2s
+web:build: 
+web:build: Run npm run preview to preview your production build locally.
+web:build: 
+web:build: > Using @sveltejs/adapter-auto
+web:build:   Could not detect a supported production environment. See https://svelte.dev/docs/kit/adapters to learn how to configure your app to run on the platform of your choosing
+web:build:   ✔ done
+
+ Tasks:    2 successful, 2 total
+Cached:    2 cached, 2 total
+  Time:    1.263s >>> FULL TURBO
+

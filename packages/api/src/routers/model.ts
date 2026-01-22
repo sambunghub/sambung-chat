@@ -10,12 +10,12 @@ import {
   isValidAnthropicModel,
   getAnthropicModelIds,
   anthropicModels,
-  type AnthropicModel,
 } from '../lib/anthropic-models';
-import { openaiModels, type OpenAIModel } from '../lib/openai-models';
-import { googleModels, type GoogleModel } from '../lib/google-models';
-import { groqModels, type GroqModel } from '../lib/groq-models';
-import { ollamaModels, type OllamaModel } from '../lib/ollama-models';
+import { openaiModels } from '../lib/openai-models';
+import { googleModels } from '../lib/google-models';
+import { groqModels } from '../lib/groq-models';
+import { ollamaModels } from '../lib/ollama-models';
+import { transformToAvailableModel } from '../lib/model-types';
 
 // Provider enum for validation
 const providerEnum = z.enum([
@@ -250,46 +250,11 @@ export const modelRouter = {
     .use(cacheHeadersMiddleware(o)(CACHE_DURATIONS.MEDIUM))
     .handler(async () => {
       return {
-        openai: openaiModels.map((model: OpenAIModel) => ({
-          id: model.id,
-          name: model.name,
-          maxTokens: model.maxTokens,
-          contextWindow: model.contextWindow,
-          bestFor: model.bestFor,
-          cost: model.cost,
-        })),
-        anthropic: anthropicModels.map((model: AnthropicModel) => ({
-          id: model.id,
-          name: model.name,
-          maxTokens: model.maxTokens,
-          contextWindow: model.contextWindow,
-          bestFor: model.bestFor,
-          cost: model.cost,
-        })),
-        google: googleModels.map((model: GoogleModel) => ({
-          id: model.id,
-          name: model.name,
-          maxTokens: model.maxTokens,
-          contextWindow: model.contextWindow,
-          bestFor: model.bestFor,
-          cost: model.cost,
-        })),
-        groq: groqModels.map((model: GroqModel) => ({
-          id: model.id,
-          name: model.name,
-          maxTokens: model.maxTokens,
-          contextWindow: model.contextWindow,
-          bestFor: model.bestFor,
-          cost: model.cost,
-        })),
-        ollama: ollamaModels.map((model: OllamaModel) => ({
-          id: model.id,
-          name: model.name,
-          maxTokens: model.maxTokens,
-          contextWindow: model.contextWindow,
-          bestFor: model.bestFor,
-          cost: model.cost,
-        })),
+        openai: openaiModels.map(transformToAvailableModel),
+        anthropic: anthropicModels.map(transformToAvailableModel),
+        google: googleModels.map(transformToAvailableModel),
+        groq: groqModels.map(transformToAvailableModel),
+        ollama: ollamaModels.map(transformToAvailableModel),
         custom: [], // Custom provider doesn't have predefined models
       };
     }),
