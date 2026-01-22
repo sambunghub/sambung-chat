@@ -1,0 +1,1045 @@
+$ vitest run
+
+ RUN  v2.1.9 /Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/.auto-claude/worktrees/tasks/006-extract-repetitive-model-transformation-in-getavai
+
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Basic transformation > should transform a valid model with all required fields
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Basic transformation > should handle models with low cost tier
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Basic transformation > should handle models with medium cost tier
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Basic transformation > should handle models with high cost tier
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Basic transformation > should handle models with large context windows
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Basic transformation > should handle models with small context windows
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Type safety and generic support > should work with OpenAI-like models
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Type safety and generic support > should work with Anthropic-like models
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Type safety and generic support > should work with Google-like models
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Type safety and generic support > should work with Groq-like models
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Type safety and generic support > should work with Ollama-like models
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Data integrity > should not modify the original model object
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Data integrity > should create a new object for each call
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Data integrity > should handle special characters in fields
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Data integrity > should handle Unicode characters in fields
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Array transformation (map usage) > should transform an array of models
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Array transformation (map usage) > should handle empty array
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Array transformation (map usage) > should handle single-element array
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Array transformation (map usage) > should transform mixed provider models
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Edge cases > should handle model with zero maxTokens
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Edge cases > should handle model with zero contextWindow
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Edge cases > should handle model with empty strings
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Edge cases > should handle model with very long strings
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Edge cases > should handle model with negative maxTokens (unusual but possible)
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Edge cases > should handle model with very large numbers
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Type compatibility > should return AvailableModel type
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Type compatibility > should accept any object extending BaseProviderModel
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Real-world model examples > should transform real OpenAI model
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Real-world model examples > should transform real Anthropic model
+ ✓ packages/api/src/lib/model-types.test.ts > transformToAvailableModel > Real-world model examples > should transform multiple real models and maintain consistency
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > Content-Security-Policy > getCSPHeader > should return CSP header with default config (test environment = development mode)
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > Content-Security-Policy > getCSPHeader > should include unsafe-eval and unsafe-inline in development
+[CSP] Mode: DEVELOPMENT (NODE_ENV=development)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > Content-Security-Policy > getCSPHeader > should include Keycloak URL in connect-src when configured
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > Content-Security-Policy > getCSPHeader > should include additional connect sources from config
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > Content-Security-Policy > getCSPHeader > should include report-uri when provided
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > Content-Security-Policy > getCSPHeader > should not include report-uri when not provided
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > Content-Security-Policy > getCSPHeader > should filter out empty connect sources
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Default Configuration > should return all security headers
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Default Configuration > should include Content-Security-Policy
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Default Configuration > should include X-Frame-Options
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Default Configuration > should include X-Content-Type-Options
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Default Configuration > should include Permissions-Policy
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Default Configuration > should include Referrer-Policy
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Default Configuration > should include Cross-Origin-Opener-Policy
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Environment-Specific Behavior > should not include HSTS in development
+[CSP] Mode: DEVELOPMENT (NODE_ENV=development)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Environment-Specific Behavior > should not include HSTS in test environment
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > CSP Configuration > should use Content-Security-Policy by default
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > CSP Configuration > should use Content-Security-Policy-Report-Only when cspReportOnly is true
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > CSP Configuration > should include CSP report-uri when provided
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > HSTS Configuration > should include HSTS when includeHSTS is true
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Header Values > should return correct CSP value
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Header Values > should return correct X-Frame-Options value
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Header Values > should return correct X-Content-Type-Options value
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Header Values > should return correct Permissions-Policy value
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Header Values > should return correct Referrer-Policy value
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Header Values > should return correct Cross-Origin-Opener-Policy value
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Type Safety > should return SecurityHeaders type
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Type Safety > should have all header values as strings
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > Security Headers Compliance > OWASP Compliance > should include X-Frame-Options for clickjacking protection
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > Security Headers Compliance > OWASP Compliance > should include X-Content-Type-Options for MIME-sniffing protection
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stdout | apps/web/src/lib/security/__tests__/headers.test.ts > Security Headers Compliance > OWASP Compliance > should include CSP for XSS protection
+[CSP] Mode: DEVELOPMENT (NODE_ENV=test)
+
+stderr | apps/web/src/lib/security/__tests__/headers.test.ts > Edge Cases > should handle invalid KEYCLOAK_URL gracefully
+[SECURITY] Invalid KEYCLOAK_URL, ignoring
+
+stderr | apps/web/src/lib/security/__tests__/headers.test.ts > Edge Cases > should handle empty config object
+[SECURITY] Invalid KEYCLOAK_URL, ignoring
+
+stderr | apps/web/src/lib/security/__tests__/headers.test.ts > Edge Cases > should handle undefined config
+[SECURITY] Invalid KEYCLOAK_URL, ignoring
+
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Security Headers - Constants > X-Frame-Options > should be set to DENY
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Security Headers - Constants > X-Content-Type-Options > should be set to nosniff
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Security Headers - Constants > Referrer-Policy > should be set to strict-origin-when-cross-origin
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Security Headers - Constants > Cross-Origin-Opener-Policy > should be set to same-origin
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Content-Security-Policy > getCSPHeader > should return CSP header with default config (test environment = development mode)
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Content-Security-Policy > getCSPHeader > should include unsafe-eval and unsafe-inline in development
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Content-Security-Policy > getCSPHeader > should not include unsafe-eval or unsafe-inline in production
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Content-Security-Policy > getCSPHeader > should include PUBLIC_API_URL in connect-src (production mode)
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Content-Security-Policy > getCSPHeader > should include Keycloak URL in connect-src when configured
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Content-Security-Policy > getCSPHeader > should include additional connect sources from config
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Content-Security-Policy > getCSPHeader > should include report-uri when provided
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Content-Security-Policy > getCSPHeader > should not include report-uri when not provided
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Content-Security-Policy > getCSPHeader > should filter out empty connect sources
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Content-Security-Policy > getCSPHeaderName > should return Content-Security-Policy by default
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Content-Security-Policy > getCSPHeaderName > should return Content-Security-Policy-Report-Only when reportOnly is true
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Content-Security-Policy > getCSPHeaderName > should return Content-Security-Policy when reportOnly is false
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Strict-Transport-Security > getHSTSHeader > should return HSTS header in production
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Strict-Transport-Security > getHSTSHeader > should return empty string in development
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Strict-Transport-Security > getHSTSHeader > should return empty string in test environment
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Strict-Transport-Security > getHSTSHeader > should return empty string when NODE_ENV is undefined
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Strict-Transport-Security > getHSTSHeader > should include max-age of 1 year
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Strict-Transport-Security > getHSTSHeader > should include includeSubDomains directive
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Strict-Transport-Security > getHSTSHeader > should include preload directive
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Permissions-Policy > getPermissionsPolicyHeader > should return Permissions-Policy header
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Permissions-Policy > getPermissionsPolicyHeader > should disable microphone
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Permissions-Policy > getPermissionsPolicyHeader > should disable camera
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Permissions-Policy > getPermissionsPolicyHeader > should disable payment
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Permissions-Policy > getPermissionsPolicyHeader > should disable USB
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Permissions-Policy > getPermissionsPolicyHeader > should disable magnetometer
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Permissions-Policy > getPermissionsPolicyHeader > should disable gyroscope
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Permissions-Policy > getPermissionsPolicyHeader > should disable XR/VR spatial tracking
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Permissions-Policy > getPermissionsPolicyHeader > should allow geolocation from same origin
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Permissions-Policy > getPermissionsPolicyHeader > should join policies with comma and space
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Default Configuration > should return all security headers
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Default Configuration > should include Content-Security-Policy
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Default Configuration > should include X-Frame-Options
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Default Configuration > should include X-Content-Type-Options
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Default Configuration > should include Permissions-Policy
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Default Configuration > should include Referrer-Policy
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Default Configuration > should include Cross-Origin-Opener-Policy
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Environment-Specific Behavior > should not include HSTS in development
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Environment-Specific Behavior > should not include HSTS in test environment
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Environment-Specific Behavior > should include HSTS in production
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Environment-Specific Behavior > should auto-detect production environment for HSTS
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > CSP Configuration > should use Content-Security-Policy by default
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > CSP Configuration > should use Content-Security-Policy-Report-Only when cspReportOnly is true
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > CSP Configuration > should include CSP report-uri when provided
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > HSTS Configuration > should include HSTS when includeHSTS is true
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > HSTS Configuration > should not include HSTS when includeHSTS is false
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Header Values > should return correct CSP value
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Header Values > should return correct X-Frame-Options value
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Header Values > should return correct X-Content-Type-Options value
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Header Values > should return correct Permissions-Policy value
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Header Values > should return correct Referrer-Policy value
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Header Values > should return correct Cross-Origin-Opener-Policy value
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Type Safety > should return SecurityHeaders type
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > getSecurityHeaders > Type Safety > should have all header values as strings
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Security Headers Compliance > OWASP Compliance > should include X-Frame-Options for clickjacking protection
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Security Headers Compliance > OWASP Compliance > should include X-Content-Type-Options for MIME-sniffing protection
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Security Headers Compliance > OWASP Compliance > should include CSP for XSS protection
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Security Headers Compliance > OWASP Compliance > should include HSTS in production for HTTPS enforcement
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Security Headers Compliance > SOC2 Compliance > should include Referrer-Policy for data protection
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Security Headers Compliance > SOC2 Compliance > should include Permissions-Policy for feature control
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Security Headers Compliance > Security Best Practices > should block all mixed content
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Security Headers Compliance > Security Best Practices > should upgrade insecure requests
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Security Headers Compliance > Security Best Practices > should prevent iframe embedding
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Security Headers Compliance > Security Best Practices > should isolate browsing context with COOP
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Edge Cases > should handle missing PUBLIC_API_URL gracefully
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Edge Cases > should handle missing KEYCLOAK_URL gracefully
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Edge Cases > should handle invalid PUBLIC_API_URL gracefully
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Edge Cases > should handle invalid KEYCLOAK_URL gracefully
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Edge Cases > should handle empty config object
+ ✓ apps/web/src/lib/security/__tests__/headers.test.ts > Edge Cases > should handle undefined config
+stdout | packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeLog > should not throw when logging data
+Data: { apiKey: '[REDACTED]', name: 'Test' }
+
+stdout | packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeLog > should not throw with multiple arguments
+Message 1 { apiKey: '[REDACTED]' } Message 2 { token: '[REDACTED]' }
+
+stdout | packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeLog > should not throw with API key in string
+Error with key [REDACTED]
+
+stdout | packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeLog > should not throw with mixed argument types
+String 42 true { apiKey: '[REDACTED]' } [ 'array' ] null undefined
+
+stderr | packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeError > should not throw when logging error with API key
+Error: Failed with key sk-1234567890abcdef1234567890abcdef
+    at /Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/.auto-claude/worktrees/tasks/006-extract-repetitive-model-transformation-in-getavai/packages/api/src/middleware/secure-logging.test.ts:475:21
+    at file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at runSuite (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runFiles (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1262:5)
+
+stderr | packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeError > should not throw when logging error
+Error: Test error
+    at /Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/.auto-claude/worktrees/tasks/006-extract-repetitive-model-transformation-in-getavai/packages/api/src/middleware/secure-logging.test.ts:480:21
+    at file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at runSuite (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runFiles (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1262:5)
+
+stderr | packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeError > should not throw with error and sensitive data
+Error: { apiKey: '[REDACTED]', message: 'Failed' }
+
+stderr | packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeError > should not throw with multiple arguments
+API Error: Error: Failed with key sk-1234567890abcdef
+    at /Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/.auto-claude/worktrees/tasks/006-extract-repetitive-model-transformation-in-getavai/packages/api/src/middleware/secure-logging.test.ts:489:21
+    at file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at runSuite (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runFiles (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1262:5) { apiKey: '[REDACTED]' }
+
+stdout | packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeConsole > should provide safe log method
+{ apiKey: '[REDACTED]' }
+
+stderr | packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeConsole > should provide safe error method
+{ apiKey: '[REDACTED]' }
+
+stderr | packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeConsole > should provide safe warn method
+Warning: { apiKey: '[REDACTED]' }
+
+stdout | packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeConsole > should provide safe info method
+Info: { apiKey: '[REDACTED]' }
+
+stdout | packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeConsole > should provide safe debug method
+Debug: { apiKey: '[REDACTED]' }
+
+stderr | packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeConsole > should sanitize strings in warn method
+Key [REDACTED] is invalid
+
+stdout | packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeConsole > should sanitize strings in info method
+Using key [REDACTED]
+
+stdout | packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeConsole > should sanitize strings in debug method
+Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+
+stderr | packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > Real-world scenarios > should handle error logging with stack traces
+Auth error: Error: Authentication failed
+    at /app/auth.ts:42:14 { userId: '123', apiKey: '[REDACTED]' }
+
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Standard sensitive fields > should redact apiKey field
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Standard sensitive fields > should redact api_key field (snake_case)
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Standard sensitive fields > should redact password field
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Standard sensitive fields > should redact token field
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Standard sensitive fields > should redact accessToken field
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Standard sensitive fields > should redact secret field
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Standard sensitive fields > should redact all standard sensitive fields
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Case-insensitive field matching > should redact APIKEY (uppercase)
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Case-insensitive field matching > should redact ApiKey (PascalCase)
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Case-insensitive field matching > should redact PASSWORD (uppercase)
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Nested objects > should redact sensitive fields in nested objects
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Nested objects > should handle deeply nested objects
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Nested objects > should preserve non-sensitive nested data
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Arrays > should redact sensitive fields in array of objects
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Arrays > should handle nested arrays
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Arrays > should handle primitive arrays
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Custom fields > should redact custom sensitive fields
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Custom fields > should combine default and custom fields
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Non-string values > should redact object values
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Non-string values > should redact array values for sensitive fields
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Non-string values > should preserve numbers
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Non-string values > should preserve booleans
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Edge cases > should handle null input
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Edge cases > should handle undefined input
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Edge cases > should handle empty object
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Edge cases > should handle empty array
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Edge cases > should handle string input
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Edge cases > should handle number input
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Edge cases > should handle boolean input
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Edge cases > should not modify original object
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > redactSensitiveData > Edge cases > should create deep copy
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > sanitizeErrorMessage > API key patterns > should redact OpenAI API keys (sk- prefix)
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > sanitizeErrorMessage > API key patterns > should redact Anthropic API keys (sk-ant- prefix)
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > sanitizeErrorMessage > API key patterns > should redact Google API keys (AIza prefix)
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > sanitizeErrorMessage > API key patterns > should redact Groq API keys (gsk_ prefix)
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > sanitizeErrorMessage > API key patterns > should redact JWT tokens (eyJ prefix)
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > sanitizeErrorMessage > Multiple occurrences > should redact multiple API keys in same message
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > sanitizeErrorMessage > Multiple occurrences > should redact mixed API key types
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > sanitizeErrorMessage > Mixed safe and sensitive content > should preserve safe content
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > sanitizeErrorMessage > Mixed safe and sensitive content > should handle message without API keys
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > sanitizeErrorMessage > Mixed safe and sensitive content > should handle message with only safe data
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > sanitizeErrorMessage > Edge cases > should handle null input
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > sanitizeErrorMessage > Edge cases > should handle undefined input
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > sanitizeErrorMessage > Edge cases > should handle empty string
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > sanitizeErrorMessage > Edge cases > should handle non-string input
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > sanitizeErrorMessage > Edge cases > should be case-sensitive for patterns
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeLog > should not throw when logging data
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeLog > should not throw with multiple arguments
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeLog > should not throw with API key in string
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeLog > should not throw with mixed argument types
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeError > should not throw when logging error with API key
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeError > should not throw when logging error
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeError > should not throw with error and sensitive data
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeError > should not throw with multiple arguments
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeConsole > should provide safe log method
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeConsole > should provide safe error method
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeConsole > should provide safe warn method
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeConsole > should provide safe info method
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeConsole > should provide safe debug method
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeConsole > should sanitize strings in warn method
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeConsole > should sanitize strings in info method
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > safeConsole > should sanitize strings in debug method
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > secureLoggingMiddleware > should sanitize ORPCError message with API key
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > secureLoggingMiddleware > should sanitize ORPCError data field
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > secureLoggingMiddleware > should sanitize ORPCError both message and data
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > secureLoggingMiddleware > should preserve ORPCError code
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > secureLoggingMiddleware > should sanitize generic Error message
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > secureLoggingMiddleware > should preserve generic Error stack trace
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > secureLoggingMiddleware > should pass through successful calls
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > secureLoggingMiddleware > should pass through non-Error errors
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > secureLoggingMiddleware > should handle ORPCError with undefined data
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > String API key pattern detection > redactSensitiveData with API key patterns in strings > should redact API keys in string values
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > String API key pattern detection > redactSensitiveData with API key patterns in strings > should redact API keys in nested string values
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > String API key pattern detection > redactSensitiveData with API key patterns in strings > should redact multiple API keys in same string
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > Real-world scenarios > should handle complete API response logging
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > Real-world scenarios > should handle database query logging
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > Real-world scenarios > should handle error logging with stack traces
+ ✓ packages/api/src/middleware/secure-logging.test.ts > Secure Logging Middleware > Real-world scenarios > should handle HTTP request logging
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getXFrameOptionsHeader > should return DENY
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getXFrameOptionsHeader > should return string type
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getXContentTypeOptionsHeader > should return nosniff
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getXContentTypeOptionsHeader > should return string type
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getHSTSHeaderValue > should return HSTS header in production
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getHSTSHeaderValue > should return null in development
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getHSTSHeaderValue > should return null in test environment
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getHSTSHeaderValue > should return null when NODE_ENV is undefined
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getHSTSHeaderValue > should include max-age of 1 year in production
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getHSTSHeaderValue > should include includeSubDomains in production
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getHSTSHeaderValue > should not include preload directive
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getPermissionsPolicyHeaderValue > should return Permissions-Policy header
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getPermissionsPolicyHeaderValue > should disable geolocation
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getPermissionsPolicyHeaderValue > should disable microphone
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getPermissionsPolicyHeaderValue > should disable camera
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getPermissionsPolicyHeaderValue > should disable payment
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getPermissionsPolicyHeaderValue > should disable USB
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getPermissionsPolicyHeaderValue > should disable magnetometer
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getPermissionsPolicyHeaderValue > should disable gyroscope
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getPermissionsPolicyHeaderValue > should disable speaker-selection
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getPermissionsPolicyHeaderValue > should disable VR
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getPermissionsPolicyHeaderValue > should disable XR
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getPermissionsPolicyHeaderValue > should join policies with comma and space
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getCrossOriginResourcePolicyHeader > should return same-site
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Individual Header Getters > getCrossOriginResourcePolicyHeader > should return string type
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Middleware Application > should be a function
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Middleware Application > should return a middleware handler
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Middleware Application > should accept config object
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Middleware Application > should accept empty config
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Middleware Application > should accept undefined config
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Header Application > should apply X-Frame-Options header to response
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Header Application > should apply X-Content-Type-Options header to response
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Header Application > should apply Permissions-Policy header to response
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Header Application > should apply Cross-Origin-Resource-Policy header to response
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Header Application > should not apply HSTS header in test environment
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Header Application > should not apply HSTS header in development
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Header Application > should apply HSTS header in production
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Configuration Options > should respect includeHSTS: false
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Configuration Options > should respect includeHSTS: true in production
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Configuration Options > should auto-detect production when includeHSTS is undefined
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Configuration Options > should auto-detect non-production when includeHSTS is undefined
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Multiple Routes > should apply headers to all routes
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Multiple Routes > should apply headers to nested routes
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Error Responses > should apply headers to error responses
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Error Responses > should apply headers to 500 errors
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Different HTTP Methods > should apply headers to GET requests
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Different HTTP Methods > should apply headers to POST requests
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Different HTTP Methods > should apply headers to PUT requests
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Different HTTP Methods > should apply headers to DELETE requests
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Different HTTP Methods > should apply headers to PATCH requests
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Middleware Chain > should work with other middleware
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware - Hono Integration > Middleware Chain > should work when security middleware is first
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware Compliance > OWASP Compliance > should include X-Frame-Options for clickjacking protection
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware Compliance > OWASP Compliance > should include X-Content-Type-Options for MIME-sniffing protection
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware Compliance > OWASP Compliance > should include HSTS in production for HTTPS enforcement
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware Compliance > API-Specific Headers > should not include CSP header (API endpoints do not render HTML)
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware Compliance > API-Specific Headers > should not include Referrer-Policy header (not applicable for APIs)
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware Compliance > API-Specific Headers > should not include Cross-Origin-Opener-Policy header (for HTML documents only)
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware Compliance > API-Specific Headers > should include Cross-Origin-Resource-Policy for API responses
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware Compliance > API-Specific Headers > should include Permissions-Policy to disable browser features
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware Compliance > Security Best Practices > should prevent iframe embedding
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware Compliance > Security Best Practices > should prevent MIME-sniffing attacks
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Security Middleware Compliance > Security Best Practices > should control cross-origin access to API responses
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Edge Cases > should handle empty response body
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Edge Cases > should handle response with custom headers
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Edge Cases > should handle concurrent requests
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Edge Cases > should handle different response types
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Middleware Behavior > should not modify response body
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Middleware Behavior > should not modify response status
+ ✓ apps/server/src/middleware/__tests__/security.test.ts > Middleware Behavior > should preserve other middleware headers
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > validateKey > should pass validation for a valid API key
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > validateKey > should throw for empty string
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > validateKey > should throw for null input
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > validateKey > should throw for undefined input
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > validateKey > should throw for non-string input
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > validateKey > should throw for keys shorter than 8 characters
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > validateKey > should throw for keys longer than 500 characters
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > validateKey > should pass for exactly 8 characters
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > validateKey > should pass for exactly 500 characters
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > encryptAndStore > should successfully encrypt and store a new API key
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > encryptAndStore > should throw BAD_REQUEST for invalid key (too short)
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > encryptAndStore > should throw INTERNAL_ERROR when encryption fails
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > encryptAndStore > should handle all supported providers
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > retrieveAll > should retrieve all API keys for a user
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > retrieveAll > should return empty array when user has no keys
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > retrieveAll > should not include encrypted keys in results
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > retrieveAndDecrypt > should retrieve and decrypt an API key
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > retrieveAndDecrypt > should throw NOT_FOUND when key does not exist
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > retrieveAndDecrypt > should throw NOT_FOUND when key belongs to different user
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > retrieveAndDecrypt > should throw INTERNAL_ERROR when decryption fails
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > updateKey > should update key name
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > updateKey > should update key with encryption
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > updateKey > should update isActive status
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > updateKey > should throw NOT_FOUND when key does not exist
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > updateKey > should throw NOT_FOUND when key belongs to different user
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > updateKey > should throw BAD_REQUEST for invalid new key
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > updateKey > should throw INTERNAL_ERROR when encryption fails during update
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > deleteKey > should delete an existing key
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > deleteKey > should throw NOT_FOUND when key does not exist
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > deleteKey > should throw NOT_FOUND when key belongs to different user
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > deleteKey > should enforce user-level isolation
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > User Isolation > should enforce user isolation in retrieveAndDecrypt
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > User Isolation > should enforce user isolation in updateKey
+ ✓ packages/api/src/services/api-key-service.test.ts > ApiKeyService > User Isolation > should enforce user isolation in deleteKey
+stderr | packages/api/src/routers/chat.test.ts > Chat Search Performance Tests
+Error during test cleanup: DrizzleQueryError: Failed query: delete from "user" where "user"."id" = $1
+params: 01kfgxjh74xb6y42sqdr3nj9z3
+    at NodePgPreparedQuery.queryWithCache (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/src/pg-core/session.ts:73:11)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at /Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/.auto-claude/worktrees/tasks/006-extract-repetitive-model-transformation-in-getavai/packages/api/src/routers/chat.test.ts:87:9
+    ... 4 lines matching cause stack trace ...
+    at startTests (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1271:3)
+    at file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11
+    at withEnv (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:90:5) {
+  query: 'delete from "user" where "user"."id" = $1',
+  params: [ '01kfgxjh74xb6y42sqdr3nj9z3' ],
+  cause: AggregateError: 
+      at /Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/pg-pool/index.js:45:11
+      at processTicksAndRejections (node:internal/process/task_queues:95:5)
+      at file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/src/node-postgres/session.ts:149:14
+      at NodePgPreparedQuery.queryWithCache (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/src/pg-core/session.ts:71:12)
+      at /Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/.auto-claude/worktrees/tasks/006-extract-repetitive-model-transformation-in-getavai/packages/api/src/routers/chat.test.ts:87:9
+      at callSuiteHook (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:964:22)
+      at runSuite (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1214:7)
+      at runSuite (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1205:15)
+      at runFiles (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1262:5)
+      at startTests (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1271:3) {
+    code: 'ECONNREFUSED',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Dataset Creation > should create 100+ test chats with 1000+ messages
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Search Performance Tests > should perform fast search with no filters
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Search Performance Tests > should perform fast search with text query (title only)
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Search Performance Tests > should perform fast search with provider filter
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Search Performance Tests > should perform fast search with multiple model filter
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Search Performance Tests > should perform fast search with date range filter
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Search Performance Tests > should perform fast full-text search across messages
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Search Performance Tests > should perform fast search with combined filters
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Search Performance Tests > should efficiently fetch message snippets for search results
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Performance Benchmarks > should meet all performance thresholds
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Filter Combinations > should filter by query + provider
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Filter Combinations > should filter by query + model
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Filter Combinations > should filter by query + date range
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Filter Combinations > should filter by provider + model
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Filter Combinations > should filter by provider + date range
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Filter Combinations > should filter by model + date range
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Filter Combinations > should filter by query + provider + model
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Filter Combinations > should filter by query + provider + date range
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Filter Combinations > should filter by query + model + date range
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Filter Combinations > should filter by provider + model + date range
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Filter Combinations > should filter by all filters: query + provider + model + date range
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Filter Combinations > should handle edge case: empty provider array
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Filter Combinations > should handle edge case: empty model array
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Filter Combinations > should handle edge case: query with special characters
+ ↓ packages/api/src/routers/chat.test.ts > Chat Search Performance Tests > Filter Combinations > should handle edge case: date range with no results
+ ✓ packages/api/src/routers/model.test.ts > Model Router - getAvailableModels Transformation > Response Structure > should return an object with all provider keys
+ ✓ packages/api/src/routers/model.test.ts > Model Router - getAvailableModels Transformation > Response Structure > should return arrays for all providers
+ ✓ packages/api/src/routers/model.test.ts > Model Router - getAvailableModels Transformation > Response Structure > should return empty array for custom provider
+ ✓ packages/api/src/routers/model.test.ts > Model Router - getAvailableModels Transformation > Response Structure > should return non-empty arrays for all providers except custom
+ ✓ packages/api/src/routers/model.test.ts > Model Router - getAvailableModels Transformation > Model Structure > should return models with correct AvailableModel structure
+ ✓ packages/api/src/routers/model.test.ts > Model Router - getAvailableModels Transformation > Model Structure > should have correct types for all model fields
+ ✓ packages/api/src/routers/model.test.ts > Model Router - getAvailableModels Transformation > Model Structure > should have positive values for maxTokens and contextWindow
+ ✓ packages/api/src/routers/model.test.ts > Model Router - getAvailableModels Transformation > Model Structure > should have non-empty strings for required string fields
+ ✓ packages/api/src/routers/model.test.ts > Model Router - getAvailableModels Transformation > Known Models Verification > should include GPT-4 in OpenAI models
+ ✓ packages/api/src/routers/model.test.ts > Model Router - getAvailableModels Transformation > Known Models Verification > should include Claude 3.5 Sonnet in Anthropic models
+ ✓ packages/api/src/routers/model.test.ts > Model Router - getAvailableModels Transformation > Known Models Verification > should include Gemini in Google models
+ ✓ packages/api/src/routers/model.test.ts > Model Router - getAvailableModels Transformation > Known Models Verification > should include LLaMA in Groq models
+ ✓ packages/api/src/routers/model.test.ts > Model Router - getAvailableModels Transformation > Cost Classification > should have cost classification for all models
+ ✓ packages/api/src/routers/model.test.ts > Model Router - getAvailableModels Transformation > Cost Classification > should have at least one model per cost tier across providers
+ ✓ packages/api/src/routers/model.test.ts > Model Router - getAvailableModels Transformation > Transformation Consistency > should apply consistent transformation across all providers
+ ✓ packages/api/src/routers/model.test.ts > Model Router - getAvailableModels Transformation > Transformation Consistency > should not have extra fields beyond AvailableModel interface
+ ✓ packages/api/src/routers/model.test.ts > Model Router - getAvailableModels Transformation > Provider Coverage > should return multiple models per provider
+ ✓ packages/api/src/routers/model.test.ts > Model Router - getAvailableModels Transformation > Provider Coverage > should have unique model IDs within each provider
+ ✓ packages/api/src/routers/model.test.ts > Model Router - getAvailableModels Transformation > Provider Coverage > should have unique model names within each provider
+ ✓ packages/api/src/routers/model.test.ts > Model Router - getAvailableModels Transformation > Data Quality > should have valid model IDs with no whitespace
+ ✓ packages/api/src/routers/model.test.ts > Model Router - getAvailableModels Transformation > Data Quality > should have meaningful bestFor descriptions
+ ✓ packages/api/src/routers/model.test.ts > Model Router - getAvailableModels Transformation > Type Safety > should return objects that match AvailableModel type
+ ✓ packages/api/src/routers/model.test.ts > Model Router - getAvailableModels Transformation > Immutability > should not be affected by mutations to returned objects
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Valid CORS Origins > should accept single valid HTTP origin
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Valid CORS Origins > should accept single valid HTTPS origin
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Valid CORS Origins > should accept multiple valid origins
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Valid CORS Origins > should accept origin with port number
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Valid CORS Origins > should accept origin with subdomain
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Valid CORS Origins > should accept localhost with different ports
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Origin Sanitization > should trim whitespace from origins
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Origin Sanitization > should remove trailing slashes from origins
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Origin Sanitization > should handle multiple trailing slashes
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Origin Sanitization > should trim and remove trailing slashes combined
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Invalid CORS Origins > should reject malformed URLs
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Invalid CORS Origins > should reject origin with embedded credentials
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Invalid CORS Origins > should reject origin with only username
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Invalid CORS Origins > should reject non-HTTP protocols (ftp)
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Invalid CORS Origins > should reject non-HTTP protocols (file)
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Invalid CORS Origins > should reject non-HTTP protocols (ws)
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Invalid CORS Origins > should reject data URLs
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Invalid CORS Origins > should reject empty origin
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Wildcard Origins > should accept wildcard origin with security warning
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Wildcard Origins > should warn about wildcard in both development and production
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Production Security Warnings > should warn about HTTP in production
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Production Security Warnings > should warn about localhost in production
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Production Security Warnings > should warn about both HTTP and localhost in production
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Production Security Warnings > should not warn about HTTPS in production
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Production Security Warnings > should not warn about non-localhost domains in production
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Development Mode > should allow HTTP without warnings in development
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Development Mode > should allow localhost without warnings in development
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Edge Cases > should handle duplicate origins
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Edge Cases > should handle origin with path
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Edge Cases > should handle origin with query parameters
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Edge Cases > should handle origin with hash
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Edge Cases > should handle international domain names
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Edge Cases > should handle IP address origins
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Edge Cases > should filter out empty origins from comma-separated list
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Default Behavior > should return default origin when CORS_ORIGIN is not set
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Default Behavior > should return default origin when CORS_ORIGIN is empty string
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Default Behavior > should log allowed origins
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Error Messages > should provide clear error message for malformed URL
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Error Messages > should include the problematic origin in error message
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Error Messages > should indicate the specific validation error
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Real-World Scenarios > should handle typical development configuration
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Real-World Scenarios > should handle typical production configuration
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Real-World Scenarios > should handle staging environment configuration
+ ✓ apps/server/__tests__/cors.test.ts > CORS Origin Validation > Real-World Scenarios > should detect and warn about production misconfiguration
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Endpoint Behavior > should rate limit CSRF token requests
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Endpoint Behavior > should track rate limits independently for different users
+stderr | packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Validation Scenarios > should fail validation with missing token
+[SECURITY] CSRF token has invalid format
+
+stderr | packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Validation Scenarios > should fail validation with malformed token
+[SECURITY] CSRF token has invalid format
+[SECURITY] CSRF token has invalid format
+[SECURITY] CSRF token has invalid format
+[SECURITY] CSRF token has invalid format
+[SECURITY] CSRF token has missing timestamp
+[SECURITY] CSRF token has invalid timestamp
+
+stderr | packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Validation Scenarios > should fail validation with tampered token parts
+[SECURITY] CSRF token signature verification failed
+[SECURITY] CSRF token has invalid timestamp
+[SECURITY] CSRF token signature verification failed
+
+stderr | packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Validation Scenarios > should fail validation with expired token
+[SECURITY] CSRF token expired (age: 7200s)
+
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Endpoint Behavior > should reset rate limits after window expires
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Validation Scenarios > should validate token correctly from generation to validation
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Validation Scenarios > should fail validation with missing token
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Validation Scenarios > should fail validation with malformed token
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Validation Scenarios > should fail validation with tampered token parts
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Validation Scenarios > should fail validation with expired token
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Validation Scenarios > should detect token expiration correctly
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Structure and Format > should generate tokens with correct structure
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Structure and Format > should extract timestamp correctly from valid token
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Structure and Format > should return null for invalid token timestamp extraction
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Structure and Format > should generate unique tokens
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Generation and Validation Flow > should successfully validate token from endpoint
+stderr | packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Generation and Validation Flow > should fail validation for token from different secret
+[SECURITY] CSRF token signature verification failed
+
+stderr | packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Security Properties > should use constant-time comparison to prevent timing attacks
+[SECURITY] CSRF token has invalid format
+
+stderr | packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Security Properties > should not reveal token validity through timing
+[SECURITY] CSRF token expired (age: 7200s)
+[SECURITY] CSRF token has invalid format
+
+stderr | packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Edge Cases > should handle tokens with maximum timestamp value
+[SECURITY] CSRF token signature verification failed
+
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Generation and Validation Flow > should fail validation for token from different secret
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Generation and Validation Flow > should handle rapid token generation requests
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Protection in Production Environment > should maintain validation consistency under load
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Protection in Production Environment > should handle concurrent validation safely
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Protection in Production Environment > should generate cryptographically secure tokens
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Security Properties > should use constant-time comparison to prevent timing attacks
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Security Properties > should have tokens with sufficient entropy
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Security Properties > should prevent token reuse across different timestamps
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Security Properties > should not reveal token validity through timing
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Edge Cases > should handle tokens with minimum valid timestamp
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Edge Cases > should handle tokens with future timestamp
+ ✓ packages/api/src/__tests__/csrf.test.ts > CSRF Protection Integration > CSRF Token Edge Cases > should handle tokens with maximum timestamp value
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Basic highlighting > should return original text when no query is provided
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Basic highlighting > should return original text when query is only whitespace
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Basic highlighting > should highlight a simple word match
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Basic highlighting > should be case-insensitive
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Basic highlighting > should highlight multiple occurrences of the same word
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Special characters in query > should escape regex special characters in query
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Special characters in query > should handle special characters like . * ? ^ $ ( ) [ ] { } | \
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Special characters in query > should handle question marks in query
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Special characters in query > should handle parentheses in query
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Special characters in query > should handle square brackets in query
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Special characters in query > should handle curly braces in query
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Special characters in query > should handle pipe character in query
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Special characters in query > should handle backslash in query
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Special characters in query > should handle caret character in query
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Special characters in query > should handle dollar sign in query
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Edge cases > should handle empty text
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Edge cases > should handle query longer than text
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Edge cases > should handle Unicode characters in query
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Edge cases > should handle numbers in query
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Edge cases > should handle partial word matches
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Edge cases > should handle whitespace in query
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > HTML structure > should wrap highlighted text in <mark> element
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > HTML structure > should include correct CSS classes in mark element
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > HTML structure > should preserve non-matching parts of text
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Real-world scenarios > should highlight chat title with search term
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Real-world scenarios > should highlight message content snippet
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Real-world scenarios > should handle code snippets in search
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Real-world scenarios > should handle file paths in search
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Real-world scenarios > should handle technical terms with special chars
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Performance considerations > should handle long text efficiently
+ ✓ apps/web/src/lib/components/secondary-sidebar/ChatListItem.test.ts > ChatListItem - highlightText function > Performance considerations > should not modify text when no match is found
+stderr | packages/api/src/utils/__tests__/csrf.test.ts > CSRF Utilities > validateCsrfToken > should reject token with wrong format
+[SECURITY] CSRF token has invalid format
+[SECURITY] CSRF token has invalid format
+
+stderr | packages/api/src/utils/__tests__/csrf.test.ts > CSRF Utilities > validateCsrfToken > should reject token with invalid timestamp
+[SECURITY] CSRF token has invalid timestamp
+
+stderr | packages/api/src/utils/__tests__/csrf.test.ts > CSRF Utilities > validateCsrfToken > should reject token with wrong signature
+[SECURITY] CSRF token signature verification failed
+
+stderr | packages/api/src/utils/__tests__/csrf.test.ts > CSRF Utilities > validateCsrfToken > should reject expired token
+[SECURITY] CSRF token expired (age: 7200s)
+
+ ✓ packages/api/src/utils/__tests__/csrf.test.ts > CSRF Utilities > generateCsrfToken > should generate a token with correct format
+ ✓ packages/api/src/utils/__tests__/csrf.test.ts > CSRF Utilities > generateCsrfToken > should generate unique tokens
+ ✓ packages/api/src/utils/__tests__/csrf.test.ts > CSRF Utilities > generateCsrfToken > should generate tokens with valid timestamps
+ ✓ packages/api/src/utils/__tests__/csrf.test.ts > CSRF Utilities > validateCsrfToken > should validate a correctly generated token
+ ✓ packages/api/src/utils/__tests__/csrf.test.ts > CSRF Utilities > validateCsrfToken > should reject token with wrong format
+ ✓ packages/api/src/utils/__tests__/csrf.test.ts > CSRF Utilities > validateCsrfToken > should reject token with invalid timestamp
+ ✓ packages/api/src/utils/__tests__/csrf.test.ts > CSRF Utilities > validateCsrfToken > should reject token with wrong signature
+ ✓ packages/api/src/utils/__tests__/csrf.test.ts > CSRF Utilities > validateCsrfToken > should reject expired token
+ ✓ packages/api/src/utils/__tests__/csrf.test.ts > CSRF Utilities > validateCsrfToken > should accept valid non-expired token
+ ✓ packages/api/src/utils/__tests__/csrf.test.ts > CSRF Utilities > getCsrfTokenTimestamp > should extract timestamp from valid token
+ ✓ packages/api/src/utils/__tests__/csrf.test.ts > CSRF Utilities > getCsrfTokenTimestamp > should return null for invalid token format
+ ✓ packages/api/src/utils/__tests__/csrf.test.ts > CSRF Utilities > isCsrfTokenExpired > should return false for fresh token
+ ✓ packages/api/src/utils/__tests__/csrf.test.ts > CSRF Utilities > isCsrfTokenExpired > should return true for expired token
+ ✓ packages/api/src/utils/__tests__/csrf.test.ts > CSRF Utilities > isCsrfTokenExpired > should return true for invalid token format
+ ✓ packages/api/src/utils/__tests__/rate-limiter.test.ts > RateLimiter > checkLimit > should allow requests within the limit
+ ✓ packages/api/src/utils/__tests__/rate-limiter.test.ts > RateLimiter > checkLimit > should block requests exceeding the limit
+ ✓ packages/api/src/utils/__tests__/rate-limiter.test.ts > RateLimiter > checkLimit > should track limits independently for different keys
+ ✓ tests/unit/anthropic-streaming.test.ts > Anthropic Streaming - Structural > Provider Factory > should create Anthropic provider with correct structure
+ ✓ tests/unit/anthropic-streaming.test.ts > Anthropic Streaming - Structural > Provider Factory > should accept all Anthropic model IDs
+ ✓ tests/unit/anthropic-error-handling.test.ts > Anthropic Error Handling - Structural > Error Response Structure > should have all required error handlers implemented
+ ✓ tests/unit/anthropic-error-handling.test.ts > Anthropic Error Handling - Structural > Error Response Structure > should support all Anthropic model IDs
+ ✓ tests/unit/anthropic-error-handling.test.ts > Anthropic Error Handling - Structural > Parameter Validation Ranges > should define correct Anthropic parameter ranges
+ ✓ packages/env/src/__tests__/encryption-key.test.ts > ENCRYPTION_KEY Validation Logic > should accept a valid 32-byte base64-encoded key
+ ✓ packages/env/src/__tests__/encryption-key.test.ts > ENCRYPTION_KEY Validation Logic > should reject a key that is not base64
+ ✓ packages/env/src/__tests__/encryption-key.test.ts > ENCRYPTION_KEY Validation Logic > should reject a key that is too short (less than 32 bytes when decoded)
+ ✓ packages/env/src/__tests__/encryption-key.test.ts > ENCRYPTION_KEY Validation Logic > should reject a key that is too long (more than 32 bytes when decoded)
+ ✓ packages/env/src/__tests__/encryption-key.test.ts > ENCRYPTION_KEY Validation Logic > should reject empty string
+ ✓ packages/env/src/__tests__/encryption-key.test.ts > ENCRYPTION_KEY Validation Logic > should generate valid keys with crypto.randomBytes(32).toString("base64")
+ ✓ apps/web/src/lib/__tests__/workspace.test.ts > Workspace Store > Initial State > should start with personal workspace
+ ✓ apps/web/src/lib/__tests__/workspace.test.ts > Workspace Store > setWorkspace > should set workspace to specific state
+ ✓ apps/web/src/lib/__tests__/workspace.test.ts > Workspace Store > switchToTeam > should switch to team workspace
+ ✓ apps/web/src/lib/__tests__/workspace.test.ts > Workspace Store > switchToPersonal > should switch to personal workspace
+ ✓ apps/web/src/lib/__tests__/workspace.test.ts > Workspace Store > updateName > should update workspace name
+ ✓ apps/web/src/lib/__tests__/workspace.test.ts > Workspace Store > Derived Stores > should derive base path for personal workspace
+ ✓ apps/web/src/lib/__tests__/workspace.test.ts > Workspace Store > Derived Stores > should derive base path for team workspace
+ ✓ apps/web/src/lib/__tests__/workspace.test.ts > Workspace Store > Derived Stores > should derive workspace type correctly
+ ✓ apps/web/src/lib/__tests__/workspace.test.ts > Workspace Store > Derived Stores > should derive isTeamWorkspace correctly
+ ✓ apps/web/src/lib/__tests__/workspace.test.ts > Workspace Store > buildWorkspacePath > should build path for personal workspace
+ ✓ apps/web/src/lib/__tests__/workspace.test.ts > Workspace Store > buildWorkspacePath > should build path for team workspace
+ ✓ apps/web/src/lib/__tests__/workspace.test.ts > Workspace Store > buildWorkspacePath > should handle empty relative path
+ ✓ apps/web/src/lib/__tests__/workspace.test.ts > Workspace Store > buildWorkspacePath > should handle nested paths
+ ✓ apps/server/index.test.ts > Server Environment > should have DATABASE_URL defined
+ ✓ apps/server/index.test.ts > Server Environment > should have ENCRYPTION_KEY defined (valid base64)
+ ✓ apps/server/index.test.ts > Server Environment > should have BETTER_AUTH_SECRET defined (min 32 chars)
+ ✓ apps/server/index.test.ts > Server Environment > should have BETTER_AUTH_URL defined
+ ✓ apps/server/index.test.ts > Server Environment > should have CORS_ORIGIN defined
+ ✓ apps/server/index.test.ts > Server Environment > should have NODE_ENV set
+ ✓ apps/web/src/lib/__tests__/orpc.test.ts > ORPC Client Configuration > should have PUBLIC_API_URL defined for backend API calls
+ ✓ apps/web/src/lib/__tests__/orpc.test.ts > ORPC Client Configuration > should have PUBLIC_SERVER_URL defined for frontend URL
+ ✓ apps/web/src/lib/__tests__/orpc.test.ts > ORPC Client Configuration > should match CORS_ORIGIN with frontend
+ ✓ packages/api/src/lib/ai-provider-factory.test.ts > AI Provider Factory > createAIProvider > should create an OpenAI provider instance
+ ✓ packages/api/src/lib/ai-provider-factory.test.ts > AI Provider Factory > createAIProvider > should create an Anthropic provider instance
+ ✓ packages/api/src/lib/ai-provider-factory.test.ts > AI Provider Factory > createAIProvider > should create a Groq provider instance
+ ✓ packages/api/src/lib/ai-provider-factory.test.ts > AI Provider Factory > createAIProvider > should create an Ollama provider instance (no API key required)
+ ✓ packages/api/src/lib/ai-provider-factory.test.ts > AI Provider Factory > createAIProvider > should create a custom provider instance
+ ✓ packages/api/src/lib/ai-provider-factory.test.ts > AI Provider Factory > createAIProvider > should create an OpenRouter provider instance
+ ✓ apps/web/src/lib/__tests__/orpc.test.ts > ORPC Client Type Exports > should export API router module with all routes 608ms
+ ✓ packages/api/src/utils/__tests__/rate-limiter.test.ts > RateLimiter > checkLimit > should reset after window expires 1101ms
+ ✓ packages/api/src/utils/__tests__/rate-limiter.test.ts > RateLimiter > getRemainingRequests > should return remaining requests count
+ ✓ packages/api/src/utils/__tests__/rate-limiter.test.ts > RateLimiter > getRemainingRequests > should return 0 when limit is exceeded
+ ✓ packages/api/src/utils/__tests__/rate-limiter.test.ts > RateLimiter > getRemainingRequests > should return max requests for new keys
+ ✓ packages/api/src/utils/__tests__/rate-limiter.test.ts > RateLimiter > reset > should reset the rate limit for a specific key
+stdout | apps/server/index.test.ts > Auth Module > should import auth module successfully
+[SECURITY] SAME_SITE_COOKIE using default: lax (test)
+[AUTH CONFIG] SameSite cookie setting: lax
+
+stdout | packages/auth/__tests__/cookies.test.ts
+[SECURITY] SAME_SITE_COOKIE using default: lax (test)
+[AUTH CONFIG] SameSite cookie setting: lax
+
+ ✓ apps/server/index.test.ts > Auth Module > should import auth module successfully 858ms
+stdout | packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > getValidatedSameSiteSetting() > Validation rules > should accept "none" with secure cookies (production)
+[SECURITY] SAME_SITE_COOKIE explicitly set to: none
+
+stdout | packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > getValidatedSameSiteSetting() > Validation rules > should warn about security implications of "lax" in production
+[SECURITY] SAME_SITE_COOKIE explicitly set to: lax
+
+stdout | packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > getValidatedSameSiteSetting() > Validation rules > should warn about security implications of "none"
+[SECURITY] SAME_SITE_COOKIE explicitly set to: none
+
+stdout | packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > getValidatedSameSiteSetting() > Secure flag integration > should require secure=true when SameSite=none in production
+[SECURITY] SAME_SITE_COOKIE explicitly set to: none
+
+stderr | packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > getValidatedSameSiteSetting() > Secure flag integration > should require secure=true when SameSite=none in production
+[SECURITY] WARNING: SAME_SITE_COOKIE=none provides minimal CSRF protection. Only use this if you have a specific requirement for cross-site cookie access.
+
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > getValidatedSameSiteSetting() > Production environment defaults > should default to "strict" in production when not configured
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > getValidatedSameSiteSetting() > Production environment defaults > should accept explicit "strict" setting in production
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > getValidatedSameSiteSetting() > Production environment defaults > should accept "lax" setting in production with warning
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > getValidatedSameSiteSetting() > Production environment defaults > should accept "none" setting in production with warning
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > getValidatedSameSiteSetting() > Development environment defaults > should default to "lax" in development when not configured
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > getValidatedSameSiteSetting() > Development environment defaults > should accept explicit "lax" setting in development
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > getValidatedSameSiteSetting() > Development environment defaults > should accept "strict" setting in development
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > getValidatedSameSiteSetting() > Development environment defaults > should throw error for "none" in development (requires secure cookies)
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > getValidatedSameSiteSetting() > Validation rules > should reject "none" without secure cookies (development)
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > getValidatedSameSiteSetting() > Validation rules > should accept "none" with secure cookies (production)
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > getValidatedSameSiteSetting() > Validation rules > should warn about security implications of "lax" in production
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > getValidatedSameSiteSetting() > Validation rules > should warn about security implications of "none"
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > getValidatedSameSiteSetting() > Secure flag integration > should require secure=true when SameSite=none in production
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > getValidatedSameSiteSetting() > Secure flag integration > should reject SameSite=none in development (secure=false)
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Better Auth cookie configuration > should have auth instance configured with sameSite attribute
+stdout | packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Better Auth cookie configuration > should use secure cookies in production
+[SECURITY] SAME_SITE_COOKIE explicitly set to: strict
+[AUTH CONFIG] SameSite cookie setting: strict
+
+ ✓ apps/server/index.test.ts > API Router > should import API router successfully
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Better Auth cookie configuration > should use secure cookies in production
+stdout | packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Better Auth cookie configuration > should use non-secure cookies in development
+[SECURITY] SAME_SITE_COOKIE explicitly set to: lax
+[AUTH CONFIG] SameSite cookie setting: lax
+
+stdout | packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Cookie attribute combinations > Production configurations > should support strict + secure (recommended)
+[SECURITY] SAME_SITE_COOKIE explicitly set to: strict
+
+stdout | packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Cookie attribute combinations > Production configurations > should support lax + secure (allowed but not recommended)
+[SECURITY] SAME_SITE_COOKIE explicitly set to: lax
+
+stdout | packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Cookie attribute combinations > Production configurations > should support none + secure (specific use cases only)
+[SECURITY] SAME_SITE_COOKIE explicitly set to: none
+
+stdout | packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Cookie attribute combinations > Development configurations > should support lax + non-secure (default)
+[SECURITY] SAME_SITE_COOKIE using default: lax (development)
+
+stdout | packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Cookie attribute combinations > Development configurations > should support strict + non-secure (for testing)
+[SECURITY] SAME_SITE_COOKIE explicitly set to: strict
+
+stdout | packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Security logging and warnings > should emit multiple warnings for insecure production config
+[SECURITY] SAME_SITE_COOKIE explicitly set to: lax
+
+stdout | packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Security logging and warnings > should warn about minimal protection with SameSite=none
+[SECURITY] SAME_SITE_COOKIE explicitly set to: none
+
+stdout | packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Edge cases and error handling > should handle missing NODE_ENV gracefully
+[SECURITY] SAME_SITE_COOKIE using default: lax (development)
+
+stdout | packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Edge cases and error handling > should handle empty SAME_SITE_COOKIE string
+[SECURITY] SAME_SITE_COOKIE using default: strict (production)
+
+stdout | packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Edge cases and error handling > should be case-sensitive for enum values
+[SECURITY] SAME_SITE_COOKIE explicitly set to: strict
+
+stdout | packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Edge cases and error handling > should handle rapid environment changes
+[SECURITY] SAME_SITE_COOKIE explicitly set to: lax
+[SECURITY] SAME_SITE_COOKIE explicitly set to: strict
+
+stdout | packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Cookie behavior across contexts > should allow first-party requests with SameSite=strict
+[SECURITY] SAME_SITE_COOKIE explicitly set to: strict
+
+stdout | packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Cookie behavior across contexts > should allow top-level navigations with SameSite=lax
+[SECURITY] SAME_SITE_COOKIE explicitly set to: lax
+
+stderr | packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Cookie behavior across contexts > should allow top-level navigations with SameSite=lax
+[SECURITY] WARNING: SAME_SITE_COOKIE=lax in production allows link-based CSRF attacks. Consider using SAME_SITE_COOKIE=strict for better security.
+
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Better Auth cookie configuration > should use non-secure cookies in development
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Cookie attribute combinations > Production configurations > should support strict + secure (recommended)
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Cookie attribute combinations > Production configurations > should support lax + secure (allowed but not recommended)
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Cookie attribute combinations > Production configurations > should support none + secure (specific use cases only)
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Cookie attribute combinations > Development configurations > should support lax + non-secure (default)
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Cookie attribute combinations > Development configurations > should support strict + non-secure (for testing)
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Cookie attribute combinations > Development configurations > should reject none + non-secure (invalid combination)
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Security logging and warnings > should log when using default SameSite setting
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Security logging and warnings > should log when using explicit SameSite setting
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Security logging and warnings > should emit multiple warnings for insecure production config
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Security logging and warnings > should warn about minimal protection with SameSite=none
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Edge cases and error handling > should handle missing NODE_ENV gracefully
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Edge cases and error handling > should handle empty SAME_SITE_COOKIE string
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Edge cases and error handling > should be case-sensitive for enum values
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Edge cases and error handling > should handle rapid environment changes
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Cookie behavior across contexts > should allow first-party requests with SameSite=strict
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Cookie behavior across contexts > should allow top-level navigations with SameSite=lax
+ ✓ packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Cookie behavior across contexts > should allow all requests with SameSite=none (with secure)
+stdout | packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Cookie behavior across contexts > should allow all requests with SameSite=none (with secure)
+[SECURITY] SAME_SITE_COOKIE explicitly set to: none
+
+stderr | packages/auth/__tests__/cookies.test.ts > SameSite Cookie Configuration > Cookie behavior across contexts > should allow all requests with SameSite=none (with secure)
+[SECURITY] WARNING: SAME_SITE_COOKIE=none provides minimal CSRF protection. Only use this if you have a specific requirement for cross-site cookie access.
+
+ ✓ packages/api/src/utils/__tests__/rate-limiter.test.ts > RateLimiter > cleanup > should remove old entries automatically 1103ms
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > generateEncryptionKey > should generate a valid 32-byte base64-encoded key
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > generateEncryptionKey > should generate different keys on each call
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > generateEncryptionKey > should generate keys that can be used as ENCRYPTION_KEY
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > extractLastChars > should extract last 4 characters by default
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > extractLastChars > should extract specified number of characters
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > extractLastChars > should return entire string if count exceeds length
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > extractLastChars > should return empty string for null input
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > extractLastChars > should return empty string for undefined input
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > extractLastChars > should return empty string for empty string
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > extractLastChars > should handle single character string
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > validateEncryptionConfig > should return true when ENCRYPTION_KEY is valid
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > validateEncryptionConfig > should throw when ENCRYPTION_KEY is not set
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > validateEncryptionConfig > should throw when ENCRYPTION_KEY is invalid base64
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > validateEncryptionConfig > should throw when ENCRYPTION_KEY is too short
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > validateEncryptionConfig > should throw when ENCRYPTION_KEY is too long
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > encrypt > should encrypt plaintext successfully
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > encrypt > should throw when ENCRYPTION_KEY is not set
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > encrypt > should throw for empty string
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > encrypt > should throw for null input
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > encrypt > should throw for undefined input
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > encrypt > should throw for non-string input
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > encrypt > should produce different ciphertexts for the same plaintext 482ms
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > encrypt > should handle long API keys
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > encrypt > should handle special characters
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > encrypt > should handle Unicode characters
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > encrypt > should handle newlines and tabs
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > encrypt > should include IV and auth tag in combined encrypted output
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > decrypt > should decrypt encrypted data successfully
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > decrypt > should throw when ENCRYPTION_KEY is not set
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > decrypt > should throw for empty string
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > decrypt > should throw for null input
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > decrypt > should throw for undefined input
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > decrypt > should throw for non-string input
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > decrypt > should throw for invalid base64
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > decrypt > should throw for truncated encrypted data
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > decrypt > should throw for tampered encrypted data
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > decrypt > should throw for data encrypted with different key
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > decrypt > should handle encrypted data with special characters
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > decrypt > should handle encrypted data with Unicode characters
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > decrypt > should handle encrypted long keys
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > encrypt/decrypt cycle > should maintain data integrity through multiple cycles 624ms
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > encrypt/decrypt cycle > should handle common API key formats 488ms
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > encrypt/decrypt cycle > should preserve exact byte representation 740ms
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > encrypt/decrypt cycle > should be deterministic with same encrypted data 306ms
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > Security properties > should not expose plaintext in encrypted output
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > Security properties > should produce unique IVs for each encryption 5090ms
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > Security properties > should have consistent encrypted data length
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > Security properties > should have IV length of 12 bytes (24 hex chars)
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > Security properties > should have auth tag length of 16 bytes (32 hex chars)
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > Security properties > should fail with tampered IV
+ ✓ packages/api/src/lib/encryption.test.ts > Encryption Utilities > Security properties > should fail with tampered auth tag
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/api/src/routers/chat.test.ts > Chat Search Performance Tests
+Error: Failed query: insert into "user" ("id", "name", "email", "email_verified", "image", "created_at", "updated_at") values ($1, $2, $3, $4, default, default, default)
+params: 01kfgxjh74xb6y42sqdr3nj9z3,Performance Test User,performance-test@example.com,true
+ ❯ NodePgPreparedQuery.queryWithCache ../../../../node_modules/src/pg-core/session.ts:73:11
+ ❯ packages/api/src/routers/chat.test.ts:42:5
+     40|     // Create a test user first (required for foreign key constraints)
+     41|     testUserId = generateULID();
+     42|     await db.insert(user).values({
+       |     ^
+     43|       id: testUserId,
+     44|       name: 'Performance Test User',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { query: 'insert into "user" ("id", "name", "email", "email_verified", "image", "created_at", "updated_at") values ($1, $2, $3, $4, default, default, default)', params: [ '01kfgxjh74xb6y42sqdr3nj9z3', 'Performance Test User', 'performance-test@example.com', true ] }
+{
+  stack: 'AggregateError: \n' +
+    '    at /Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/pg-pool/index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:95:5)\n' +
+    '    at file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/src/node-postgres/session.ts:149:14\n' +
+    '    at NodePgPreparedQuery.queryWithCache (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/src/pg-core/session.ts:71:12)\n' +
+    '    at /Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/.auto-claude/worktrees/tasks/006-extract-repetitive-model-transformation-in-getavai/packages/api/src/routers/chat.test.ts:42:5\n' +
+    '    at callSuiteHook (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:964:22)\n' +
+    '    at runSuite (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1175:29)\n' +
+    '    at runSuite (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runFiles (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1262:5)\n' +
+    '    at startTests (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1271:3)',
+  errors: [
+    {
+      stack: 'Error: connect ECONNREFUSED ::1:5432\n' +
+        '    at createConnectionError (node:net:1652:14)\n' +
+        '    at afterConnectMultiple (node:net:1682:16)',
+      message: 'connect ECONNREFUSED ::1:5432',
+      errno: -61,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n' +
+        '    at createConnectionError (node:net:1652:14)\n' +
+        '    at afterConnectMultiple (node:net:1682:16)',
+      message: 'connect ECONNREFUSED 127.0.0.1:5432',
+      errno: -61,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    }
+  ],
+  code: 'ECONNREFUSED',
+  stackStr: 'AggregateError: \n' +
+    '    at /Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/pg-pool/index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:95:5)\n' +
+    '    at file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/src/node-postgres/session.ts:149:14\n' +
+    '    at NodePgPreparedQuery.queryWithCache (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/src/pg-core/session.ts:71:12)\n' +
+    '    at /Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/.auto-claude/worktrees/tasks/006-extract-repetitive-model-transformation-in-getavai/packages/api/src/routers/chat.test.ts:42:5\n' +
+    '    at callSuiteHook (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:964:22)\n' +
+    '    at runSuite (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1175:29)\n' +
+    '    at runSuite (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runFiles (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1262:5)\n' +
+    '    at startTests (file:///Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/@vitest/runner/dist/index.js:1271:3)',
+  nameStr: 'AggregateError',
+  expected: 'undefined',
+  actual: 'undefined',
+  message: '',
+  constructor: 'Function<AggregateError>',
+  name: 'Caused by: AggregateError',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: '',
+      file: '/Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/pg-pool/index.js',
+      line: 45,
+      column: 11
+    },
+    {
+      method: '',
+      file: '/Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/src/node-postgres/session.ts',
+      line: 149,
+      column: 14
+    },
+    {
+      method: 'NodePgPreparedQuery.queryWithCache',
+      file: '/Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/node_modules/src/pg-core/session.ts',
+      line: 71,
+      column: 12
+    },
+    {
+      method: '',
+      file: '/Users/ajianaz/Ngoding/project-latest/sambunghub/sambung-chat/.auto-claude/worktrees/tasks/006-extract-repetitive-model-transformation-in-getavai/packages/api/src/routers/chat.test.ts',
+      line: 42,
+      column: 5
+    }
+  ]
+}
+ ❯ ../../../../node_modules/pg-pool/index.js:45:11
+ ❯ ../../../../node_modules/src/node-postgres/session.ts:149:14
+ ❯ NodePgPreparedQuery.queryWithCache ../../../../node_modules/src/pg-core/session.ts:71:12
+ ❯ packages/api/src/routers/chat.test.ts:42:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { errors: [ { stack: 'Error: connect ECONNREFUSED ::1:5432\n    at createConnectionError (node:net:1652:14)\n    at afterConnectMultiple (node:net:1682:16)', message: 'connect ECONNREFUSED ::1:5432', errno: -61, code: 'ECONNREFUSED', syscall: 'connect', address: '::1', port: 5432, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' }, { stack: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n    at createConnectionError (node:net:1652:14)\n    at afterConnectMultiple (node:net:1682:16)', message: 'connect ECONNREFUSED 127.0.0.1:5432', errno: -61, code: 'ECONNREFUSED', syscall: 'connect', address: '127.0.0.1', port: 5432, constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' } ], code: 'ECONNREFUSED' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed | 20 passed (21)
+      Tests  559 passed | 40 skipped (599)
+   Start at  01:37:47
+   Duration  12.40s (transform 3.12s, setup 944ms, collect 8.98s, tests 14.66s, environment 4ms, prepare 7.00s)
+
+error: script "test:unit" exited with code 1

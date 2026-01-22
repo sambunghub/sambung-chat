@@ -60,9 +60,9 @@ describe('Content-Security-Policy', () => {
       expect(csp).toContain(
         "script-src 'self' https://cdn.jsdelivr.net 'unsafe-eval' 'unsafe-inline'"
       );
-      expect(csp).toContain("style-src 'self' 'unsafe-inline'");
+      expect(csp).toContain("style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net");
       expect(csp).toContain("img-src 'self' data: https:");
-      expect(csp).toContain("font-src 'self'");
+      expect(csp).toContain("font-src 'self' https://cdn.jsdelivr.net");
       expect(csp).toContain("object-src 'none'");
       expect(csp).toContain("base-uri 'self'");
       expect(csp).toContain("form-action 'self'");
