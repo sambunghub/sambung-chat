@@ -4,7 +4,11 @@
   import { Chat } from '@ai-sdk/svelte';
   import { DefaultChatTransport } from 'ai';
   import { fade } from 'svelte/transition';
-  import { renderMarkdownSync } from '$lib/markdown-renderer.js';
+  import { onMount } from 'svelte';
+  import {
+    renderMarkdownSync,
+    ensureMarkdownDependencies
+  } from '$lib/markdown-renderer.js';
   import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
   import { Separator } from '$lib/components/ui/separator/index.js';
   import { orpc } from '$lib/orpc';
@@ -240,6 +244,15 @@
       isStreamingResponse = false;
     }
   }
+
+  // Lazy load markdown dependencies (KaTeX and Mermaid) on mount
+  onMount(async () => {
+    try {
+      await ensureMarkdownDependencies();
+    } catch (error) {
+      console.error('Failed to load markdown dependencies:', error);
+    }
+  });
 
   function isStreaming() {
     return isStreamingResponse;

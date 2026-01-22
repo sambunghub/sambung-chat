@@ -17,6 +17,37 @@ declare global {
     readonly PUBLIC_API_URL: string;
     readonly PUBLIC_SERVER_URL: string;
   }
+
+  /**
+   * Mermaid global object (loaded from CDN)
+   * Minimal type definition for the Mermaid library
+   */
+  interface Window {
+    mermaid?: {
+      initialize: (config: any) => Promise<void>;
+      render: (id: string, text: string) => Promise<{ svg: string }>;
+    };
+
+    /**
+     * Track Mermaid initialization state
+     */
+    mermaidInitialized?: boolean;
+
+    /**
+     * Track current Mermaid theme ('dark' | 'light')
+     */
+    mermaidTheme?: 'dark' | 'light';
+
+    /**
+     * Track if Mermaid theme change observer is set up
+     */
+    mermaidThemeObserverSetup?: boolean;
+
+    /**
+     * Store the MutationObserver for Mermaid theme changes
+     */
+    mermaidThemeObserver?: MutationObserver;
+  }
 }
 
 export {};
