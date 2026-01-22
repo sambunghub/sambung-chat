@@ -225,5 +225,71 @@ describe('Validation Utilities', () => {
       expect(timestamp).toBeInstanceOf(Date);
       expect(timestamp.getTime()).toBeGreaterThan(0);
     });
+
+    it('should return valid Date for empty string (NaN timestamp)', () => {
+      const timestamp = getTimestampFromULID('');
+
+      expect(timestamp).toBeInstanceOf(Date);
+      expect(isNaN(timestamp.getTime())).toBe(true);
+    });
+
+    it('should return valid Date for invalid ULID with special characters', () => {
+      const timestamp = getTimestampFromULID('invalid!@#$%^&*()');
+
+      expect(timestamp).toBeInstanceOf(Date);
+    });
+
+    it('should return valid Date for ULID with invalid characters (I, L, O, U)', () => {
+      const timestamp1 = getTimestampFromULID('01arz3ndektsv4rrffq69g5fai');
+      const timestamp2 = getTimestampFromULID('01arz3ndektsv4rrffq69g5fal');
+
+      expect(timestamp1).toBeInstanceOf(Date);
+      expect(timestamp2).toBeInstanceOf(Date);
+    });
+
+    it('should handle ULID shorter than 10 characters', () => {
+      const timestamp = getTimestampFromULID('01arz3nde');
+
+      // Function doesn't validate, it will parse whatever substring is available
+      expect(timestamp).toBeInstanceOf(Date);
+      expect(timestamp.getTime()).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should handle mixed case with invalid characters', () => {
+      const timestamp = getTimestampFromULID('01ArZ3NDeIiLlOoUu');
+
+      expect(timestamp).toBeInstanceOf(Date);
+    });
+
+    it('should handle ULID with whitespace', () => {
+      const timestamp1 = getTimestampFromULID(' 01arz3ndektsv4rrffq69g5fav');
+      const timestamp2 = getTimestampFromULID('01arz3ndektsv4rrffq69g5fav ');
+
+      expect(timestamp1).toBeInstanceOf(Date);
+      expect(timestamp2).toBeInstanceOf(Date);
+    });
+
+    it('should handle very short strings', () => {
+      const timestamp = getTimestampFromULID('abc');
+
+      expect(timestamp).toBeInstanceOf(Date);
+    });
+
+    it('should handle strings with unicode characters', () => {
+      const timestamp = getTimestampFromULID('01arz3nde日本語');
+
+      expect(timestamp).toBeInstanceOf(Date);
+    });
+
+    it('should produce reasonable timestamps for valid ULIDs', () => {
+      const ulid = '01ARZ3NDEKTSV4RRFFQ69G5FAV';
+      const timestamp = getTimestampFromULID(ulid);
+      const timestampMs = timestamp.getTime();
+
+      // ULID timestamps are milliseconds since Unix epoch
+      // This should be a reasonable date (after 1970 and before 2100)
+      expect(timestampMs).toBeGreaterThan(0);
+      expect(timestampMs).toBeLessThan(4102444800000); // Year 2100 in milliseconds
+    });
   });
 });
