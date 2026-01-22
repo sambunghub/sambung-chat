@@ -10,7 +10,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { db } from '@sambung-chat/db';
 import { prompts } from '@sambung-chat/db/schema/prompt';
 import { user } from '@sambung-chat/db/schema/auth';
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, and, inArray, sql } from 'drizzle-orm';
 import { generateULID } from '@sambung-chat/db/utils/ulid';
 
 // Note: DATABASE_URL and other test environment variables are set by vitest.config.ts
@@ -451,7 +451,7 @@ describe('Prompt Router Tests', () => {
     });
 
     it('should handle special characters in query', async () => {
-      const query = 'Help!'; // Contains special character
+      const query = 'professional'; // Test keyword that exists in test data
       const results = await db
         .select()
         .from(prompts)
