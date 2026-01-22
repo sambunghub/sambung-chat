@@ -1,6 +1,6 @@
 import { db } from '@sambung-chat/db';
-import { user } from '@sambung-chat/db/schema/auth';
-import { eq } from 'drizzle-orm';
+import { user, session } from '@sambung-chat/db/schema/auth';
+import { eq, and, gt } from 'drizzle-orm';
 import { ORPCError } from '@orpc/server';
 
 /**
@@ -35,6 +35,20 @@ export interface ChangePasswordInput {
   currentPassword: string;
   newPassword: string;
   revokeOtherSessions?: boolean;
+}
+
+/**
+ * User session data structure
+ */
+export interface UserSession {
+  id: string;
+  token: string;
+  expiresAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  ipAddress: string | null;
+  userAgent: string | null;
+  isCurrent: boolean;
 }
 
 /**
@@ -397,5 +411,48 @@ export class UserService {
         message: 'An unexpected error occurred while deleting account',
       });
     }
+  }
+
+  /**
+   * Get all active sessions for a user
+   *
+   * Fetches all active (non-expired) sessions for the authenticated user.
+   * Identifies the current session based on the provided session token.
+   *
+   * @param userId - The user ID to fetch sessions for
+   * @param currentToken - The token of the current session (to identify current session)
+   * @returns Array of user sessions
+   * @throws {ORPCError} If user not found
+   *
+   * @example
+   * ```ts
+   * const sessions = await UserService.getSessions('user_123', 'current_token_xyz');
+   * // Returns: [{ id, token, expiresAt, ipAddress, userAgent, isCurrent, ... }]
+   * ```
+   */
+  static async getSessions(userId: string, currentToken: string): Promise<UserSession[]> {
+    // Fetch all active (non-expired) sessions for the user
+    const sessions = await db
+      .select()
+      .from(session)
+      .where(
+        and(
+          eq(session.userId, userId),
+          gt(session.expiresAt, new Date()) // Only non-expired sessions
+        )
+      )
+      .orderBy(session.createdAt);
+
+    // Transform and identify current session
+    return sessions.map((s) => ({
+      id: s.id,
+      token: s.token,
+      expiresAt: s.expiresAt,
+      createdAt: s.createdAt,
+      updatedAt: s.updatedAt,
+      ipAddress: s.ipAddress,
+      userAgent: s.userAgent,
+      isCurrent: s.token === currentToken, // Mark current session
+    }));
   }
 }

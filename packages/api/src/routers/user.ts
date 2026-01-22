@@ -82,4 +82,18 @@ export const userRouter = {
     const userId = context.session.user.id;
     return await UserService.deleteAccount(userId);
   }),
+
+  /**
+   * Get all active sessions for the current user
+   * Returns all active (non-expired) sessions with device/browser information
+   * The current session is marked with isCurrent: true
+   */
+  getSessions: protectedProcedure.handler(async ({ context }) => {
+    const userId = context.session.user.id;
+    // Extract the session token from the Better Auth session object
+    // The session object has structure: { user: {...}, session: {...} }
+    const sessionData = context.session as any;
+    const currentToken = sessionData?.session?.token || sessionData?.token || '';
+    return await UserService.getSessions(userId, currentToken);
+  }),
 };
