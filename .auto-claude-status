@@ -1,7 +1,7 @@
 {
   "active": true,
   "spec": "014-add-postgresql-gin-index-for-full-text-search-on-m",
-  "state": "building",
+  "state": "paused",
   "subtasks": {
     "completed": 1,
     "total": 10,
@@ -9,17 +9,17 @@
     "failed": 0
   },
   "phase": {
-    "current": "Apply GIN Index Migration",
-    "id": null,
-    "total": 3
+    "current": "",
+    "id": 0,
+    "total": 0
   },
   "workers": {
     "active": 0,
     "max": 1
   },
   "session": {
-    "number": 4,
-    "started_at": "2026-01-22T06:02:20.029911"
+    "number": 1,
+    "started_at": "2026-01-22T06:12:46.340541"
   },
-  "last_update": "2026-01-22T06:08:06.503629"
+  "last_update": "2026-01-22T06:12:46.471764"
 }
