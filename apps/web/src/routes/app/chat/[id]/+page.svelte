@@ -22,6 +22,7 @@
   import TokenDisplay from '$lib/components/token-display.svelte';
   import ErrorDisplay from '$lib/components/error-display.svelte';
   import SecondarySidebarTrigger from '$lib/components/secondary-sidebar-trigger.svelte';
+  import ChatSkeleton from '$lib/components/chat/chat-skeleton.svelte';
 
   // Get backend API URL for AI endpoint
   // Use PUBLIC_API_URL (client-side environment variable)
@@ -732,7 +733,9 @@
   <div bind:this={messagesContainer} class="flex-1 overflow-y-auto px-6 py-4">
     {#if loading}
       <div class="flex h-full items-center justify-center">
-        <div class="text-muted-foreground">Loading chat...</div>
+        <div class="w-full max-w-3xl">
+          <ChatSkeleton count={3} />
+        </div>
       </div>
     {:else if messages.length === 0}
       <div class="flex h-full items-center justify-center">

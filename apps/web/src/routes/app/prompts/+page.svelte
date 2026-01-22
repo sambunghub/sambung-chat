@@ -3,6 +3,118 @@
   import { Separator } from '$lib/components/ui/separator/index.js';
   import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
   import SecondarySidebarTrigger from '$lib/components/secondary-sidebar-trigger.svelte';
+  import PromptLibrary from '$lib/components/prompt-library.svelte';
+  import { onMount } from 'svelte';
+  import type { PromptData } from '$lib/components/prompt-library.svelte';
+  import { orpc } from '$lib/orpc';
+  import { toast } from 'svelte-sonner';
+
+  // State
+  let prompts = $state<PromptData[]>([]);
+  let loading = $state(true);
+  let submitting = $state(false);
+
+  // Load prompts on mount
+  onMount(async () => {
+    await loadPrompts();
+  });
+
+  async function loadPrompts() {
+    try {
+      loading = true;
+      const data = await (orpc as any).prompt.getAll();
+      prompts = data.map((p: any) => ({
+        ...p,
+        createdAt: new Date(p.createdAt),
+        updatedAt: new Date(p.updatedAt)
+      }));
+    } catch (error) {
+      console.error('Failed to load prompts:', error);
+      toast.error('Failed to load prompts');
+    } finally {
+      loading = false;
+    }
+  }
+
+  // Event handlers
+  async function handleCreate(data: {
+    name: string;
+    content: string;
+    variables: string[];
+    category: string;
+    isPublic: boolean;
+  }) {
+    try {
+      submitting = true;
+      await (orpc as any).prompt.create(data);
+      await loadPrompts();
+      toast.success('Prompt created successfully');
+    } catch (error) {
+      console.error('Failed to create prompt:', error);
+      toast.error('Failed to create prompt');
+    } finally {
+      submitting = false;
+    }
+  }
+
+  function openCreateDialog() {
+    // Dialog is managed internally by PromptLibrary component
+  }
+
+  function handleEdit(id: string) {
+    // Dialog is managed internally by PromptLibrary component
+  }
+
+  async function handleUpdate(
+    id: string,
+    data: {
+      name: string;
+      content: string;
+      variables: string[];
+      category: string;
+      isPublic: boolean;
+    }
+  ) {
+    try {
+      submitting = true;
+      await (orpc as any).prompt.update({ id, data });
+      await loadPrompts();
+      toast.success('Prompt updated successfully');
+    } catch (error) {
+      console.error('Failed to update prompt:', error);
+      toast.error('Failed to update prompt');
+    } finally {
+      submitting = false;
+    }
+  }
+
+  async function handleDelete(id: string) {
+    try {
+      submitting = true;
+      await (orpc as any).prompt.delete({ id });
+      await loadPrompts();
+      toast.success('Prompt deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete prompt:', error);
+      toast.error('Failed to delete prompt');
+    } finally {
+      submitting = false;
+    }
+  }
+
+  function handleView(id: string) {
+    // Dialog is managed internally by PromptLibrary component
+  }
+
+  async function handleCopy(content: string) {
+    try {
+      await navigator.clipboard.writeText(content);
+      toast.success('Prompt content copied to clipboard');
+    } catch (error) {
+      console.error('Failed to copy:', error);
+      toast.error('Failed to copy to clipboard');
+    }
+  }
 </script>
 
 <header class="bg-background sticky top-0 z-10 flex shrink-0 items-center gap-2 border-b p-4">
@@ -11,40 +123,23 @@
   <Breadcrumb.Root>
     <Breadcrumb.List>
       <Breadcrumb.Item>
-        <Breadcrumb.Page>Prompts</Breadcrumb.Page>
+        <Breadcrumb.Page>Prompts Library</Breadcrumb.Page>
       </Breadcrumb.Item>
     </Breadcrumb.List>
   </Breadcrumb.Root>
 </header>
 
-<div class="flex h-[calc(100vh-61px)] items-center justify-center p-8">
-  <div class="text-center">
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="96"
-      height="96"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="1"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      class="text-primary mx-auto mb-6 opacity-50"
-    >
-      <path
-        d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962.63l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1.1.73v.47a2 2 0 0 1-1 1.74l.15-.09a2 2 0 0 0 .73-2.73l.22-.39a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
-      />
-      <path d="M14 9V6a3 3 0 0 0-3-3" />
-      <path d="M20.2 6a3 3 0 0 0-3-3" />
-      <path d="M6.1 12.2a3 3 0 0 0 3.756 0M11 19a2 2 0 0 1-2 0" />
-    </svg>
-    <h1 class="mb-3 text-3xl font-bold">Prompts Library</h1>
-    <p class="text-muted-foreground mb-6 text-lg">
-      Save and reuse prompt templates for consistent AI interactions
-    </p>
-    <div class="text-muted-foreground text-sm">
-      <p>Coming Soon</p>
-      <p class="mt-2">Create, organize, and share effective prompt templates</p>
-    </div>
-  </div>
-</div>
+<main class="p-6">
+  <PromptLibrary
+    {prompts}
+    {loading}
+    {submitting}
+    onadd={openCreateDialog}
+    oncreate={handleCreate}
+    onedit={handleEdit}
+    onupdate={handleUpdate}
+    ondelete={handleDelete}
+    onview={handleView}
+    oncopy={handleCopy}
+  />
+</main>
