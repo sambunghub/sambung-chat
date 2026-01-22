@@ -483,15 +483,7 @@
     if (!confirmed) return;
 
     try {
-      // Get chats in this folder
-      const chatsInFolder = chats.filter((c) => c.folderId === folderId);
-
-      // Move all chats to "No Folder" (folderId = null)
-      for (const chat of chatsInFolder) {
-        await orpc.chat.updateFolder({ id: chat.id, folderId: null });
-      }
-
-      // Delete the folder
+      // Delete the folder - backend will automatically move chats to "No Folder"
       await orpc.folder.delete({ id: folderId });
 
       // Update local state
