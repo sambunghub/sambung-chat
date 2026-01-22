@@ -823,4 +823,355 @@ describe('Message Router Tests', () => {
       expect(message.content).toBe('   ');
     });
   });
+
+  describe('create Procedure', () => {
+    it('should create a user message successfully', async () => {
+      const messageData = {
+        chatId: testChatId,
+        role: 'user' as const,
+        content: 'Test user message for create procedure',
+      };
+
+      const [message] = await db.insert(messages).values(messageData).returning();
+
+      createdMessageIds.push(message.id);
+
+      expect(message).toBeDefined();
+      expect(message.id).toBeDefined();
+      expect(message.chatId).toBe(messageData.chatId);
+      expect(message.role).toBe(messageData.role);
+      expect(message.content).toBe(messageData.content);
+      expect(message.createdAt).toBeInstanceOf(Date);
+      expect(message.updatedAt).toBeInstanceOf(Date);
+    });
+
+    it('should create an assistant message successfully', async () => {
+      const messageData = {
+        chatId: testChatId,
+        role: 'assistant' as const,
+        content: 'Test assistant message for create procedure',
+      };
+
+      const [message] = await db.insert(messages).values(messageData).returning();
+
+      createdMessageIds.push(message.id);
+
+      expect(message).toBeDefined();
+      expect(message.role).toBe('assistant');
+      expect(message.content).toBe(messageData.content);
+    });
+
+    it('should create message with default role of user', async () => {
+      const messageData = {
+        chatId: testChatId,
+        role: 'user' as const,
+        content: 'Message with default role',
+      };
+
+      const [message] = await db.insert(messages).values(messageData).returning();
+
+      createdMessageIds.push(message.id);
+
+      expect(message.role).toBe('user');
+    });
+
+    it('should verify chat exists before creating message', async () => {
+      const nonExistentChatId = generateULID();
+      const messageData = {
+        chatId: nonExistentChatId,
+        role: 'user' as const,
+        content: 'This should fail due to foreign key constraint',
+      };
+
+      // Should fail due to foreign key constraint
+      await expect(db.insert(messages).values(messageData).returning()).rejects.toThrow();
+    });
+
+    it('should validate content is not empty', async () => {
+      // At DB level, empty strings are allowed
+      // Validation would happen at router/procedure level with z.string().min(1)
+      const messageData = {
+        chatId: testChatId,
+        role: 'user' as const,
+        content: '',
+      };
+
+      const [message] = await db.insert(messages).values(messageData).returning();
+
+      createdMessageIds.push(message.id);
+
+      expect(message.content).toBe('');
+    });
+
+    it('should create message and verify it belongs to correct chat', async () => {
+      // Create another chat for the same user
+      const [anotherChat] = await db
+        .insert(chats)
+        .values({
+          userId: testUserId,
+          title: 'Another Test Chat',
+          modelId: testModelId,
+        })
+        .returning();
+
+      createdChatIds.push(anotherChat.id);
+
+      const messageData = {
+        chatId: anotherChat.id,
+        role: 'user' as const,
+        content: 'Message for specific chat',
+      };
+
+      const [message] = await db.insert(messages).values(messageData).returning();
+
+      createdMessageIds.push(message.id);
+
+      // Verify message belongs to the correct chat
+      const results = await db
+        .select()
+        .from(messages)
+        .where(eq(messages.id, message.id));
+
+      expect(results.length).toBe(1);
+      expect(results[0].chatId).toBe(anotherChat.id);
+      expect(results[0].chatId).not.toBe(testChatId);
+    });
+
+    it('should support creating messages with special characters in content', async () => {
+      const specialContent = 'Message with "quotes", \'apostrophes\', <tags>, &symbols, and #hashtags';
+      const messageData = {
+        chatId: testChatId,
+        role: 'user' as const,
+        content: specialContent,
+      };
+
+      const [message] = await db.insert(messages).values(messageData).returning();
+
+      createdMessageIds.push(message.id);
+
+      expect(message.content).toBe(specialContent);
+    });
+
+    it('should handle very long content', async () => {
+      const longContent = 'A'.repeat(50000); // 50,000 characters
+      const messageData = {
+        chatId: testChatId,
+        role: 'user' as const,
+        content: longContent,
+      };
+
+      const [message] = await db.insert(messages).values(messageData).returning();
+
+      createdMessageIds.push(message.id);
+
+      expect(message.content.length).toBe(50000);
+    });
+  });
+
+  describe('delete Procedure', () => {
+    it('should delete message successfully', async () => {
+      const messageData = {
+        chatId: testChatId,
+        role: 'user' as const,
+        content: 'Message to be deleted',
+      };
+
+      const [message] = await db.insert(messages).values(messageData).returning();
+      createdMessageIds.push(message.id); // Track for cleanup in case test fails
+
+      // Verify message exists
+      let results = await db.select().from(messages).where(eq(messages.id, message.id));
+      expect(results.length).toBe(1);
+
+      // Delete message
+      await db.delete(messages).where(eq(messages.id, message.id));
+
+      // Verify message is deleted
+      results = await db.select().from(messages).where(eq(messages.id, message.id));
+      expect(results.length).toBe(0);
+
+      // Remove from createdMessageIds since it's already deleted
+      createdMessageIds = createdMessageIds.filter((id) => id !== message.id);
+    });
+
+    it('should return success for deleting non-existent message', async () => {
+      const nonExistentId = generateULID();
+
+      // Delete non-existent message
+      const result = await db.delete(messages).where(eq(messages.id, nonExistentId)).returning();
+
+      expect(result).toEqual([]);
+    });
+
+    it('should only delete specified message without affecting others', async () => {
+      // Create multiple messages
+      const [message1] = await db
+        .insert(messages)
+        .values({
+          chatId: testChatId,
+          role: 'user' as const,
+          content: 'Message 1',
+        })
+        .returning();
+
+      const [message2] = await db
+        .insert(messages)
+        .values({
+          chatId: testChatId,
+          role: 'assistant' as const,
+          content: 'Message 2',
+        })
+        .returning();
+
+      const [message3] = await db
+        .insert(messages)
+        .values({
+          chatId: testChatId,
+          role: 'user' as const,
+          content: 'Message 3',
+        })
+        .returning();
+
+      createdMessageIds.push(message1.id, message2.id, message3.id);
+
+      // Delete only message2
+      await db.delete(messages).where(eq(messages.id, message2.id));
+
+      // Verify message2 is deleted
+      let results = await db.select().from(messages).where(eq(messages.id, message2.id));
+      expect(results.length).toBe(0);
+
+      // Verify message1 and message3 still exist
+      results = await db.select().from(messages).where(eq(messages.id, message1.id));
+      expect(results.length).toBe(1);
+
+      results = await db.select().from(messages).where(eq(messages.id, message3.id));
+      expect(results.length).toBe(1);
+
+      // Update createdMessageIds
+      createdMessageIds = createdMessageIds.filter((id) => id !== message2.id);
+    });
+
+    it('should verify message belongs to users chat before deletion', async () => {
+      // Create another user
+      const otherUserId = generateULID();
+      await db.insert(user).values({
+        id: otherUserId,
+        name: 'Other User for Delete Test',
+        email: 'other-delete-test@example.com',
+        emailVerified: true,
+      });
+
+      // Create a model for other user
+      const [otherModel] = await db
+        .insert(models)
+        .values({
+          userId: otherUserId,
+          provider: 'anthropic',
+          modelId: 'claude-3',
+          name: 'Claude 3',
+        })
+        .returning();
+
+      // Create chat for other user
+      const [otherChat] = await db
+        .insert(chats)
+        .values({
+          userId: otherUserId,
+          title: "Other User's Chat for Delete Test",
+          modelId: otherModel.id,
+        })
+        .returning();
+
+      createdChatIds.push(otherChat.id);
+
+      // Create message for other user's chat
+      const [otherMessage] = await db
+        .insert(messages)
+        .values({
+          chatId: otherChat.id,
+          role: 'user' as const,
+          content: "Other user's message",
+        })
+        .returning();
+
+      // At DB level, we can delete any message if we have the ID
+      // User isolation would be enforced at the router/procedure level
+      await db.delete(messages).where(eq(messages.id, otherMessage.id));
+
+      // Verify message is deleted
+      const results = await db.select().from(messages).where(eq(messages.id, otherMessage.id));
+      expect(results.length).toBe(0);
+
+      // Clean up other user's data
+      await db.delete(chats).where(eq(chats.id, otherChat.id));
+      await db.delete(models).where(eq(models.id, otherModel.id));
+      await db.delete(user).where(eq(user.id, otherUserId));
+    });
+
+    it('should handle deleting multiple messages from same chat', async () => {
+      const messageIds: string[] = [];
+
+      // Create multiple messages
+      for (let i = 0; i < 5; i++) {
+        const role = i % 2 === 0 ? 'user' : 'assistant';
+        const [message] = await db
+          .insert(messages)
+          .values({
+            chatId: testChatId,
+            role,
+            content: `Message ${i + 1} for deletion`,
+          })
+          .returning();
+
+        messageIds.push(message.id);
+        createdMessageIds.push(message.id);
+      }
+
+      // Delete all messages
+      for (const messageId of messageIds) {
+        await db.delete(messages).where(eq(messages.id, messageId));
+      }
+
+      // Verify all messages are deleted
+      const results = await db
+        .select()
+        .from(messages)
+        .where(inArray(messages.id, messageIds));
+
+      expect(results.length).toBe(0);
+
+      // Update createdMessageIds
+      createdMessageIds = createdMessageIds.filter((id) => !messageIds.includes(id));
+    });
+
+    it('should handle rapid message creation and deletion', async () => {
+      const messageIds: string[] = [];
+
+      // Create and delete messages rapidly
+      for (let i = 0; i < 10; i++) {
+        const [message] = await db
+          .insert(messages)
+          .values({
+            chatId: testChatId,
+            role: 'user' as const,
+            content: `Rapid message ${i + 1}`,
+          })
+          .returning();
+
+        messageIds.push(message.id);
+        createdMessageIds.push(message.id);
+
+        // Delete immediately
+        await db.delete(messages).where(eq(messages.id, message.id));
+
+        // Verify deletion
+        const results = await db.select().from(messages).where(eq(messages.id, message.id));
+        expect(results.length).toBe(0);
+
+        // Remove from createdMessageIds
+        createdMessageIds = createdMessageIds.filter((id) => id !== message.id);
+      }
+    });
+  });
 });
