@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.21] - 2026-01-22
+
+### Fixed
+
+- **ORPC Response Handling**: Fix critical bug where ORPC client receives `undefined` from all API calls ([apps/server/src/index.ts](apps/server/src/index.ts:160-164))
+  - Simplified RPC middleware to pass-through ORPC responses without modification
+  - Previously, middleware was parsing and re-serializing ORPC responses, breaking the binary encoding format
+  - ORPC uses SuperJSON encoding which was corrupted by `JSON.stringify()` re-serialization
+  - Added critical architecture rule to CLAUDE.md to prevent future occurrences
+
+- **Undefined Array Errors**: Add fallback values for ORPC responses to prevent rendering errors ([apps/web/src/lib/components/secondary-sidebar/ChatList.svelte](apps/web/src/lib/components/secondary-sidebar/ChatList.svelte), [apps/web/src/lib/components/model-selector.svelte](apps/web/src/lib/components/model-selector.svelte), [apps/web/src/lib/components/settings/api-keys/api-key-list.svelte](apps/web/src/lib/components/settings/api-keys/api-key-list.svelte))
+  - ChatList, model-selector, api-key-list now handle `undefined` responses gracefully
+  - Added `|| []` fallbacks for array data from ORPC calls
+  - Filters out `null`/`undefined` items from arrays before rendering
+
 ## [0.0.20] - 2026-01-22
 
 ### Fixed

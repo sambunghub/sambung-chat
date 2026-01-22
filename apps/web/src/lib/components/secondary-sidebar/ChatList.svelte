@@ -272,7 +272,7 @@
         dateFrom: dateFrom || undefined,
         dateTo: dateTo || undefined,
       });
-      chats = result;
+      chats = result || [];
     } catch (err) {
       console.error('Failed to load chats:', err);
       // Only set error if it's a network/fetch error (not cancellation)
@@ -299,7 +299,7 @@
   async function loadFolders() {
     try {
       const result = await orpc.folder.getAll();
-      folders = result as Folder[];
+      folders = (result as Folder[]) || [];
     } catch (err) {
       console.error('Failed to load folders:', err);
     }
@@ -309,7 +309,7 @@
   async function loadModels() {
     try {
       const result = await orpc.model.getAll();
-      models = result as Model[];
+      models = (result as Model[]) || [];
     } catch (err) {
       console.error('Failed to load models:', err);
     }

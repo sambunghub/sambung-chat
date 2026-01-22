@@ -515,3 +515,66 @@ Before considering a task complete:
 - Use `.env` files for environment variables
 - All secrets validated through `@sambung-chat/env`
 - Never log PII or sensitive data
+
+---
+
+## 🚨 Critical Architecture Rules
+
+### ORPC Response Handling - DO NOT MODIFY ORPC RESPONSES
+
+**CRITICAL**: Never parse, modify, or re-serialize ORPC response bodies in middleware.
+
+**The Problem**:
+ORPC uses its own binary encoding format (not plain JSON). If middleware tries to:
+
+1. Parse the response body as JSON
+2. Extract or modify data
+3. Re-serialize with `JSON.stringify()`
+
+The ORPC client will receive `undefined` because the encoding format is broken.
+
+**Correct Pattern** (from `apps/server/src/index.ts:160-164`):
+
+```typescript
+app.use('/rpc/*', async (c, next) => {
+  try {
+    const context = await createContext({ context: c });
+    const rpcResult = await rpcHandler.handle(c.req.raw, {
+      prefix: '/rpc',
+      context: context,
+    });
+
+    if (rpcResult.matched) {
+      // ✅ CORRECT: Pass through ORPC response without modification
+      // ORPC uses its own encoding format, so we shouldn't parse/serialize it
+      return c.newResponse(rpcResult.response.body, rpcResult.response);
+    }
+  } catch (error) {
+    console.error('[RPC] Error:', error);
+    return c.json({ error: error instanceof Error ? error.message : String(error) }, 500);
+  }
+
+  await next();
+});
+```
+
+**What NOT to do**:
+
+```typescript
+// ❌ WRONG: This breaks ORPC encoding
+const text = await rpcResult.response.clone().text();
+const responseBody = JSON.parse(text);
+const cleanBody = { ...responseBody };
+delete cleanBody.someField;
+return c.newResponse(JSON.stringify(cleanBody), statusCode, headers);
+```
+
+**Symptoms of this issue**:
+
+- Frontend receives `undefined` from ORPC calls
+- `console.log(orpc.model.getAll())` shows `undefined`
+- Server logs show data being returned correctly
+- Browser shows 200 OK but client gets nothing
+
+**Why this happens**:
+ORPC uses a custom encoding (SuperJSON) that preserves types like Date, Map, Set, etc. When you re-serialize with plain `JSON.stringify()`, you lose this encoding and the client can't decode the response.

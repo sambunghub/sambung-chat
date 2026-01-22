@@ -52,6 +52,9 @@
     ontogglevisibility,
     oncopy,
   }: Props = $props();
+
+  // Ensure apiKeys is always an array and filter out undefined items
+  const safeApiKeys = $derived((apiKeys || []).filter((key) => key !== undefined && key !== null));
 </script>
 
 <div class="space-y-4">
@@ -89,7 +92,7 @@
         </Card>
       {/each}
     </div>
-  {:else if apiKeys.length === 0}
+  {:else if safeApiKeys.length === 0}
     <Card>
       <CardContent class="py-12">
         <div class="text-center">
@@ -109,7 +112,7 @@
     </Card>
   {:else}
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {#each apiKeys as apiKey (apiKey.id)}
+      {#each safeApiKeys as apiKey (apiKey.id)}
         <ApiKeyCard
           {apiKey}
           showKey={!!visibleKeys[apiKey.id]}

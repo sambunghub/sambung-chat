@@ -98,7 +98,7 @@
     errorMessage = '';
     try {
       const result = await orpc.model.getAll();
-      models = result as Model[];
+      models = (result as Model[]) || [];
     } catch (error) {
       console.error('Failed to load models:', error);
       errorMessage = 'Failed to load models';
@@ -110,7 +110,7 @@
   async function loadApiKeys() {
     try {
       const result = await orpc.apiKey.getAll();
-      apiKeys = result as ApiKey[];
+      apiKeys = (result as ApiKey[]) || [];
     } catch (error) {
       console.error('Failed to load API keys:', error);
       // Set empty array on error to prevent UI issues

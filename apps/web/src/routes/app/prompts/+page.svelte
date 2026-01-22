@@ -23,7 +23,7 @@
     try {
       loading = true;
       const data = await orpc.prompt.getAll();
-      prompts = data.map((p) => ({
+      prompts = (data || []).map((p) => ({
         ...p,
         createdAt: new Date(p.createdAt),
         updatedAt: new Date(p.updatedAt),

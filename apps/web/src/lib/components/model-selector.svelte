@@ -32,7 +32,7 @@
     errorMessage = '';
     try {
       const result = await orpc.model.getAll();
-      models = result as Model[];
+      models = (result as Model[]) || [];
     } catch (error) {
       console.error('Failed to load models:', error);
       errorMessage = 'Failed to load models';

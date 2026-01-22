@@ -55,7 +55,7 @@
     loading = true;
     try {
       const result = await apiKeyClient.apiKey.getAll();
-      apiKeys = result as ApiKey[];
+      apiKeys = (result as ApiKey[]) || [];
     } catch (error) {
       toast.error('Failed to load API keys', {
         description: error instanceof Error ? error.message : 'Please try again later',
@@ -83,7 +83,7 @@
     submitting = true;
     try {
       const result = await apiKeyClient.apiKey.getById({ id });
-      editingKey = result as ApiKey & { key?: string };
+      editingKey = (result as ApiKey & { key?: string }) || null;
       formData = {
         provider: editingKey.provider as any,
         name: editingKey.name,
