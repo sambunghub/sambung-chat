@@ -17,13 +17,14 @@
   // Generate alternating message types for visual variety
   const skeletonMessages = $derived(
     Array.from({ length: count }, (_, i) => ({
+      id: `skeleton-${i}`, // Unique ID for each skeleton
       role: i % 2 === 0 ? 'user' : 'assistant',
     }))
   );
 </script>
 
 <div class={cn('space-y-4', className)}>
-  {#each skeletonMessages as msg (msg.role)}
+  {#each skeletonMessages as msg (msg.id)}
     <div class="flex w-full {msg.role === 'user' ? 'justify-end' : 'justify-start'}">
       <div
         class="max-w-[85%] space-y-3 rounded-2xl px-4 py-3 {msg.role === 'user'

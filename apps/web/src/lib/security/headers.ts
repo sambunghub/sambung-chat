@@ -122,8 +122,8 @@ export function getCSPHeader(config: CSPConfig = { reportOnly: false }): string 
     // Workers: Allow blob: URLs for Vite HMR module workers in development
     ...(isDev ? [`worker-src 'self' blob:`] : [`worker-src 'self'`]),
 
-    // Styles: Allow inline styles for shadcn-svelte components
-    `style-src 'self' 'unsafe-inline'`,
+    // Styles: Allow inline styles for shadcn-svelte components and KaTeX CDN
+    `style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net`,
 
     // Images: Allow data URLs (for avatars) and HTTPS
     `img-src 'self' data: https:`,
@@ -131,8 +131,8 @@ export function getCSPHeader(config: CSPConfig = { reportOnly: false }): string 
     // Connect: Allow API calls to backend and Keycloak
     `connect-src ${connectSources}`,
 
-    // Fonts: Only allow same-origin (no external fonts)
-    `font-src 'self'`,
+    // Fonts: Allow same-origin and KaTeX CDN fonts
+    `font-src 'self' https://cdn.jsdelivr.net`,
 
     // Objects: Disallow plugins (Flash, etc.)
     `object-src 'none'`,
