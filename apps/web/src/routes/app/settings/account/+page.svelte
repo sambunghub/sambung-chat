@@ -8,7 +8,7 @@
   import BadgeCheckIcon from '@lucide/svelte/icons/badge-check';
   import MailIcon from '@lucide/svelte/icons/mail';
   import { page } from '$app/stores';
-  import { ProfileForm, ChangePasswordForm, SessionsList, type ProfileFormData, type ChangePasswordFormData, type SessionData } from '$lib/components/settings/profile';
+  import { ProfileForm, AvatarUpload, ChangePasswordForm, SessionsList, type ProfileFormData, type ChangePasswordFormData, type SessionData } from '$lib/components/settings/profile';
   import { toast } from 'svelte-sonner';
   import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
 
@@ -17,6 +17,7 @@
     user: {
       getProfile: () => Promise<any>;
       updateProfile: (input: any) => Promise<any>;
+      uploadAvatar: (input: { file: string }) => Promise<any>;
       changePassword: (input: any) => Promise<any>;
       getSessions: () => Promise<any[]>;
       revokeSession: (input: { token: string }) => Promise<void>;
@@ -46,6 +47,11 @@
   // Sessions state
   let sessions = $state<SessionData[]>([]);
   let sessionsLoading = $state(false);
+
+  // Avatar state
+  let selectedAvatarFile = $state<File | null>(null);
+  let avatarPreview = $state<string | null>(null);
+  let uploadingAvatar = $state(false);
 
   // Form data
   let formData = $state<ProfileFormData>({
@@ -80,12 +86,65 @@
     }
   }
 
+  async function handleAvatarFileSelect(file: File | null) {
+    selectedAvatarFile = file;
+
+    if (file) {
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        avatarPreview = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    } else {
+      avatarPreview = null;
+    }
+  }
+
+  async function handleAvatarUpload(file: File) {
+    uploadingAvatar = true;
+
+    // Convert file to base64
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const base64 = e.target?.result as string;
+
+      try {
+        await userClient.user.uploadAvatar({ file: base64 });
+
+        // Reload profile to get updated avatar
+        await loadProfile();
+
+        // Clear preview and selected file
+        avatarPreview = null;
+        selectedAvatarFile = null;
+
+        toast.success('Avatar uploaded successfully', {
+          description: 'Your profile picture has been updated',
+        });
+      } catch (error) {
+        toast.error('Failed to upload avatar', {
+          description: error instanceof Error ? error.message : 'Please try again',
+          action: {
+            label: 'Retry',
+            onClick: () => handleAvatarUpload(file),
+          },
+        });
+      } finally {
+        uploadingAvatar = false;
+      }
+    };
+
+    reader.readAsDataURL(file);
+  }
+
   async function handleSave(data: ProfileFormData) {
     submitting = true;
 
     // Store previous state for rollback
     const previousProfile = userProfile ? { ...userProfile } : null;
     const previousFormData = { ...formData };
+    const previousAvatar = userProfile?.image || null;
 
     // Optimistic update
     if (userProfile) {
@@ -93,12 +152,19 @@
         ...userProfile,
         name: data.name,
         bio: data.bio || null,
+        image: avatarPreview || userProfile.image,
         updatedAt: new Date(),
       };
     }
     formData = { ...data };
 
     try {
+      // Upload avatar first if one was selected
+      if (selectedAvatarFile) {
+        await handleAvatarUpload(selectedAvatarFile);
+      }
+
+      // Update profile data
       await userClient.user.updateProfile({
         name: data.name,
         bio: data.bio || null,
@@ -274,11 +340,12 @@
       <section class="mb-8">
         <div class="rounded-lg border p-6">
           <div class="mb-4 flex items-center gap-4">
-            <div
-              class="bg-primary text-primary-foreground flex aspect-square size-16 items-center justify-center rounded-full text-2xl font-semibold"
-            >
-              {$page.data?.user?.name?.charAt(0) || 'U'}
-            </div>
+            <AvatarUpload
+              currentAvatar={avatarPreview || userProfile?.image || $page.data?.user?.image}
+              userName={formData.name || $page.data?.user?.name || 'User'}
+              disabled={submitting || uploadingAvatar}
+              onfileselect={handleAvatarFileSelect}
+            />
             <div>
               <h2 class="text-foreground text-xl font-semibold">
                 {$page.data?.user?.name || 'User'}
