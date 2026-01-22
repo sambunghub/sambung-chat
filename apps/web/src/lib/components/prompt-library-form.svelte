@@ -22,15 +22,9 @@
     oncancel?: () => void;
   }
 
-  let {
-    data = $bindable(),
-    isEdit = false,
-    submitting = false,
-    onsubmit,
-    oncancel,
-  }: Props = $props();
+  let { data, isEdit = false, submitting = false, onsubmit, oncancel }: Props = $props();
 
-  // Local form state - use $derived to react to data changes
+  // Local form state - initialized from props, then independent
   let formData = $state<PromptFormData>({
     name: data.name,
     content: data.content,
@@ -39,17 +33,28 @@
     isPublic: data.isPublic,
   });
 
+  // Track previous data to detect external changes only
+  let prevDataName = $state(data.name);
+  let prevDataContent = $state(data.content);
+
+  // Reset form when data prop changes externally (detected by content/name change)
+  $effect(() => {
+    // Only reset if name or content actually changed (external update)
+    if (data.name !== prevDataName || data.content !== prevDataContent) {
+      formData = {
+        name: data.name,
+        content: data.content,
+        variables: data.variables || [],
+        category: data.category,
+        isPublic: data.isPublic,
+      };
+      prevDataName = data.name;
+      prevDataContent = data.content;
+    }
+  });
+
   // Local state for variable input
   let variableInput = $state('');
-
-  // Update local state when data prop changes
-  $effect(() => {
-    formData.name = data.name;
-    formData.content = data.content;
-    formData.variables = data.variables || [];
-    formData.category = data.category;
-    formData.isPublic = data.isPublic;
-  });
 
   // Validate form data
   function validateForm(): boolean {
@@ -81,6 +86,9 @@
   // Handle form submission
   async function handleSubmit() {
     if (!validateForm() || submitting) return;
+
+    // Debug log
+    console.log('[FORM] Submitting formData:', formData);
 
     try {
       await onsubmit(formData);

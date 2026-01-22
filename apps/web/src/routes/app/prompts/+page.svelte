@@ -46,7 +46,17 @@
   }) {
     try {
       submitting = true;
-      await orpc.prompt.create(data);
+      await orpc.prompt.create({
+        ...data,
+        category: data.category as
+          | 'general'
+          | 'coding'
+          | 'writing'
+          | 'analysis'
+          | 'creative'
+          | 'business'
+          | 'custom',
+      });
       await loadPrompts();
       toast.success('Prompt created successfully');
     } catch (error) {
@@ -74,7 +84,16 @@
       await orpc.prompt.update({
         id,
         ...rest,
-        ...(category !== null && { category }),
+        ...(category !== null && {
+          category: category as
+            | 'general'
+            | 'coding'
+            | 'writing'
+            | 'analysis'
+            | 'creative'
+            | 'business'
+            | 'custom',
+        }),
       });
       await loadPrompts();
       toast.success('Prompt updated successfully');

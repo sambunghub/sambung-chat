@@ -42,9 +42,11 @@ export const promptRouter = {
       z.object({
         name: z.string().min(1).max(200),
         content: z.string().min(1),
-        variables: z.array(z.string()).default([]).optional(),
-        category: z.string().default('general').optional(),
-        isPublic: z.boolean().default(false).optional(),
+        variables: z.array(z.string()).default([]),
+        category: z
+          .enum(['general', 'coding', 'writing', 'analysis', 'creative', 'business', 'custom'])
+          .default('general'),
+        isPublic: z.boolean().default(false),
       })
     )
     .handler(async ({ input, context }) => {
@@ -56,9 +58,9 @@ export const promptRouter = {
           userId,
           name: input.name,
           content: input.content,
-          variables: input.variables ?? [],
-          category: input.category ?? 'general',
-          isPublic: input.isPublic ?? false,
+          variables: input.variables,
+          category: input.category,
+          isPublic: input.isPublic,
         })
         .returning();
 
@@ -74,7 +76,9 @@ export const promptRouter = {
         name: z.string().min(1).max(200).optional(),
         content: z.string().min(1).optional(),
         variables: z.array(z.string()).optional(),
-        category: z.string().optional(),
+        category: z
+          .enum(['general', 'coding', 'writing', 'analysis', 'creative', 'business', 'custom'])
+          .optional(),
         isPublic: z.boolean().optional(),
       })
     )
@@ -127,7 +131,9 @@ export const promptRouter = {
     .input(
       z.object({
         query: z.string().optional(),
-        category: z.string().optional(),
+        category: z
+          .enum(['general', 'coding', 'writing', 'analysis', 'creative', 'business', 'custom'])
+          .optional(),
         isPublic: z.boolean().optional(),
         dateFrom: z.coerce.date().optional(),
         dateTo: z.coerce.date().optional(),
