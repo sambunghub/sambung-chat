@@ -5,16 +5,14 @@
   import { DefaultChatTransport } from 'ai';
   import { fade } from 'svelte/transition';
   import { onMount } from 'svelte';
-  import {
-    renderMarkdownSync,
-    ensureMarkdownDependencies
-  } from '$lib/markdown-renderer.js';
+  import { renderMarkdownSync, ensureMarkdownDependencies } from '$lib/markdown-renderer.js';
   import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
   import { Separator } from '$lib/components/ui/separator/index.js';
   import { orpc } from '$lib/orpc';
   import { goto } from '$app/navigation';
   import ModelSelector from '$lib/components/model-selector.svelte';
   import SecondarySidebarTrigger from '$lib/components/secondary-sidebar-trigger.svelte';
+  import PromptSelector from '$lib/components/chat/prompt-selector.svelte';
 
   // Get backend API URL for AI endpoint
   // Use PUBLIC_API_URL (client-side environment variable)
@@ -261,6 +259,64 @@
   function hasError() {
     return errorMessage.length > 0;
   }
+
+  // Helper function to escape regex special characters
+  function escapeRegExp(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  function handleInsertPrompt(prompt: { content: string; variables: Array<{ name: string }> }) {
+    let promptContent = prompt.content;
+
+    // If variables exist, replace them with placeholders
+    if (prompt.variables.length > 0) {
+      prompt.variables.forEach((variable) => {
+        const escapedName = escapeRegExp(variable.name);
+        const placeholder = `[${variable.name}]`;
+        // Replace {{name}} syntax
+        promptContent = promptContent.replace(new RegExp(`{{${escapedName}}}`, 'g'), placeholder);
+        // Replace ${name} syntax
+        promptContent = promptContent.replace(
+          new RegExp(`\\$\\{${escapedName}\\}`, 'g'),
+          placeholder
+        );
+        // Replace {name} syntax (single brace)
+        promptContent = promptContent.replace(new RegExp(`\\{${escapedName}\\}`, 'g'), placeholder);
+      });
+    }
+
+    // Insert the prompt content at the cursor position or append to current input
+    if (inputField) {
+      const start = inputField.selectionStart;
+      const end = inputField.selectionEnd;
+      const before = input.substring(0, start);
+      const after = input.substring(end);
+
+      // Add a newline if there's existing text and we're inserting at the end
+      const separator = input.length > 0 && start === input.length ? '\n\n' : '';
+
+      input = before + separator + promptContent + after;
+
+      // Move cursor to end of inserted content
+      setTimeout(() => {
+        inputField?.focus();
+        const newPosition = start + separator.length + promptContent.length;
+        inputField?.setSelectionRange(newPosition, newPosition);
+      }, 0);
+
+      // Adjust textarea height
+      setTimeout(() => {
+        if (inputField) {
+          inputField.style.height = 'auto';
+          inputField.style.height = Math.min(inputField.scrollHeight, 200) + 'px';
+        }
+      }, 0);
+    } else {
+      // Fallback if textarea ref not available
+      const separator = input.length > 0 ? '\n\n' : '';
+      input = input + separator + promptContent;
+    }
+  }
 </script>
 
 <header
@@ -279,6 +335,8 @@
   </div>
 
   <div class="flex items-center gap-2">
+    <PromptSelector onInsertPrompt={handleInsertPrompt} />
+    <Separator orientation="vertical" class="data-[orientation=vertical]:h-4" />
     <ModelSelector
       onSelectModel={(model) => {
         selectedModel = model;

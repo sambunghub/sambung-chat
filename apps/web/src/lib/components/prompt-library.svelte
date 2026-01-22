@@ -164,9 +164,9 @@
   }
 
   // Handle create
-  async function handleCreate() {
+  async function handleCreate(submitData: PromptFormData) {
     if (!oncreate) return;
-    await oncreate(formData);
+    await oncreate(submitData);
     showCreateDialog = false;
     formData = {
       name: '',
@@ -178,9 +178,9 @@
   }
 
   // Handle update
-  async function handleUpdate() {
+  async function handleUpdate(submitData: PromptFormData) {
     if (!onupdate || !selectedPrompt) return;
-    await onupdate(selectedPrompt.id, formData);
+    await onupdate(selectedPrompt.id, submitData);
     showEditDialog = false;
     selectedPrompt = null;
   }
@@ -435,7 +435,7 @@
       <DialogTitle>Create New Prompt</DialogTitle>
     </DialogHeader>
     <PromptForm
-      bind:data={formData}
+      data={formData}
       {submitting}
       onsubmit={handleCreate}
       oncancel={() => (showCreateDialog = false)}
@@ -450,7 +450,7 @@
       <DialogTitle>Edit Prompt</DialogTitle>
     </DialogHeader>
     <PromptForm
-      bind:data={formData}
+      data={formData}
       isEdit={true}
       {submitting}
       onsubmit={handleUpdate}

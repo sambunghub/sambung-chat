@@ -43,7 +43,9 @@ export const promptRouter = {
         name: z.string().min(1).max(200),
         content: z.string().min(1),
         variables: z.array(z.string()).default([]),
-        category: z.string().default('general'),
+        category: z
+          .enum(['general', 'coding', 'writing', 'analysis', 'creative', 'business', 'custom'])
+          .default('general'),
         isPublic: z.boolean().default(false),
       })
     )
@@ -74,7 +76,9 @@ export const promptRouter = {
         name: z.string().min(1).max(200).optional(),
         content: z.string().min(1).optional(),
         variables: z.array(z.string()).optional(),
-        category: z.string().optional(),
+        category: z
+          .enum(['general', 'coding', 'writing', 'analysis', 'creative', 'business', 'custom'])
+          .optional(),
         isPublic: z.boolean().optional(),
       })
     )
@@ -116,17 +120,20 @@ export const promptRouter = {
         });
       }
 
+      // Delete prompt
       await db.delete(prompts).where(eq(prompts.id, input.id));
 
       return { success: true };
     }),
 
-  // Search prompts with filters
+  // Search prompts with category and keyword filtering
   search: protectedProcedure
     .input(
       z.object({
         query: z.string().optional(),
-        category: z.string().optional(),
+        category: z
+          .enum(['general', 'coding', 'writing', 'analysis', 'creative', 'business', 'custom'])
+          .optional(),
         isPublic: z.boolean().optional(),
         dateFrom: z.coerce.date().optional(),
         dateTo: z.coerce.date().optional(),
@@ -140,21 +147,24 @@ export const promptRouter = {
 
       const conditions = [eq(prompts.userId, userId)];
 
-      // Build search conditions for name and/or content
+      // Build search conditions for name and content
       if (normalizedQuery) {
         conditions.push(
           sql`(${prompts.name} ILIKE ${`%${normalizedQuery}%`} OR ${prompts.content} ILIKE ${`%${normalizedQuery}%`})`
         );
       }
 
+      // Filter by category
       if (input.category !== undefined) {
         conditions.push(eq(prompts.category, input.category));
       }
 
+      // Filter by public status
       if (input.isPublic !== undefined) {
         conditions.push(eq(prompts.isPublic, input.isPublic));
       }
 
+      // Add date range filter
       if (input.dateFrom) {
         conditions.push(gte(prompts.createdAt, input.dateFrom));
       }

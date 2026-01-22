@@ -3,6 +3,7 @@
   import CpuIcon from '@lucide/svelte/icons/cpu';
   import KeyIcon from '@lucide/svelte/icons/key';
   import BadgeCheckIcon from '@lucide/svelte/icons/badge-check';
+  import SparklesIcon from '@lucide/svelte/icons/sparkles';
   import type { Snippet } from 'svelte';
 
   interface Props {
@@ -26,6 +27,11 @@
       label: 'Models',
       href: '/app/settings/models',
       icon: CpuIcon,
+    },
+    {
+      label: 'Prompts Library',
+      href: '/app/prompts',
+      icon: SparklesIcon,
     },
   ];
 

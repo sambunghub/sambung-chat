@@ -5,6 +5,58 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.23] - 2026-01-22
+
+### Added
+
+- **Avatar Upload Component**: Create reusable avatar upload component with image preview and validation ([apps/web/src/lib/components/settings/profile/avatar-upload.svelte](apps/web/src/lib/components/settings/profile/avatar-upload.svelte))
+  - File input with image type validation (JPEG, PNG, GIF, WebP)
+  - File size validation (max 5MB)
+  - Image preview using FileReader API
+  - Avatar display with fallback initials from user name
+  - Upload and clear buttons with disabled state support
+  - User-friendly error messages
+  - Svelte 5 runes ($state, $props, $derived)
+  - Exported from profile component index
+
+- **Profile Form Component**: Create profile edit form with display name and bio fields ([apps/web/src/lib/components/settings/profile/profile-form.svelte](apps/web/src/lib/components/settings/profile/profile-form.svelte))
+  - Two-way data binding with parent component
+  - Form validation (name required)
+  - Native textarea styled to match Input component
+  - Submit and cancel buttons with disabled states
+  - Svelte 5 runes ($state, $props, $effect, $bindable)
+  - ProfileFormData type exported for parent components
+
+- **User Management Backend**: Add user router with profile and account management endpoints ([packages/api/src/routers/user.ts](packages/api/src/routers/user.ts), [packages/api/src/services/user-service.ts](packages/api/src/services/user-service.ts))
+  - Profile update endpoint (updateProfile)
+  - Password change endpoint with validation (changePassword)
+  - Account deletion with cascade deletion (deleteAccount)
+  - Sessions list endpoint (getSessions)
+  - Revoke session endpoint (revokeSession)
+  - Avatar upload endpoint with base64 encoding (uploadAvatar)
+  - Protected procedures requiring authentication
+  - Comprehensive error handling with ORPCError
+
+- **Database Schema**: Add bio field to user table ([packages/db/src/schema/auth.ts](packages/db/src/schema/auth.ts))
+  - Migration generated and metadata fixed
+  - Bio field type: text (optional)
+
+## [0.0.22] - 2026-01-22
+
+### Fixed
+
+- **Prompt Form Data Binding**: Fix critical bug where prompt form submission was sending empty data despite user input ([apps/web/src/lib/components/prompt-library.svelte](apps/web/src/lib/components/prompt-library.svelte:172-188), [apps/web/src/lib/components/prompt-library-form.svelte](apps/web/src/lib/components/prompt-library-form.svelte:46-60))
+  - Parent component was passing its own empty formData state instead of receiving actual data from form component
+  - Changed handleCreate and handleUpdate to accept submitData parameter from form
+  - Fixed $effect reactivity loop that was overriding user input
+  - Removed unnecessary key prop and formVersion state
+  - Added debug logging for form submission troubleshooting
+
+- **Prompt Category Type Safety**: Add strict enum validation and type casting for category field ([packages/api/src/routers/prompt.ts](packages/api/src/routers/prompt.ts:41-48), [apps/web/src/routes/app/prompts/+page.svelte](apps/web/src/routes/app/prompts/+page.svelte:49-60))
+  - Backend: Changed category from z.string() to z.enum() with canonical values
+  - Frontend: Added type casting for category to match backend enum type
+  - Ensures type safety between frontend and backend for prompt categories
+
 ## [0.0.21] - 2026-01-22
 
 ### Fixed
@@ -32,7 +84,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add afterEach cleanup hook for orphaned prompts
   - Isolate environment variables with beforeAll/afterAll in model tests
   - Improve ineffective placeholder security tests in orpc-caching
-  - Fix duplicate generateETag function in cache-headers middleware
 
 - **Server Response Type**: Fix Hono newResponse type casting for status and headers ([apps/server/src/index.ts](apps/server/src/index.ts:213-222))
   - Cast status code to proper StatusCode union type

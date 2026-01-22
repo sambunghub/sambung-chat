@@ -22,15 +22,9 @@
     oncancel?: () => void;
   }
 
-  let {
-    data = $bindable(),
-    isEdit = false,
-    submitting = false,
-    onsubmit,
-    oncancel,
-  }: Props = $props();
+  let { data, isEdit = false, submitting = false, onsubmit, oncancel }: Props = $props();
 
-  // Local form state - use $derived to react to data changes
+  // Local form state - initialized from props, then independent
   let formData = $state<PromptFormData>({
     name: data.name,
     content: data.content,
@@ -39,25 +33,32 @@
     isPublic: data.isPublic,
   });
 
+  // Track previous data to detect external changes only
+  let prevDataName = $state(data.name);
+  let prevDataContent = $state(data.content);
+
+  // Reset form when data prop changes externally (detected by content/name change)
+  $effect(() => {
+    // Only reset if name or content actually changed (external update)
+    if (data.name !== prevDataName || data.content !== prevDataContent) {
+      formData = {
+        name: data.name,
+        content: data.content,
+        variables: data.variables || [],
+        category: data.category,
+        isPublic: data.isPublic,
+      };
+      prevDataName = data.name;
+      prevDataContent = data.content;
+    }
+  });
+
   // Local state for variable input
   let variableInput = $state('');
 
-  // Update local state when data prop changes
-  $effect(() => {
-    formData.name = data.name;
-    formData.content = data.content;
-    formData.variables = data.variables || [];
-    formData.category = data.category;
-    formData.isPublic = data.isPublic;
-  });
-
   // Validate form data
   function validateForm(): boolean {
-    return Boolean(
-      formData.name.trim() &&
-        formData.content.trim() &&
-        formData.category
-    );
+    return Boolean(formData.name.trim() && formData.content.trim() && formData.category);
   }
 
   // Add a variable to the list
@@ -86,6 +87,9 @@
   async function handleSubmit() {
     if (!validateForm() || submitting) return;
 
+    // Debug log
+    console.log('[FORM] Submitting formData:', formData);
+
     try {
       await onsubmit(formData);
     } catch (error) {
@@ -110,9 +114,7 @@
       disabled={submitting}
       class="disabled:cursor-not-allowed disabled:opacity-50"
     />
-    <p class="text-muted-foreground text-xs">
-      A friendly name to identify this prompt
-    </p>
+    <p class="text-muted-foreground text-xs">A friendly name to identify this prompt</p>
   </div>
 
   <div class="space-y-2">
@@ -124,10 +126,10 @@
       required
       disabled={submitting}
       rows={8}
-      class="border-input bg-background flex min-h-[60px] w-full rounded-md border px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-y"
-    />
+      class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[80px] w-full resize-y rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+    ></textarea>
     <p class="text-muted-foreground text-xs">
-      The main prompt text. Use <code class="bg-muted px-1 py-0.5 rounded">{'{variable}'}</code> for placeholders
+      The main prompt text. Use <code class="bg-muted rounded px-1 py-0.5">{'{variable}'}</code> for placeholders
     </p>
   </div>
 
@@ -154,7 +156,7 @@
         placeholder="e.g., company_name"
         disabled={submitting}
         onkeydown={handleVariableKeydown}
-        class="disabled:cursor-not-allowed disabled:opacity-50 flex-1"
+        class="flex-1 disabled:cursor-not-allowed disabled:opacity-50"
       />
       <Button
         type="button"
@@ -172,7 +174,7 @@
     </p>
 
     {#if formData.variables.length > 0}
-      <div class="flex flex-wrap gap-2 mt-2">
+      <div class="mt-2 flex flex-wrap gap-2">
         {#each formData.variables as variable}
           <div class="bg-muted flex items-center gap-1 rounded-md border px-2 py-1 text-sm">
             <code class="font-mono">{`{${variable}}`}</code>
@@ -199,20 +201,14 @@
       disabled={submitting}
       class="border-input bg-background focus:ring-ring rounded border px-2 py-1 text-sm focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
     />
-    <Label for={isEdit ? 'edit-public' : 'public'} class="text-sm">
-      Make this prompt public
-    </Label>
+    <Label for={isEdit ? 'edit-public' : 'public'} class="text-sm">Make this prompt public</Label>
   </div>
-  <p class="text-muted-foreground text-xs">
-    Public prompts can be seen and used by other users
-  </p>
+  <p class="text-muted-foreground text-xs">Public prompts can be seen and used by other users</p>
 </div>
 
 <div class="bg-muted/30 flex justify-end gap-2 border-t p-4">
   {#if oncancel}
-    <Button variant="outline" onclick={oncancel} disabled={submitting}>
-      Cancel
-    </Button>
+    <Button variant="outline" onclick={oncancel} disabled={submitting}>Cancel</Button>
   {/if}
   <Button onclick={handleSubmit} disabled={!validateForm() || submitting}>
     <CheckIcon class="mr-2 size-4" />
