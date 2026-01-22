@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.19] - 2026-01-22
+
+### Added
+
+- **Skeleton Loading States**: Add skeleton loading components for improved perceived performance during data fetch ([apps/web/src/lib/components/chat/chat-skeleton.svelte](apps/web/src/lib/components/chat/chat-skeleton.svelte))
+- **Prompt Library System**: Complete prompt template management with create, edit, delete, and organize functionality ([apps/web/src/lib/components/prompt-library.svelte](apps/web/src/lib/components/prompt-library.svelte))
+  - CRUD operations for prompt templates
+  - Category-based organization (Coding, Writing, Analysis, Custom)
+  - Search and filter functionality
+  - Prompt selector component for chat integration
+
+- **Lazy Loading**: Lazy load KaTeX and Mermaid.js to reduce initial bundle size ([apps/web/src/lib/utils/lazy-load.ts](apps/web/src/lib/utils/lazy-load.ts))
+  - KaTeX loads only when math content is detected
+  - Mermaid.js loads only when diagram content is detected
+  - Reduces initial JavaScript payload significantly
+
+- **ORPC Response Caching**: Add cache-control middleware for ORPC endpoints ([packages/api/src/middleware/cache-headers.ts](packages/api/src/middleware/cache-headers.ts))
+  - MEDIUM (5min), LONG (15min), SHORT (1min) cache durations
+  - Applied to model and chat read operations
+  - Reduces server load and improves response times
+
+- **Code Refactoring**: Extract repetitive model transformation logic into reusable utility ([packages/api/src/lib/model-types.ts](packages/api/src/lib/model-types.ts))
+  - `transformToAvailableModel()` function eliminates code duplication
+  - Used in getAvailableModels endpoint
+  - Improves maintainability and reduces bundle size
+
+### Changed
+
+- **Folder Delete Performance**: Parallelize folder delete operations using Promise.all() ([apps/web/src/lib/components/secondary-sidebar/ChatList.svelte](apps/web/src/lib/components/secondary-sidebar/ChatList.svelte))
+  - Previously deleted chats sequentially, causing noticeable delays
+  - Now deletes all chats in folder concurrently
+  - Improves UX with faster folder deletion
+
+### Fixed
+
+- **Unused Imports**: Remove unused `asc` and `ilike` imports from prompt router ([packages/api/src/routers/prompt.ts](packages/api/src/routers/prompt.ts:3))
+
 ## [0.0.18] - 2026-01-21
 
 ### Fixed
