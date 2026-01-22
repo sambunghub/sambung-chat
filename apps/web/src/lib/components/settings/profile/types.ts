@@ -15,3 +15,17 @@ export type ChangePasswordFormData = {
   newPassword: string;
   confirmPassword: string;
 };
+
+/**
+ * Session data structure (matches backend UserSession)
+ */
+export type SessionData = {
+  id: string;
+  token: string;
+  expiresAt: Date | string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  ipAddress: string | null;
+  userAgent: string | null;
+  isCurrent: boolean;
+};

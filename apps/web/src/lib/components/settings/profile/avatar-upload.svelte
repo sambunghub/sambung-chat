@@ -83,14 +83,14 @@
   }
 
   // Get the URL to display (preview > current > fallback)
-  $derived(displayUrl = previewUrl || currentAvatar);
+  let displayUrl = $derived(previewUrl || currentAvatar);
 </script>
 
 <div class="flex items-center gap-4">
   <!-- Avatar Preview -->
   <Avatar class="size-20">
     {#if displayUrl}
-      <AvatarImage {src: displayUrl} alt="Profile picture" />
+      <AvatarImage src={displayUrl} alt="Profile picture" />
     {/if}
     <AvatarFallback class="bg-primary text-primary-foreground text-lg">
       {getInitials(userName)}
