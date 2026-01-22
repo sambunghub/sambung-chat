@@ -13,9 +13,7 @@ import { user } from '@sambung-chat/db/schema/auth';
 import { eq, and, inArray } from 'drizzle-orm';
 import { generateULID } from '@sambung-chat/db/utils/ulid';
 
-// Set up minimal environment variables for testing (use process.env with fallbacks)
-process.env.DATABASE_URL =
-  process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/sambungchat_dev';
+// Note: DATABASE_URL and other test environment variables are set by vitest.config.ts
 process.env.BETTER_AUTH_SECRET =
   process.env.BETTER_AUTH_SECRET || 'sambungchat-dev-secret-key-at-least-32-chars-long';
 process.env.BETTER_AUTH_URL = process.env.BETTER_AUTH_URL || 'http://localhost:3000';
@@ -201,10 +199,7 @@ describe('Prompt Router Tests', () => {
       createdPromptIds.push(prompt.id); // Track for cleanup in case test fails
 
       // Verify prompt exists
-      let results = await db
-        .select()
-        .from(prompts)
-        .where(eq(prompts.id, prompt.id));
+      let results = await db.select().from(prompts).where(eq(prompts.id, prompt.id));
 
       expect(results.length).toBe(1);
 
@@ -212,10 +207,7 @@ describe('Prompt Router Tests', () => {
       await db.delete(prompts).where(eq(prompts.id, prompt.id));
 
       // Verify prompt is deleted
-      results = await db
-        .select()
-        .from(prompts)
-        .where(eq(prompts.id, prompt.id));
+      results = await db.select().from(prompts).where(eq(prompts.id, prompt.id));
 
       expect(results.length).toBe(0);
 
@@ -311,12 +303,7 @@ describe('Prompt Router Tests', () => {
       const results = await db
         .select()
         .from(prompts)
-        .where(
-          and(
-            eq(prompts.userId, testUserId),
-            sql`${prompts.name} ILIKE ${`%${query}%`}`
-          )
-        )
+        .where(and(eq(prompts.userId, testUserId), sql`${prompts.name} ILIKE ${`%${query}%`}`))
         .orderBy(prompts.updatedAt);
 
       expect(results.length).toBeGreaterThan(0);
@@ -328,12 +315,7 @@ describe('Prompt Router Tests', () => {
       const results = await db
         .select()
         .from(prompts)
-        .where(
-          and(
-            eq(prompts.userId, testUserId),
-            sql`${prompts.content} ILIKE ${`%${query}%`}`
-          )
-        )
+        .where(and(eq(prompts.userId, testUserId), sql`${prompts.content} ILIKE ${`%${query}%`}`))
         .orderBy(prompts.updatedAt);
 
       expect(results.length).toBeGreaterThan(0);
@@ -402,9 +384,7 @@ describe('Prompt Router Tests', () => {
         .orderBy(prompts.updatedAt);
 
       expect(results.length).toBeGreaterThan(0);
-      expect(
-        results.every((r) => r.createdAt >= dateFrom && r.createdAt <= dateTo)
-      ).toBe(true);
+      expect(results.every((r) => r.createdAt >= dateFrom && r.createdAt <= dateTo)).toBe(true);
     });
 
     it('should combine multiple filters', async () => {

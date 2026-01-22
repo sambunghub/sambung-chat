@@ -15,9 +15,7 @@ import { ollamaModels } from '../lib/ollama-models';
 import { transformToAvailableModel } from '../lib/model-types';
 import type { AvailableModel } from '../lib/model-types';
 
-// Set up minimal environment variables for testing (use process.env with fallbacks)
-process.env.DATABASE_URL =
-  process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/sambungchat_dev';
+// Note: Environment variables are set by vitest.config.ts
 process.env.BETTER_AUTH_SECRET =
   process.env.BETTER_AUTH_SECRET || 'sambungchat-dev-secret-key-at-least-32-chars-long';
 process.env.BETTER_AUTH_URL = process.env.BETTER_AUTH_URL || 'http://localhost:3000';
@@ -97,7 +95,13 @@ describe('Model Router - getAvailableModels Transformation', () => {
       const result = getAvailableModelsResult();
 
       // Sample at least one model from each provider
-      const providers: (keyof typeof result)[] = ['openai', 'anthropic', 'google', 'groq', 'ollama'];
+      const providers: (keyof typeof result)[] = [
+        'openai',
+        'anthropic',
+        'google',
+        'groq',
+        'ollama',
+      ];
 
       for (const provider of providers) {
         if (result[provider].length > 0) {
@@ -117,7 +121,13 @@ describe('Model Router - getAvailableModels Transformation', () => {
     it('should have positive values for maxTokens and contextWindow', () => {
       const result = getAvailableModelsResult();
 
-      const providers: (keyof typeof result)[] = ['openai', 'anthropic', 'google', 'groq', 'ollama'];
+      const providers: (keyof typeof result)[] = [
+        'openai',
+        'anthropic',
+        'google',
+        'groq',
+        'ollama',
+      ];
 
       for (const provider of providers) {
         for (const model of result[provider]) {
@@ -131,7 +141,13 @@ describe('Model Router - getAvailableModels Transformation', () => {
     it('should have non-empty strings for required string fields', () => {
       const result = getAvailableModelsResult();
 
-      const providers: (keyof typeof result)[] = ['openai', 'anthropic', 'google', 'groq', 'ollama'];
+      const providers: (keyof typeof result)[] = [
+        'openai',
+        'anthropic',
+        'google',
+        'groq',
+        'ollama',
+      ];
 
       for (const provider of providers) {
         for (const model of result[provider]) {
@@ -180,7 +196,13 @@ describe('Model Router - getAvailableModels Transformation', () => {
     it('should have cost classification for all models', () => {
       const result = getAvailableModelsResult();
 
-      const providers: (keyof typeof result)[] = ['openai', 'anthropic', 'google', 'groq', 'ollama'];
+      const providers: (keyof typeof result)[] = [
+        'openai',
+        'anthropic',
+        'google',
+        'groq',
+        'ollama',
+      ];
 
       for (const provider of providers) {
         for (const model of result[provider]) {
@@ -214,7 +236,13 @@ describe('Model Router - getAvailableModels Transformation', () => {
     it('should apply consistent transformation across all providers', () => {
       const result = getAvailableModelsResult();
 
-      const providers: (keyof typeof result)[] = ['openai', 'anthropic', 'google', 'groq', 'ollama'];
+      const providers: (keyof typeof result)[] = [
+        'openai',
+        'anthropic',
+        'google',
+        'groq',
+        'ollama',
+      ];
 
       // All models should have the same set of fields
       for (const provider of providers) {
@@ -228,7 +256,13 @@ describe('Model Router - getAvailableModels Transformation', () => {
     it('should not have extra fields beyond AvailableModel interface', () => {
       const result = getAvailableModelsResult();
 
-      const providers: (keyof typeof result)[] = ['openai', 'anthropic', 'google', 'groq', 'ollama'];
+      const providers: (keyof typeof result)[] = [
+        'openai',
+        'anthropic',
+        'google',
+        'groq',
+        'ollama',
+      ];
 
       const expectedKeys = new Set(['id', 'name', 'maxTokens', 'contextWindow', 'bestFor', 'cost']);
 
@@ -256,7 +290,13 @@ describe('Model Router - getAvailableModels Transformation', () => {
     it('should have unique model IDs within each provider', () => {
       const result = getAvailableModelsResult();
 
-      const providers: (keyof typeof result)[] = ['openai', 'anthropic', 'google', 'groq', 'ollama'];
+      const providers: (keyof typeof result)[] = [
+        'openai',
+        'anthropic',
+        'google',
+        'groq',
+        'ollama',
+      ];
 
       for (const provider of providers) {
         const ids = result[provider].map((m) => m.id);
@@ -268,7 +308,13 @@ describe('Model Router - getAvailableModels Transformation', () => {
     it('should have unique model names within each provider', () => {
       const result = getAvailableModelsResult();
 
-      const providers: (keyof typeof result)[] = ['openai', 'anthropic', 'google', 'groq', 'ollama'];
+      const providers: (keyof typeof result)[] = [
+        'openai',
+        'anthropic',
+        'google',
+        'groq',
+        'ollama',
+      ];
 
       for (const provider of providers) {
         const names = result[provider].map((m) => m.name);
@@ -282,7 +328,13 @@ describe('Model Router - getAvailableModels Transformation', () => {
     it('should have valid model IDs with no whitespace', () => {
       const result = getAvailableModelsResult();
 
-      const providers: (keyof typeof result)[] = ['openai', 'anthropic', 'google', 'groq', 'ollama'];
+      const providers: (keyof typeof result)[] = [
+        'openai',
+        'anthropic',
+        'google',
+        'groq',
+        'ollama',
+      ];
 
       for (const provider of providers) {
         for (const model of result[provider]) {
@@ -295,7 +347,13 @@ describe('Model Router - getAvailableModels Transformation', () => {
     it('should have meaningful bestFor descriptions', () => {
       const result = getAvailableModelsResult();
 
-      const providers: (keyof typeof result)[] = ['openai', 'anthropic', 'google', 'groq', 'ollama'];
+      const providers: (keyof typeof result)[] = [
+        'openai',
+        'anthropic',
+        'google',
+        'groq',
+        'ollama',
+      ];
 
       for (const provider of providers) {
         for (const model of result[provider]) {
@@ -314,7 +372,13 @@ describe('Model Router - getAvailableModels Transformation', () => {
       const result = getAvailableModelsResult();
 
       // Type assertion to verify runtime type matches interface
-      const providers: (keyof typeof result)[] = ['openai', 'anthropic', 'google', 'groq', 'ollama'];
+      const providers: (keyof typeof result)[] = [
+        'openai',
+        'anthropic',
+        'google',
+        'groq',
+        'ollama',
+      ];
 
       for (const provider of providers) {
         for (const model of result[provider]) {
