@@ -1,10 +1,113 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+  import { orpc } from '$lib/orpc';
   import SecondarySidebarTrigger from '$lib/components/secondary-sidebar-trigger.svelte';
   import { Separator } from '$lib/components/ui/separator/index.js';
   import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
   import BadgeCheckIcon from '@lucide/svelte/icons/badge-check';
   import MailIcon from '@lucide/svelte/icons/mail';
   import { page } from '$app/stores';
+  import { ProfileForm, type ProfileFormData } from '$lib/components/settings/profile';
+  import { toast } from 'svelte-sonner';
+  import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card/index.js';
+
+  // Type assertion for user router (temporary workaround until types are regenerated)
+  const userClient = orpc as any & {
+    user: {
+      getProfile: () => Promise<any>;
+      updateProfile: (input: any) => Promise<any>;
+    },
+  };
+
+  type UserProfile = {
+    id: string;
+    name: string;
+    email: string;
+    bio: string | null;
+    image: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+
+  let userProfile = $state<UserProfile | null>(null);
+  let loading = $state(false);
+  let submitting = $state(false);
+
+  // Form data
+  let formData = $state<ProfileFormData>({
+    name: '',
+    bio: '',
+  });
+
+  onMount(async () => {
+    await loadProfile();
+  });
+
+  async function loadProfile() {
+    loading = true;
+    try {
+      const result = await userClient.user.getProfile();
+      userProfile = result as UserProfile;
+      formData = {
+        name: userProfile.name || '',
+        bio: userProfile.bio || '',
+      };
+    } catch (error) {
+      toast.error('Failed to load profile', {
+        description: error instanceof Error ? error.message : 'Please try again later',
+        action: {
+          label: 'Retry',
+          onClick: () => loadProfile(),
+        },
+      });
+    } finally {
+      loading = false;
+    }
+  }
+
+  async function handleSave(data: ProfileFormData) {
+    submitting = true;
+
+    // Store previous state for rollback
+    const previousProfile = userProfile ? { ...userProfile } : null;
+    const previousFormData = { ...formData };
+
+    // Optimistic update
+    if (userProfile) {
+      userProfile = {
+        ...userProfile,
+        name: data.name,
+        bio: data.bio || null,
+        updatedAt: new Date(),
+      };
+    }
+    formData = { ...data };
+
+    try {
+      await userClient.user.updateProfile({
+        name: data.name,
+        bio: data.bio || null,
+      });
+
+      toast.success('Profile updated successfully', {
+        description: 'Your changes have been saved',
+      });
+    } catch (error) {
+      // Revert optimistic update on error
+      userProfile = previousProfile;
+      formData = previousFormData;
+
+      toast.error('Failed to update profile', {
+        description: error instanceof Error ? error.message : 'Please try again',
+        action: {
+          label: 'Retry',
+          onClick: () => handleSave(data),
+        },
+      });
+    } finally {
+      submitting = false;
+    }
+  }
 </script>
 
 <header class="bg-background sticky top-0 z-10 flex shrink-0 items-center gap-2 border-b p-4">
@@ -56,32 +159,50 @@
       <!-- Account Details Section -->
       <section class="mb-8">
         <h3 class="text-foreground mb-4 text-xl font-semibold">Account Details</h3>
-        <div class="rounded-lg border p-6">
-          <div class="space-y-4">
-            <div>
-              <label class="text-muted-foreground mb-1 block text-sm font-medium"
-                >Display Name</label
-              >
-              <div class="rounded-md border px-3 py-2 text-sm">
-                {$page.data?.user?.name || 'User'}
+        <Card>
+          <CardContent class="p-6">
+            {#if loading}
+              <div class="flex items-center justify-center py-8">
+                <div
+                  class="border-primary border-t-transparent h-8 w-8 animate-spin rounded-full"
+                  role="status"
+                  aria-label="Loading"
+                >
+                  <span class="sr-only">Loading profile...</span>
+                </div>
               </div>
-            </div>
-            <div>
-              <label class="text-muted-foreground mb-1 block text-sm font-medium"
-                >Email Address</label
-              >
-              <div class="rounded-md border px-3 py-2 text-sm">
-                {$page.data?.user?.email || 'user@example.com'}
+            {:else}
+              <div class="space-y-6">
+                <!-- Editable Profile Form -->
+                <div>
+                  <ProfileForm
+                    data={formData}
+                    submitting={submitting}
+                    onsubmit={handleSave}
+                  />
+                </div>
+
+                <!-- Read-only Account Information -->
+                <div class="space-y-4 border-t pt-6">
+                  <div>
+                    <label class="text-muted-foreground mb-1 block text-sm font-medium"
+                      >Email Address</label
+                    >
+                    <div class="rounded-md border px-3 py-2 text-sm">
+                      {$page.data?.user?.email || 'user@example.com'}
+                    </div>
+                  </div>
+                  <div>
+                    <label class="text-muted-foreground mb-1 block text-sm font-medium">Account ID</label>
+                    <div class="rounded-md border px-3 py-2 font-mono text-sm">
+                      {$page.data?.user?.id || 'N/A'}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div>
-              <label class="text-muted-foreground mb-1 block text-sm font-medium">Account ID</label>
-              <div class="rounded-md border px-3 py-2 font-mono text-sm">
-                {$page.data?.user?.id || 'N/A'}
-              </div>
-            </div>
-          </div>
-        </div>
+            {/if}
+          </CardContent>
+        </Card>
       </section>
 
       <!-- Security Section -->
