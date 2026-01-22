@@ -109,6 +109,74 @@ describe('Validation Utilities', () => {
       expect(isValidULID('01arz3ndektsv4rrffq69g5fa!')).toBe(false);
       expect(isValidULID('01arz3ndektsv4rrffq69g5fa-')).toBe(false);
     });
+
+    it('should return false for non-string types', () => {
+      expect(isValidULID(null as unknown as string)).toBe(false);
+      expect(isValidULID(undefined as unknown as string)).toBe(false);
+      expect(isValidULID(123 as unknown as string)).toBe(false);
+      expect(isValidULID(0 as unknown as string)).toBe(false);
+      expect(isValidULID(true as unknown as string)).toBe(false);
+      expect(isValidULID(false as unknown as string)).toBe(false);
+      expect(isValidULID({} as unknown as string)).toBe(false);
+      expect(isValidULID([] as unknown as string)).toBe(false);
+    });
+
+    it('should return false for strings with whitespace', () => {
+      expect(isValidULID(' 01arz3ndektsv4rrffq69g5fav')).toBe(false); // leading space
+      expect(isValidULID('01arz3ndektsv4rrffq69g5fav ')).toBe(false); // trailing space
+      expect(isValidULID('01arz3ndektsv4rrffq69g5 fav')).toBe(false); // space in middle
+      expect(isValidULID('\t01arz3ndektsv4rrffq69g5fav')).toBe(false); // leading tab
+      expect(isValidULID('01arz3ndektsv4rrffq69g5fav\n')).toBe(false); // trailing newline
+    });
+
+    it('should return false for strings with control characters', () => {
+      expect(isValidULID('01arz3ndektsv4rrffq69g5fa\0')).toBe(false); // null byte
+      expect(isValidULID('01arz3ndektsv4rrffq69g5fa\r')).toBe(false); // carriage return
+      expect(isValidULID('01arz3ndektsv4rrffq69g5fa\n')).toBe(false); // newline
+      expect(isValidULID('01arz3ndektsv4rrffq69g5fa\t')).toBe(false); // tab
+    });
+
+    it('should return false for very long strings', () => {
+      const longString = '01arz3ndektsv4rrffq69g5fav' + 'a'.repeat(1000);
+      expect(isValidULID(longString)).toBe(false);
+    });
+
+    it('should return false for strings with unicode characters', () => {
+      expect(isValidULID('01arz3ndektsv4rrffq69g5fa日本')).toBe(false); // japanese characters
+      expect(isValidULID('01arz3ndektsv4rrffq69g5fa😀')).toBe(false); // emoji
+      expect(isValidULID('01arz3ndektsv4rrffq69g5fa©')).toBe(false); // copyright symbol
+      expect(isValidULID('01arz3ndektsv4rrffq69g5fa🚀')).toBe(false); // rocket emoji
+    });
+
+    it('should return false for SQL injection attempts', () => {
+      expect(isValidULID("'; DROP TABLE users; --")).toBe(false);
+      expect(isValidULID("01arz3ndektsv4rrffq69g5fav'; OR '1'='1")).toBe(false);
+      expect(isValidULID("01arz3ndektsv4rrffq69g5fa' UNION SELECT * FROM users--")).toBe(false);
+    });
+
+    it('should return false for XSS attempts', () => {
+      expect(isValidULID('<script>alert("xss")</script>')).toBe(false);
+      expect(isValidULID('01arz3ndektsv4rrffq69g5fa<img src=x onerror=alert(1)>')).toBe(false);
+      expect(isValidULID('javascript:alert("xss")')).toBe(false);
+    });
+
+    it('should return false for strings with only invalid characters', () => {
+      expect(isValidULID('ILOUaaaaaaaaaaaaaaaaaaa')).toBe(false);
+      expect(isValidULID('!@#$%^&*()_+{}[]|\\:";\'<>?,./')).toBe(false);
+      expect(isValidULID('__________________________')).toBe(false);
+    });
+
+    it('should return false for partial valid strings', () => {
+      expect(isValidULID('01arz3ndektsv4rrffq69g5fa')).toBe(false); // missing one char
+      expect(isValidULID('01arz3ndektsv4rrffq69g5')).toBe(false); // much shorter
+      expect(isValidULID('01ARZ3NDEK')).toBe(false); // only first half
+    });
+
+    it('should return false for strings with mixed valid and invalid sections', () => {
+      expect(isValidULID('01arz3ndektsv4rrffq69g5faVALID')).toBe(false); // too long
+      expect(isValidULID('INVALID01arz3ndektsv4rrffq')).toBe(false); // wrong chars at start
+      expect(isValidULID('01arz3ndIITSV4RRFFQ69G5FAV')).toBe(false); // I in middle
+    });
   });
 
   describe('getTimestampFromULID', () => {
