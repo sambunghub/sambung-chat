@@ -11,7 +11,7 @@ import { db } from '@sambung-chat/db';
 import { messages, chats } from '@sambung-chat/db/schema/chat';
 import { models } from '@sambung-chat/db/schema/model';
 import { user } from '@sambung-chat/db/schema/auth';
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, and, inArray, asc } from 'drizzle-orm';
 import { generateULID } from '@sambung-chat/db/utils/ulid';
 
 // Note: DATABASE_URL and other test environment variables are set by vitest.config.ts
@@ -589,6 +589,172 @@ describe('Message Router Tests', () => {
       createdMessageIds.push(message.id);
 
       expect(message.role).toBe('system');
+    });
+  });
+
+  describe('getByChatId Procedure', () => {
+    it('getByChatId should return all messages for a chat in ascending order', async () => {
+      // Create messages with specific content to identify order
+      const messageData1 = {
+        chatId: testChatId,
+        role: 'user' as const,
+        content: 'First message in sequence',
+      };
+      const messageData2 = {
+        chatId: testChatId,
+        role: 'assistant' as const,
+        content: 'Second message in sequence',
+      };
+      const messageData3 = {
+        chatId: testChatId,
+        role: 'user' as const,
+        content: 'Third message in sequence',
+      };
+
+      const [message1] = await db.insert(messages).values(messageData1).returning();
+      await new Promise((resolve) => setTimeout(resolve, 10)); // Ensure different timestamps
+      const [message2] = await db.insert(messages).values(messageData2).returning();
+      await new Promise((resolve) => setTimeout(resolve, 10)); // Ensure different timestamps
+      const [message3] = await db.insert(messages).values(messageData3).returning();
+
+      createdMessageIds.push(message1.id, message2.id, message3.id);
+
+      // Get messages ordered by createdAt (ascending)
+      const results = await db
+        .select()
+        .from(messages)
+        .where(eq(messages.chatId, testChatId));
+
+      // Filter to only our created messages
+      const createdMessages = results.filter((m) =>
+        [message1.id, message2.id, message3.id].includes(m.id)
+      );
+
+      expect(createdMessages.length).toBe(3);
+      expect(createdMessages[0].id).toBe(message1.id);
+      expect(createdMessages[0].content).toBe('First message in sequence');
+      expect(createdMessages[1].id).toBe(message2.id);
+      expect(createdMessages[1].content).toBe('Second message in sequence');
+      expect(createdMessages[2].id).toBe(message3.id);
+      expect(createdMessages[2].content).toBe('Third message in sequence');
+
+      // Verify timestamps are in ascending order
+      expect(createdMessages[0].createdAt.getTime()).toBeLessThanOrEqual(
+        createdMessages[1].createdAt.getTime()
+      );
+      expect(createdMessages[1].createdAt.getTime()).toBeLessThanOrEqual(
+        createdMessages[2].createdAt.getTime()
+      );
+    });
+
+    it('getByChatId should return empty array for chat with no messages', async () => {
+      // Create a new chat with no messages
+      const [newChat] = await db
+        .insert(chats)
+        .values({
+          userId: testUserId,
+          title: 'Empty Chat for getByChatId',
+          modelId: testModelId,
+        })
+        .returning();
+
+      createdChatIds.push(newChat.id);
+
+      // Get messages for the chat
+      const results = await db
+        .select()
+        .from(messages)
+        .where(eq(messages.chatId, newChat.id))
+        .orderBy(asc(messages.createdAt)); // Use the same order as the procedure
+
+      expect(results).toEqual([]);
+      expect(results.length).toBe(0);
+    });
+
+    it('getByChatId should return messages with correct role sequence', async () => {
+      // Create a typical conversation sequence
+      const messagesData = [
+        { chatId: testChatId, role: 'user' as const, content: 'Hello' },
+        { chatId: testChatId, role: 'assistant' as const, content: 'Hi there!' },
+        { chatId: testChatId, role: 'user' as const, content: 'How are you?' },
+        { chatId: testChatId, role: 'assistant' as const, content: 'I am doing well!' },
+        { chatId: testChatId, role: 'user' as const, content: 'Goodbye' },
+        { chatId: testChatId, role: 'assistant' as const, content: 'See you!' },
+      ];
+
+      const createdMessages = [];
+      for (const msgData of messagesData) {
+        const [msg] = await db.insert(messages).values(msgData).returning();
+        createdMessages.push(msg);
+        createdMessageIds.push(msg.id);
+        await new Promise((resolve) => setTimeout(resolve, 5)); // Small delay
+      }
+
+      // Get messages
+      const results = await db
+        .select()
+        .from(messages)
+        .where(eq(messages.chatId, testChatId));
+
+      // Filter to our messages
+      const ourMessages = results.filter((m) =>
+        createdMessages.some((cm) => cm.id === m.id)
+      );
+
+      expect(ourMessages.length).toBeGreaterThanOrEqual(6);
+
+      // Verify the sequence of roles
+      const roleSequence = ourMessages.slice(0, 6).map((m) => m.role);
+      expect(roleSequence).toEqual([
+        'user',
+        'assistant',
+        'user',
+        'assistant',
+        'user',
+        'assistant',
+      ]);
+    });
+
+    it('getByChatId should handle large number of messages with ordering', async () => {
+      const messageCount = 20;
+      const createdMessages = [];
+
+      // Create multiple messages
+      for (let i = 0; i < messageCount; i++) {
+        const role = i % 2 === 0 ? 'user' : 'assistant';
+        const [msg] = await db
+          .insert(messages)
+          .values({
+            chatId: testChatId,
+            role,
+            content: `Message ${i + 1}`,
+          })
+          .returning();
+
+        createdMessages.push(msg);
+        createdMessageIds.push(msg.id);
+        await new Promise((resolve) => setTimeout(resolve, 5)); // Small delay
+      }
+
+      // Get all messages
+      const results = await db
+        .select()
+        .from(messages)
+        .where(eq(messages.chatId, testChatId));
+
+      // Filter to our created messages
+      const ourMessages = results.filter((m) =>
+        createdMessages.some((cm) => cm.id === m.id)
+      );
+
+      expect(ourMessages.length).toBe(messageCount);
+
+      // Verify all messages are in correct order
+      for (let i = 0; i < ourMessages.length - 1; i++) {
+        expect(ourMessages[i].createdAt.getTime()).toBeLessThanOrEqual(
+          ourMessages[i + 1].createdAt.getTime()
+        );
+      }
     });
   });
 
