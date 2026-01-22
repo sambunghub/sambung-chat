@@ -4,19 +4,22 @@ import { messages } from '@sambung-chat/db/schema/chat';
 import { models } from '@sambung-chat/db/schema/model';
 import { eq, and, desc, asc, sql, gte, lte, inArray, ilike } from 'drizzle-orm';
 import z from 'zod';
-import { protectedProcedure, withCsrfProtection } from '../index';
+import { protectedProcedure, withCsrfProtection, o } from '../index';
 import { ulidSchema, ulidOptionalSchema } from '../utils/validation';
+import { cacheHeadersMiddleware, CACHE_DURATIONS } from '../middleware/cache-headers';
 
 export const chatRouter = {
   // Get all chats for current user
-  getAll: protectedProcedure.handler(async ({ context }) => {
-    const userId = context.session.user.id;
-    return await db
-      .select()
-      .from(chats)
-      .where(eq(chats.userId, userId))
-      .orderBy(desc(chats.updatedAt));
-  }),
+  getAll: protectedProcedure
+    .use(cacheHeadersMiddleware(o)(CACHE_DURATIONS.SHORT))
+    .handler(async ({ context }) => {
+      const userId = context.session.user.id;
+      return await db
+        .select()
+        .from(chats)
+        .where(eq(chats.userId, userId))
+        .orderBy(desc(chats.updatedAt));
+    }),
 
   // Get all chats with messages and folder information for export
   getAllChatsWithMessages: protectedProcedure.handler(async ({ context }) => {
@@ -182,6 +185,7 @@ export const chatRouter = {
 
   // Get chat by ID with messages
   getById: protectedProcedure
+    .use(cacheHeadersMiddleware(o)(CACHE_DURATIONS.SHORT))
     .input(z.object({ id: ulidSchema }))
     .handler(async ({ input, context }) => {
       const userId = context.session.user.id;

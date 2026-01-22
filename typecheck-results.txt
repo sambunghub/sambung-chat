@@ -1,0 +1,12 @@
+$ turbo check-types
+• turbo 2.7.3
+• Packages in scope: @sambung-chat/api, @sambung-chat/auth, @sambung-chat/config, @sambung-chat/db, @sambung-chat/env, server, web
+• Running check-types in 7 packages
+• Remote caching disabled
+server:check-types: cache hit, replaying logs 1bf282adf2c9ce9c
+server:check-types: $ tsc -b
+
+ Tasks:    1 successful, 1 total
+Cached:    1 cached, 1 total
+  Time:    649ms >>> FULL TURBO
+

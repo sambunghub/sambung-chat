@@ -3,12 +3,12 @@
  *
  * Uses marked for parsing and basic code formatting
  * Supports Mermaid diagrams for flowcharts, sequence diagrams, etc.
- * Supports LaTeX math rendering with KaTeX
+ * Supports LaTeX math rendering with KaTeX (lazy-loaded)
  */
 
 import { marked } from 'marked';
 import DOMPurify from 'isomorphic-dompurify';
-import katex from 'katex';
+import { loadKatex, loadKatexCss, loadMermaid } from '$lib/utils/lazy-load';
 
 /**
  * Configure marked renderer with basic code styling
@@ -29,15 +29,39 @@ function escapeHtml(text: string): string {
     '"': '&quot;',
     "'": '&#039;',
   };
-  return text.replace(/[&<>"']/g, (m) => map[m]);
+  return text.replace(/[&<>"']/g, (m) => map[m] || m);
 }
 
 /**
- * Render LaTeX math to HTML using KaTeX
+ * Cache for lazy-loaded KaTeX module
  */
-function renderLatex(latex: string, displayMode: boolean): string {
+let cachedKatex: typeof import('katex') | null = null;
+let katexLoadInProgress: Promise<typeof import('katex')> | null = null;
+
+/**
+ * Render LaTeX math to HTML using KaTeX
+ * Note: This function will trigger lazy-loading of KaTeX on first call if not already loaded.
+ * For better performance, call ensureMarkdownDependencies() before rendering.
+ */
+async function renderLatex(latex: string, displayMode: boolean): Promise<string> {
   try {
-    return katex.renderToString(latex, {
+    // Load katex if not cached
+    if (!cachedKatex) {
+      if (katexLoadInProgress) {
+        // Wait for existing load to complete
+        cachedKatex = await katexLoadInProgress;
+      } else {
+        // Start new load
+        katexLoadInProgress = loadKatex();
+        cachedKatex = await katexLoadInProgress;
+      }
+    }
+
+    if (!cachedKatex) {
+      throw new Error('KaTeX failed to load');
+    }
+
+    return cachedKatex.renderToString(latex, {
       displayMode,
       throwOnError: false,
       strict: false,
@@ -53,6 +77,33 @@ function renderLatex(latex: string, displayMode: boolean): string {
 }
 
 /**
+ * Synchronous fallback for rendering LaTeX (used if KaTeX not pre-loaded)
+ * Returns the raw LaTeX string with a warning
+ */
+function renderLatexSync(latex: string, displayMode: boolean): string {
+  if (cachedKatex) {
+    try {
+      return cachedKatex.renderToString(latex, {
+        displayMode,
+        throwOnError: false,
+        strict: false,
+        trust: false,
+        macros: {
+          '\\R': '\\mathbb{R}',
+        },
+      });
+    } catch (error) {
+      console.error('LaTeX rendering error:', error);
+      return `<span class="text-red-500" title="LaTeX error: ${error instanceof Error ? error.message : 'Unknown error'}">\\(${latex}\\)</span>`;
+    }
+  }
+
+  // KaTeX not loaded yet - return placeholder
+  console.warn('KaTeX not loaded. Call ensureMarkdownDependencies() before rendering.');
+  return `<span class="text-yellow-600 dark:text-yellow-400" title="LaTeX not loaded - call ensureMarkdownDependencies() first">\\(${latex}\\)</span>`;
+}
+
+/**
  * Protect LaTeX delimiters before markdown parsing
  * Returns: { processed: string, map: Map<string, {latex: string, displayMode: boolean}> }
  */
@@ -65,7 +116,7 @@ function protectLatexDelimiters(text: string): {
   let placeholderIndex = 0;
 
   // Protect block math ($$...$$)
-  processed = processed.replace(/\$\$([\s\S]*?)\$\$/g, (match, latex) => {
+  processed = processed.replace(/\$\$([\s\S]*?)\$\$/g, (_match, latex) => {
     const placeholder = `%%%LATEX_BLOCK_${placeholderIndex}%%%`;
     latexMap.set(placeholder, { latex: latex.trim(), displayMode: true });
     placeholderIndex++;
@@ -89,6 +140,7 @@ function protectLatexDelimiters(text: string): {
 
 /**
  * Restore LaTeX placeholders with rendered KaTeX HTML
+ * Note: Uses renderLatexSync() which requires KaTeX to be pre-loaded via ensureMarkdownDependencies()
  */
 function restoreLatexPlaceholders(
   html: string,
@@ -97,7 +149,7 @@ function restoreLatexPlaceholders(
   let restored = html;
 
   for (const [placeholder, { latex, displayMode }] of latexMap) {
-    const rendered = renderLatex(latex, displayMode);
+    const rendered = renderLatexSync(latex, displayMode);
     restored = restored.replace(placeholder, rendered);
   }
 
@@ -243,8 +295,22 @@ function getMermaidTheme() {
 /**
  * Initialize Mermaid diagrams after rendering
  * This should be called after the DOM is updated
+ * Note: This will lazy-load Mermaid if not already loaded
  */
 export async function initMermaidDiagrams() {
+  // Load Mermaid if not already loaded
+  // Check for window.mermaid directly instead of isMermaidLoaded()
+  // because isMermaidLoaded() returns true when load promise is created,
+  // not when mermaid is actually available
+  if (typeof window !== 'undefined' && !(window as any).mermaid) {
+    try {
+      await loadMermaid();
+    } catch (error) {
+      console.error('Failed to load Mermaid:', error);
+      return;
+    }
+  }
+
   if (typeof window !== 'undefined' && (window as any).mermaid) {
     const mermaid = (window as any).mermaid;
 
@@ -276,7 +342,8 @@ export async function initMermaidDiagrams() {
     }
 
     // Render each diagram individually
-    for (const diagram of diagrams) {
+    const diagramArray = Array.from(diagrams);
+    for (const diagram of diagramArray) {
       try {
         const definition = diagram.textContent || '';
         const id =
@@ -306,6 +373,47 @@ export async function reinitMermaidDiagrams() {
     (window as any).mermaidInitialized = false;
     (window as any).mermaidTheme = undefined;
     await initMermaidDiagrams();
+  }
+}
+
+/**
+ * Ensure all markdown rendering dependencies are loaded
+ * This function pre-loads KaTeX and Mermaid to avoid lazy-loading during rendering
+ * Call this before rendering markdown with LaTeX or Mermaid diagrams
+ * @returns Promise that resolves when all dependencies are loaded
+ */
+export async function ensureMarkdownDependencies(): Promise<void> {
+  try {
+    // Load KaTeX and CSS if not already loaded
+    if (!cachedKatex && !katexLoadInProgress) {
+      katexLoadInProgress = loadKatex();
+      try {
+        cachedKatex = await katexLoadInProgress;
+      } finally {
+        // Always clear the in-progress flag, even on failure
+        katexLoadInProgress = null;
+      }
+    } else if (katexLoadInProgress) {
+      // Wait for existing load to complete
+      try {
+        cachedKatex = await katexLoadInProgress;
+      } catch {
+        // If load failed and initiator didn't clean up, reset for retry
+        katexLoadInProgress = null;
+        throw new Error('KaTeX load failed');
+      }
+    }
+
+    // Load KaTeX CSS (using static import)
+    await loadKatexCss();
+
+    // Load Mermaid if not already loaded
+    if (typeof window !== 'undefined' && !(window as any).mermaid) {
+      await loadMermaid();
+    }
+  } catch (error) {
+    console.error('Failed to load markdown dependencies:', error);
+    throw error;
   }
 }
 

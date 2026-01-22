@@ -3,19 +3,22 @@ import { folders, chats } from '@sambung-chat/db/schema/chat';
 import { eq, and, asc, sql } from 'drizzle-orm';
 import z from 'zod';
 import { ORPCError } from '@orpc/server';
-import { protectedProcedure, withCsrfProtection } from '../index';
+import { protectedProcedure, withCsrfProtection, o } from '../index';
 import { ulidSchema } from '../utils/validation';
+import { cacheHeadersMiddleware, CACHE_PRESETS } from '../middleware/cache-headers';
 
 export const folderRouter = {
   // Get all folders for current user
-  getAll: protectedProcedure.handler(async ({ context }) => {
-    const userId = context.session.user.id;
-    return await db
-      .select()
-      .from(folders)
-      .where(eq(folders.userId, userId))
-      .orderBy(asc(folders.createdAt));
-  }),
+  getAll: protectedProcedure
+    .use(cacheHeadersMiddleware(o)(CACHE_PRESETS.CONFIGURATION))
+    .handler(async ({ context }) => {
+      const userId = context.session.user.id;
+      return await db
+        .select()
+        .from(folders)
+        .where(eq(folders.userId, userId))
+        .orderBy(asc(folders.createdAt));
+    }),
 
   // Get folder by ID with chat count
   getById: protectedProcedure
