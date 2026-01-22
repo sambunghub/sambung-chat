@@ -62,4 +62,24 @@ export const userRouter = {
         ...input,
       });
     }),
+
+  /**
+   * Delete user account
+   * Permanently deletes the user account and all associated data
+   * This action is irreversible - all data will be lost
+   *
+   * Cascade deletion will remove:
+   * - All sessions (authentication tokens)
+   * - All accounts (OAuth providers, credentials)
+   * - All chats and messages
+   * - All folders
+   * - All agents
+   * - All API keys
+   * - All prompts
+   * - All models
+   */
+  deleteAccount: protectedProcedure.handler(async ({ context }) => {
+    const userId = context.session.user.id;
+    return await UserService.deleteAccount(userId);
+  }),
 };

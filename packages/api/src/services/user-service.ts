@@ -340,4 +340,62 @@ export class UserService {
       });
     }
   }
+
+  /**
+   * Delete user account
+   *
+   * Permanently deletes a user account and all associated data.
+   * Due to database cascade constraints, this will also delete:
+   * - All sessions (authentication tokens)
+   * - All accounts (OAuth providers, credentials)
+   * - All chats and messages
+   * - All folders
+   * - All agents
+   * - All API keys
+   * - All prompts
+   * - All models
+   *
+   * This operation is irreversible.
+   *
+   * @param userId - The user ID to delete
+   * @returns Success message
+   * @throws {ORPCError} If user not found or deletion fails
+   *
+   * @example
+   * ```ts
+   * await UserService.deleteAccount('user_123');
+   * // Returns: { success: true }
+   * ```
+   */
+  static async deleteAccount(userId: string): Promise<{ success: boolean }> {
+    // Verify user exists before attempting deletion
+    const existingUserResults = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, userId))
+      .limit(1);
+
+    if (existingUserResults.length === 0) {
+      throw new ORPCError('NOT_FOUND', {
+        message: 'User not found',
+      });
+    }
+
+    try {
+      // Delete the user - cascade deletion will handle all related data
+      await db.delete(user).where(eq(user.id, userId));
+
+      return { success: true };
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new ORPCError('INTERNAL_ERROR', {
+          message: error.message || 'Failed to delete account',
+        });
+      }
+
+      throw new ORPCError('INTERNAL_ERROR', {
+        message: 'An unexpected error occurred while deleting account',
+      });
+    }
+  }
 }
