@@ -273,11 +273,15 @@
       prompt.variables.forEach((variable) => {
         const escapedName = escapeRegExp(variable.name);
         const placeholder = `[${variable.name}]`;
+        // Replace {{name}} syntax
         promptContent = promptContent.replace(new RegExp(`{{${escapedName}}}`, 'g'), placeholder);
+        // Replace ${name} syntax
         promptContent = promptContent.replace(
           new RegExp(`\\$\\{${escapedName}\\}`, 'g'),
           placeholder
         );
+        // Replace {name} syntax (single brace)
+        promptContent = promptContent.replace(new RegExp(`\\{${escapedName}\\}`, 'g'), placeholder);
       });
     }
 

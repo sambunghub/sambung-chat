@@ -129,13 +129,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Prevents duplicate key warnings for alternating user/assistant messages
 
 - **KaTeX CSS Loading**: Fix MIME type error when lazy-loading KaTeX CSS in development ([apps/web/src/lib/utils/lazy-load.ts](apps/web/src/lib/utils/lazy-load.ts:66-68))
-  - Change from local node_modules path to CDN URL (https://cdn.jsdelivr.net)
+  - Change from local node_modules path to CDN URL (<https://cdn.jsdelivr.net>)
   - Works in both development and production environments
   - Add crossOrigin attribute for proper CORS handling
 
 - **CSP Headers for KaTeX**: Update Content Security Policy to allow KaTeX CDN resources ([apps/web/src/lib/security/headers.ts](apps/web/src/lib/security/headers.ts:126,135))
-  - Add https://cdn.jsdelivr.net to style-src directive for CSS
-  - Add https://cdn.jsdelivr.net to font-src directive for fonts
+  - Add <https://cdn.jsdelivr.net> to style-src directive for CSS
+  - Add <https://cdn.jsdelivr.net> to font-src directive for fonts
   - Enables proper loading of KaTeX stylesheets and web fonts
 
 ## [0.0.18] - 2026-01-21
