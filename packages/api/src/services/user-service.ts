@@ -258,6 +258,13 @@ export class UserService {
       updateData.image = image;
     }
 
+    // Guard against empty profile updates (no fields to update)
+    if (Object.keys(updateData).length === 0) {
+      throw new ORPCError('BAD_REQUEST', {
+        message: 'At least one field (name, bio, or image) must be provided to update profile',
+      });
+    }
+
     // Update the user
     const [updatedUser] = await db
       .update(user)

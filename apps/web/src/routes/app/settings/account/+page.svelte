@@ -99,52 +99,63 @@
     }
   }
 
-  async function handleAvatarUpload(file: File) {
+  async function handleAvatarUpload(file: File): Promise<void> {
     uploadingAvatar = true;
 
-    // Convert file to base64
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const base64 = e.target?.result as string;
+    // Wrap FileReader + upload flow in a Promise so callers can await the whole operation
+    return new Promise<void>((resolve, reject) => {
+      const reader = new FileReader();
 
-      try {
-        await userClient.user.uploadAvatar({ file: base64 });
+      reader.onload = async () => {
+        try {
+          const base64 = reader.result as string;
 
-        // Reload profile to get updated avatar
-        await loadProfile();
+          await userClient.user.uploadAvatar({ file: base64 });
 
-        // Clear preview and selected file
+          // Reload profile to get updated avatar
+          await loadProfile();
+
+          // Clear preview and selected file
+          avatarPreview = null;
+          selectedAvatarFile = null;
+
+          toast.success('Avatar uploaded successfully', {
+            description: 'Your profile picture has been updated',
+          });
+
+          resolve();
+        } catch (error) {
+          avatarPreview = null;
+          selectedAvatarFile = null;
+          toast.error('Failed to upload avatar', {
+            description: error instanceof Error ? error.message : 'Please try again',
+            action: {
+              label: 'Retry',
+              onClick: () => handleAvatarUpload(file),
+            },
+          });
+          reject(error);
+        } finally {
+          uploadingAvatar = false;
+        }
+      };
+
+      reader.onerror = () => {
+        uploadingAvatar = false;
         avatarPreview = null;
         selectedAvatarFile = null;
-
-        toast.success('Avatar uploaded successfully', {
-          description: 'Your profile picture has been updated',
-        });
-      } catch (error) {
-        toast.error('Failed to upload avatar', {
-          description: error instanceof Error ? error.message : 'Please try again',
+        toast.error('Failed to read image file', {
+          description: 'Please try again with a different file',
           action: {
             label: 'Retry',
             onClick: () => handleAvatarUpload(file),
           },
         });
-      } finally {
-        uploadingAvatar = false;
-      }
-    };
-    reader.onerror = () => {
-      uploadingAvatar = false;
-      avatarPreview = null;
-      selectedAvatarFile = null;
-      toast.error('Failed to read image file', {
-        description: 'Please try again with a different file',
-        action: {
-          label: 'Retry',
-          onClick: () => handleAvatarUpload(file),
-        },
-      });
-    };
-    reader.readAsDataURL(file);
+        reject(new Error('Failed to read image file'));
+      };
+
+      reader.readAsDataURL(file);
+    });
   }
 
   async function handleSave(data: ProfileFormData) {

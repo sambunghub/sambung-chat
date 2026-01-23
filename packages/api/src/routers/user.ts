@@ -136,7 +136,7 @@ export const userRouter = {
    * Upload avatar image
    * Allows users to upload an avatar image
    * Accepts base64 encoded image data (data URI format)
-   * Validates image type (JPEG, PNG, GIF, WebP) and size (max 5MB)
+   * Validates image type (JPEG, PNG, GIF, WebP) and size (max 2MB)
    */
   uploadAvatar: protectedProcedure
     .input(
