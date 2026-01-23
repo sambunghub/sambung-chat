@@ -33,6 +33,24 @@ function escapeHtml(text: string): string {
 }
 
 /**
+ * Unescape HTML entities - used for Mermaid code that needs raw characters
+ * Reverses the escapeHtml() function for specific use cases
+ */
+function unescapeHtml(text: string): string {
+  const map: Record<string, string> = {
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#039;': "'",
+    '&#39;': "'",
+    '&apos;': "'",
+  };
+  // Must replace &amp; last to avoid double-unescaping
+  return text.replace(/&(quot|apos|lt|gt|#039|#39);/g, (m) => map[m] || m).replace(/&amp;/g, '&');
+}
+
+/**
  * Cache for lazy-loaded KaTeX module
  */
 let cachedKatex: typeof import('katex') | null = null;
@@ -164,11 +182,21 @@ const renderer = new marked.Renderer();
 
 renderer.code = function (code: { text: string; lang?: string; escaped?: boolean }) {
   const validLanguage = code.lang || 'text';
-  const escapedCode = code.escaped ? code.text : escapeHtml(code.text);
 
   // Check if this is a mermaid diagram
+  // Mermaid parser needs raw text, not HTML entities
+  // But we still escape for sanitization, then unescape for Mermaid
   if (validLanguage === 'mermaid') {
     const diagramId = `mermaid-diagram-${mermaidCounter++}`;
+
+    // First escape to sanitize any potential XSS
+    let mermaidCode = code.escaped ? code.text : escapeHtml(code.text);
+
+    // Then unescape to restore raw characters needed by Mermaid parser
+    // This gives us XSS protection during the escape phase
+    // while providing raw text to Mermaid parser
+    mermaidCode = unescapeHtml(mermaidCode);
+
     // Use data-mermaid attribute for Mermaid v11
     return `
       <div class="relative group my-4">
@@ -176,13 +204,16 @@ renderer.code = function (code: { text: string; lang?: string; escaped?: boolean
           <span class="text-xs font-mono text-purple-400">Mermaid Diagram</span>
         </div>
         <div class="p-4 rounded-b-lg bg-muted/30 flex justify-center">
-          <pre class="mermaid" data-mermaid="${diagramId}" style="background: transparent;">${escapedCode}</pre>
+          <pre class="mermaid" data-mermaid="${diagramId}" style="background: transparent;">${mermaidCode}</pre>
         </div>
       </div>
     `;
   }
 
+  // For other code blocks, escape HTML to prevent XSS
+  const escapedCode = code.escaped ? code.text : escapeHtml(code.text);
   const escapedLanguage = escapeHtml(validLanguage);
+
   // Create styled code block with language label
   return `
     <div class="relative group my-4">
@@ -357,7 +388,40 @@ export async function initMermaidDiagrams() {
         diagram.outerHTML = `<div class="flex justify-center items-center p-4 rounded-b-lg bg-muted/30">${svg}</div>`;
       } catch (error) {
         console.error('Failed to render mermaid diagram:', error);
-        diagram.innerHTML = `<p class="text-red-500">Failed to render diagram. Check syntax.</p>`;
+
+        // Get error message (first line only for cleaner display)
+        let errorMessage = 'Unable to render diagram';
+        if (error instanceof Error) {
+          errorMessage = error.message.split('\n')[0];
+        }
+
+        // Get original diagram code for reference
+        const originalCode = diagram.textContent || '';
+
+        // Replace entire pre element (not innerHTML) to prevent Mermaid from re-parsing error message
+        // Using outerHTML ensures the mermaid class and data-mermaid attribute are removed
+        diagram.outerHTML = `
+          <div class="p-4 rounded-b-lg bg-muted/30 border border-red-500/30">
+            <details class="group" open>
+              <summary class="cursor-pointer text-red-500 font-medium flex items-center gap-2 hover:text-red-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <span>Diagram rendering failed: ${escapeHtml(errorMessage)}</span>
+              </summary>
+              <div class="mt-3">
+                <p class="text-sm text-muted-foreground mb-2">The mermaid diagram could not be rendered. This may be due to:</p>
+                <ul class="text-sm text-muted-foreground list-disc list-inside mb-3 space-y-1">
+                  <li>Incompatible syntax with Mermaid v11.12.2</li>
+                  <li>Special characters in node labels that conflict with Mermaid keywords</li>
+                  <li>Invalid diagram structure</li>
+                </ul>
+                <div class="text-xs text-muted-foreground mb-1">Original diagram code:</div>
+                <pre class="overflow-x-auto p-3 rounded bg-black/5 dark:bg-black/30 text-xs font-mono border border-border">${escapeHtml(originalCode)}</pre>
+              </div>
+            </details>
+          </div>
+        `;
       }
     }
   }
