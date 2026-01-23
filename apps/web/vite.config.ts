@@ -18,9 +18,12 @@ export default defineConfig({
     },
   },
 
-  // Disable esbuild during config loading to prevent EPIPE
-  esbuild: {
-    tsconfigRaw: {},
+  // Optimize dependency pre-bundling
+  optimizeDeps: {
+    // Force optimization even when dependencies are linked
+    force: false,
+    // Include esbuild explicitly to prevent conflicts
+    include: ['esbuild'],
   },
 
   ssr: {

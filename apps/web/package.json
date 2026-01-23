@@ -43,6 +43,7 @@
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.17",
     "bits-ui": "^2.15.4",
+    "esbuild": "^0.27.2",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "svelte": "^5.38.1",
     "svelte-check": "^4.3.1",

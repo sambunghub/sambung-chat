@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-01-21T03:15:41.783Z",
+  "timestamp": "2026-01-23T04:08:51.479Z",
   "totalDiagrams": 35,
-  "githubCompatible": false,
-  "errors": 8,
+  "githubCompatible": true,
+  "errors": 0,
   "warnings": 2,
   "diagramTypes": {
     "flowchart": 15,
@@ -22,54 +22,6 @@
       "line": 5868,
       "issue": "Contains 37 emojis - GitHub supports emojis but rendering may vary",
       "severity": "info"
-    },
-    {
-      "diagram": 6,
-      "line": 413,
-      "issue": "Unclosed subgraph: 2 subgraphs, 0 end statements",
-      "severity": "error"
-    },
-    {
-      "diagram": 8,
-      "line": 803,
-      "issue": "Unclosed subgraph: 4 subgraphs, 0 end statements",
-      "severity": "error"
-    },
-    {
-      "diagram": 9,
-      "line": 998,
-      "issue": "Unclosed subgraph: 4 subgraphs, 0 end statements",
-      "severity": "error"
-    },
-    {
-      "diagram": 10,
-      "line": 1092,
-      "issue": "Unclosed subgraph: 6 subgraphs, 0 end statements",
-      "severity": "error"
-    },
-    {
-      "diagram": 11,
-      "line": 1166,
-      "issue": "Unclosed subgraph: 8 subgraphs, 0 end statements",
-      "severity": "error"
-    },
-    {
-      "diagram": 18,
-      "line": 2694,
-      "issue": "Unclosed subgraph: 3 subgraphs, 0 end statements",
-      "severity": "error"
-    },
-    {
-      "diagram": 29,
-      "line": 4129,
-      "issue": "Unclosed subgraph: 4 subgraphs, 0 end statements",
-      "severity": "error"
-    },
-    {
-      "diagram": 30,
-      "line": 4298,
-      "issue": "Unclosed subgraph: 5 subgraphs, 0 end statements",
-      "severity": "error"
     }
   ]
 }

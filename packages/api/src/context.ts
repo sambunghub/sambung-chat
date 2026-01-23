@@ -66,6 +66,7 @@ export async function createContext({ context }: CreateContextOptions) {
     session,
     clientIp,
     csrfToken,
+    headers,
   };
 }
 

@@ -31,8 +31,10 @@
   },
   "type": "module",
   "scripts": {
+    "predev": "bun run scripts/clean-esbuild.sh",
     "dev": "turbo dev",
     "build": "turbo build",
+    "dev:clean": "bun run scripts/clean-esbuild.sh && bun run dev",
     "check-types": "turbo check-types",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

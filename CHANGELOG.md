@@ -43,6 +43,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.0.22] - 2026-01-22
 
+### Added
+
+- **Session Revocation**: Add revoke session endpoint for user session management ([packages/api/src/routers/user.ts](packages/api/src/routers/user.ts:107-119), [packages/api/src/services/user-service.ts](packages/api/src/services/user-service.ts:486-527))
+  - Protected procedure requiring authentication
+  - Token-based session revocation with ownership verification
+  - Database deletion of revoked sessions using Drizzle ORM
+  - Returns success confirmation on session deletion
+
 ### Fixed
 
 - **Prompt Form Data Binding**: Fix critical bug where prompt form submission was sending empty data despite user input ([apps/web/src/lib/components/prompt-library.svelte](apps/web/src/lib/components/prompt-library.svelte:172-188), [apps/web/src/lib/components/prompt-library-form.svelte](apps/web/src/lib/components/prompt-library-form.svelte:46-60))

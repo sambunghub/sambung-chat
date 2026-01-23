@@ -181,13 +181,22 @@ diagrams.forEach((diagram) => {
   }
 
   // Check for proper subgraph closure
-  const subgraphs = (content.match(/subgraph/g) || []).length;
-  const ends = (content.match(/^end$/gm) || []).length;
-  if (subgraphs > ends) {
+  // In Mermaid flowcharts, each subgraph must have exactly one 'end' statement
+  // We need to count them more carefully by parsing the structure
+  const subgraphCount = (content.match(/subgraph/g) || []).length;
+
+  // Count 'end' statements that are on their own line (possibly with whitespace)
+  const endCount = (content.match(/^\s*end\s*$/gm) || []).length;
+
+  // For flowchart/graph diagrams, subgraphs need matching ends
+  // For other diagram types, 'end' is used differently (like in stateDiagram)
+  const isFlowchart = /^(flowchart|graph)/m.test(content);
+
+  if (isFlowchart && subgraphCount > endCount) {
     syntaxChecks.push({
       diagram: diagram.number,
       line: diagram.startLine,
-      issue: `Unclosed subgraph: ${subgraphs} subgraphs, ${ends} end statements`,
+      issue: `Unclosed subgraph: ${subgraphCount} subgraphs, ${endCount} end statements`,
       severity: 'error',
     });
   }

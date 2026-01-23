@@ -11,6 +11,11 @@ build
 build-results.txt
 typecheck-results.txt
 
+# Vite/esbuild cache
+node_modules/.vite
+apps/*/node_modules/.vite
+node_modules/.cache
+
 # Environment variables
 .env
 .env*.local
