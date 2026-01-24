@@ -423,7 +423,7 @@ export const aiRouter = {
         // Generate completion
         const result = await generateText({
           model,
-          messages: input.messages as any,
+          messages: input.messages as CoreMessage[],
           ...aiSettings,
         });
 
