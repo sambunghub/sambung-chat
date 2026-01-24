@@ -59,21 +59,27 @@ export function getCSPHeader(config: CSPConfig = { reportOnly: false }): string 
   // Get backend server URL for CSP connect-src
   // In development, allow direct connections to backend server (SERVER_PORT)
   // In production with proxy, PUBLIC_API_URL is sufficient
-  let backendServerUrl = 'http://localhost:3000'; // Default fallback
+  let backendServerUrl = 'http://localhost:3000'; // Default fallback (for browser connections)
+  let dockerBackendUrl = ''; // For Docker container-to-container communication
   const serverPort = typeof process !== 'undefined' ? process.env.SERVER_PORT : undefined;
   const serverUrl = typeof process !== 'undefined' ? process.env.SERVER_URL : undefined;
 
   if (isDev) {
     // In development, always allow connections to backend server
-    // Use SERVER_URL if provided, otherwise construct from SERVER_PORT
+    // localhost:3000 for browser connections (ORPC client)
+    // SERVER_URL for Docker container-to-container communication
+    backendServerUrl = `http://localhost:${serverPort || 3000}`;
+
     if (serverUrl) {
       try {
-        backendServerUrl = new URL(serverUrl).origin;
+        const url = new URL(serverUrl);
+        // Only add Docker URL if it's different from localhost (e.g., container name)
+        if (url.origin !== backendServerUrl) {
+          dockerBackendUrl = url.origin;
+        }
       } catch {
-        backendServerUrl = `http://localhost:${serverPort || 3000}`;
+        // Invalid SERVER_URL, ignore
       }
-    } else {
-      backendServerUrl = `http://localhost:${serverPort || 3000}`;
     }
   } else {
     // In production, backend is behind proxy, so use PUBLIC_API_URL
@@ -103,7 +109,8 @@ export function getCSPHeader(config: CSPConfig = { reportOnly: false }): string 
   // Build connect-src with API endpoints and Keycloak
   const connectSources = [
     "'self'", // Same origin (frontend)
-    backendServerUrl, // Backend API server
+    backendServerUrl, // Backend API server (localhost:3000 for browser)
+    dockerBackendUrl, // Docker container-to-container (sambungchat-server:3000)
     keycloakUrl, // Keycloak OAuth
     ...(config.connectSources || []),
   ]

@@ -55,6 +55,8 @@
   let messageTokenData = $state<Map<string, { exactTokens?: number; promptTokens?: number }>>(
     new Map()
   );
+  // Track final token count for messages that just finished streaming
+  let lastStreamingTokenCounts = $state<Map<string, number>>(new Map());
 
   // Custom fetch wrapper to include credentials (cookies) and modelId
   const authenticatedFetch = (input: RequestInfo | URL, init?: RequestInit) => {
@@ -262,7 +264,10 @@
         streamingTokenCount = estimateTokens(content);
       }
     } else if (!isStreamingResponse && streamingMessageId) {
-      // Streaming just ended, keep the last token count
+      // Streaming just ended, save the final token count
+      if (streamingMessageId && streamingTokenCount > 0) {
+        lastStreamingTokenCounts.set(streamingMessageId, streamingTokenCount);
+      }
       streamingMessageId = null;
       streamingTokenCount = 0;
       // Initialize Mermaid diagrams after streaming completes
@@ -676,7 +681,17 @@
 
   // Get token data for a message
   function getMessageTokenData(messageId: string) {
-    return messageTokenData.get(messageId);
+    // First try to get exact token data from database
+    const dbData = messageTokenData.get(messageId);
+    if (dbData) {
+      return dbData;
+    }
+    // Fallback to last streaming count (estimated but better than nothing)
+    const streamingCount = lastStreamingTokenCounts.get(messageId);
+    if (streamingCount) {
+      return { exactTokens: streamingCount };
+    }
+    return undefined;
   }
 </script>
 
@@ -774,7 +789,9 @@
               class="group max-w-[85%] rounded-2xl px-4 py-3 text-sm transition-all duration-200 hover:shadow-lg md:text-base {message.role ===
               'user'
                 ? 'bg-accent text-accent-foreground rounded-tr-sm'
-                : 'bg-muted text-card-foreground rounded-tl-sm'}"
+                : 'bg-muted text-card-foreground rounded-tl-sm'} {isStreamingMessage
+                ? 'border-primary animate-pulse border-2 shadow-lg'
+                : ''}"
             >
               <p
                 class="mb-1.5 text-xs font-medium opacity-70"
@@ -819,10 +836,6 @@
                   {:else}
                     <!-- eslint-disable-next-line svelte/no-at-html-tags -- sanitized by DOMPurify in markdown-renderer.ts -->
                     {@html renderMarkdownSync(messageText)}
-                    {#if isStreamingMessage && !messageText}
-                      <span class="ml-1 inline-block h-4 w-2 animate-pulse bg-current opacity-50"
-                      ></span>
-                    {/if}
                   {/if}
                 </div>
                 <!-- Token display for assistant messages -->
@@ -869,37 +882,6 @@
             {/if}
           </div>
         {/each}
-
-        <!-- Loading indicator when message is being sent but before AI response starts -->
-        {#if isSubmitting && messages.length > 0}
-          <div in:fade|global={{ duration: 300 }} class="mx-auto max-w-3xl">
-            <div class="flex justify-start">
-              <div class="bg-muted max-w-[85%] rounded-2xl rounded-tl-sm px-4 py-3 shadow-lg">
-                <p class="text-muted-foreground mb-2 text-xs font-medium">AI Assistant</p>
-                <div class="flex items-center gap-2">
-                  <div class="space-y-1">
-                    <div class="h-3 w-24 animate-pulse rounded bg-current opacity-20"></div>
-                    <div
-                      class="h-3 w-48 animate-pulse rounded bg-current opacity-20"
-                      style="animation-delay: 0.1s"
-                    ></div>
-                  </div>
-                  <div class="flex gap-1">
-                    <span class="h-2 w-2 animate-bounce rounded-full bg-current opacity-60"></span>
-                    <span
-                      class="h-2 w-2 animate-bounce rounded-full bg-current opacity-60"
-                      style="animation-delay: 0.1s"
-                    ></span>
-                    <span
-                      class="h-2 w-2 animate-bounce rounded-full bg-current opacity-60"
-                      style="animation-delay: 0.2s"
-                    ></span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        {/if}
       </div>
     {/if}
 

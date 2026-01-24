@@ -138,6 +138,9 @@ services:
       EMAIL_PASSWORD_ENABLED: ${EMAIL_PASSWORD_ENABLED:-true}
       PUBLIC_EMAIL_PASSWORD_ENABLED: ${PUBLIC_EMAIL_PASSWORD_ENABLED:-true}
 
+      # Backend server URL for Vite proxy (in development, use container name)
+      SERVER_URL: ${SERVER_URL:-http://sambungchat-server:3000}
+
       # Public variables (for client-side)
       PUBLIC_SERVER_URL: ${PUBLIC_SERVER_URL:-http://localhost:3000}
       PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:3000}
