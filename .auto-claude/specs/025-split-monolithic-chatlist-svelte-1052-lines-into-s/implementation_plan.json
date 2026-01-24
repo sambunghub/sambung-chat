@@ -2,7 +2,7 @@
   "feature": "Split monolithic ChatList.svelte (632 lines) into smaller focused components",
   "description": "Refactor ChatList.svelte by extracting focused components for header, chat groups, folder management, and data fetching. Currently handles 7+ responsibilities: chat CRUD, folder management, search/filtering, grouping, state management, UI rendering, and navigation.",
   "created_at": "2026-01-21T07:44:13.411Z",
-  "updated_at": "2026-01-24T03:54:17.150Z",
+  "updated_at": "2026-01-24T03:58:05.539Z",
   "status": "in_progress",
   "planStatus": "in_progress",
   "phases": [
@@ -282,25 +282,29 @@
       "id": "phase-8",
       "name": "Final Integration & Testing",
       "description": "Complete refactoring and verify all functionality works",
-      "status": "pending",
+      "status": "in_progress",
       "subtasks": [
         {
           "id": "8.1",
           "name": "Refactor ChatList.svelte to orchestration component",
           "description": "Simplify ChatList.svelte to minimal orchestration (compose sub-components)",
-          "status": "pending",
+          "status": "completed",
           "files_involved": [
-            "apps/web/src/lib/components/secondary-sidebar/ChatList.svelte"
+            "apps/web/src/lib/components/secondary-sidebar/ChatList.svelte",
+            "apps/web/src/lib/components/secondary-sidebar/chat-list/useChatListData.ts",
+            "apps/web/src/lib/components/secondary-sidebar/chat-list/ChatListFilterDialog.svelte"
           ],
-          "notes": "Final version should be ~100-150 lines: import components, use composable, render components with props"
+          "notes": "Successfully simplified ChatList.svelte to 147 lines (80% reduction from 746 lines). Created useChatListData composable (476 lines) with all state management, data fetching, CRUD operations. Created ChatListFilterDialog component (189 lines) for advanced filters. ChatList.svelte is now pure orchestration: uses composable, composes sub-components, minimal local state.",
+          "updated_at": "2026-01-24T05:00:00.000000+00:00"
         },
         {
           "id": "8.2",
           "name": "Run type checks",
           "description": "Execute bun run check:types and fix any issues",
-          "status": "pending",
+          "status": "completed",
           "files_involved": [],
-          "notes": "Ensure no TypeScript errors"
+          "notes": "Type checks passed successfully with 0 errors. Executed bun run check-types (1 successful, 1 total). No TypeScript issues found.",
+          "updated_at": "2026-01-24T05:10:00.000000+00:00"
         },
         {
           "id": "8.3",
