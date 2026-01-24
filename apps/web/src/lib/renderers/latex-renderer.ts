@@ -33,23 +33,38 @@ let katexLoadInProgress: Promise<typeof import('katex')> | null = null;
  * For better performance, call ensureLoaded() before rendering.
  */
 export async function renderLatex(latex: string, displayMode: boolean): Promise<string> {
-  try {
-    // Load katex if not cached
-    if (!cachedKatex) {
-      if (katexLoadInProgress) {
-        // Wait for existing load to complete
+  // Load katex if not cached
+  if (!cachedKatex) {
+    if (katexLoadInProgress) {
+      // Wait for existing load to complete
+      try {
         cachedKatex = await katexLoadInProgress;
-      } else {
-        // Start new load
-        katexLoadInProgress = loadKatex();
+      } catch {
+        // If load failed, reset for retry
+        katexLoadInProgress = null;
+        throw new Error('KaTeX failed to load');
+      }
+    } else {
+      // Start new load with proper cleanup on failure
+      katexLoadInProgress = loadKatex();
+      try {
         cachedKatex = await katexLoadInProgress;
+      } catch {
+        // Clear the in-progress flag on failure so retry is possible
+        katexLoadInProgress = null;
+        throw new Error('KaTeX failed to load');
+      } finally {
+        // Always clear the in-progress flag after load completes (success or failure)
+        katexLoadInProgress = null;
       }
     }
+  }
 
-    if (!cachedKatex) {
-      throw new Error('KaTeX failed to load');
-    }
+  if (!cachedKatex) {
+    throw new Error('KaTeX failed to load');
+  }
 
+  try {
     return cachedKatex.renderToString(latex, {
       displayMode,
       throwOnError: false,
@@ -60,8 +75,18 @@ export async function renderLatex(latex: string, displayMode: boolean): Promise<
       },
     });
   } catch (error) {
-    console.error('LaTeX rendering error:', error);
-    return `<span class="text-red-500" title="LaTeX error: ${error instanceof Error ? error.message : 'Unknown error'}">\\(${latex}\\)</span>`;
+    // Sanitized logging: only log error type in production, full details in development
+    const isDev = import.meta.env?.DEV ?? process.env?.NODE_ENV === 'development';
+    const errorName = error instanceof Error ? error.name : 'UnknownError';
+    if (isDev) {
+      console.error('LaTeX rendering error:', error);
+    } else {
+      console.error(`LaTeX rendering error: ${errorName}`);
+    }
+    // Escape user-provided LaTeX content to prevent XSS in error output
+    const safeErrorMessage = error instanceof Error ? escapeHtml(error.message) : 'Unknown error';
+    const safeLatex = escapeHtml(latex);
+    return `<span class="text-red-500" title="LaTeX error: ${safeErrorMessage}">\\(${safeLatex}\\)</span>`;
   }
 }
 
@@ -82,14 +107,24 @@ export function renderLatexSync(latex: string, displayMode: boolean): string {
         },
       });
     } catch (error) {
-      console.error('LaTeX rendering error:', error);
-      return `<span class="text-red-500" title="LaTeX error: ${error instanceof Error ? error.message : 'Unknown error'}">\\(${latex}\\)</span>`;
+      // Sanitized logging: only log error type in production, full details in development
+      const isDev = import.meta.env?.DEV ?? process.env?.NODE_ENV === 'development';
+      const errorName = error instanceof Error ? error.name : 'UnknownError';
+      if (isDev) {
+        console.error('LaTeX rendering error:', error);
+      } else {
+        console.error(`LaTeX rendering error: ${errorName}`);
+      }
+      // Escape user-provided LaTeX content to prevent XSS in error output
+      const safeErrorMessage = error instanceof Error ? escapeHtml(error.message) : 'Unknown error';
+      const safeLatex = escapeHtml(latex);
+      return `<span class="text-red-500" title="LaTeX error: ${safeErrorMessage}">\\(${safeLatex}\\)</span>`;
     }
   }
 
   // KaTeX not loaded yet - return placeholder
   console.warn('KaTeX not loaded. Call ensureLoaded() before rendering.');
-  return `<span class="text-yellow-600 dark:text-yellow-400" title="LaTeX not loaded - call ensureLoaded() first">\\(${latex}\\)</span>`;
+  return `<span class="text-yellow-600 dark:text-yellow-400" title="LaTeX not loaded - call ensureLoaded() first">\\(${escapeHtml(latex)}\\)</span>`;
 }
 
 /**
@@ -199,7 +234,13 @@ export async function ensureLoaded(): Promise<void> {
     // Load KaTeX CSS (using static import)
     await loadKatexCss();
   } catch (error) {
-    console.error('Failed to load KaTeX:', error);
+    const isDev = import.meta.env?.DEV ?? process.env?.NODE_ENV === 'development';
+    const errorName = error instanceof Error ? error.name : 'UnknownError';
+    if (isDev) {
+      console.error('Failed to load KaTeX:', error);
+    } else {
+      console.error(`Failed to load KaTeX: ${errorName}`);
+    }
     throw error;
   }
 }
