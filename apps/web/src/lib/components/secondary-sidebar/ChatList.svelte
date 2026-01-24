@@ -11,6 +11,7 @@
   import PinnedChatsSection from './chat-list/PinnedChatsSection.svelte';
   import FolderChatsSection from './chat-list/FolderChatsSection.svelte';
   import NoFolderChatsSection from './chat-list/NoFolderChatsSection.svelte';
+  import { groupChatsByFolder, type Chat, type Folder } from './chat-list/utils/chat-grouping.js';
   import * as Sidebar from '$lib/components/ui/sidebar/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
@@ -21,33 +22,6 @@
   import FilterIcon from '@lucide/svelte/icons/filter';
   import RotateCcwIcon from '@lucide/svelte/icons/rotate-ccw';
   import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
-
-  // Types
-  interface MatchingMessage {
-    id: string;
-    chatId: string;
-    role: string;
-    content: string;
-    createdAt: Date;
-  }
-
-  interface Chat {
-    id: string;
-    title: string;
-    modelId: string;
-    pinned: boolean;
-    folderId: string | null;
-    createdAt: Date;
-    updatedAt: Date;
-    matchingMessages?: MatchingMessage[];
-  }
-
-  interface Folder {
-    id: string;
-    name: string;
-    userId: string;
-    createdAt: Date;
-  }
 
   interface Model {
     id: string;
@@ -158,50 +132,8 @@
         dateTo !== '')
   );
 
-  // Group chats by folder and time period
-  let groupedChats = $derived(() => {
-    const pinnedChats: Chat[] = [];
-    const folderGroupsArray: Array<{ folder: Folder; chats: Chat[] }> = [];
-    const noFolderChats: Chat[] = [];
-
-    // Build folder groups array
-    if (folders && folders.length > 0) {
-      const folderRecord: Record<string, Chat[]> = {};
-
-      // Initialize folder record
-      for (const folder of folders) {
-        folderRecord[folder.id] = [];
-      }
-
-      // Group chats by folder
-      for (const chat of filteredChats()) {
-        if (chat.pinned) {
-          pinnedChats.push(chat);
-        } else if (chat.folderId && folderRecord[chat.folderId]) {
-          folderRecord[chat.folderId]!.push(chat);
-        } else {
-          noFolderChats.push(chat);
-        }
-      }
-
-      // Convert to array
-      for (const folder of folders) {
-        const chats = folderRecord[folder.id] || [];
-        folderGroupsArray.push({ folder, chats });
-      }
-    } else {
-      // No folders - all chats go to noFolderChats
-      for (const chat of filteredChats()) {
-        if (chat.pinned) {
-          pinnedChats.push(chat);
-        } else {
-          noFolderChats.push(chat);
-        }
-      }
-    }
-
-    return { pinnedChats, folderGroups: folderGroupsArray, noFolderChats };
-  });
+  // Group chats by folder and pinned status using pure utility function
+  let groupedChats = $derived(() => groupChatsByFolder(filteredChats(), folders));
 
   // Handle filter changes (folder, pinned) - direct event handlers, not reactive
   function handleFolderChange() {
