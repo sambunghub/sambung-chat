@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.24] - 2026-01-24
+
+### Changed
+
+- **Type Safety**: Replace 'any' types with proper TypeScript types in AI router ([packages/api/src/routers/ai.ts](packages/api/src/routers/ai.ts))
+  - Added CoreMessage type import from AI SDK v6
+  - Created AISettings type definition for AI SDK settings
+  - Replaced 'as any' cast with 'as AIProvider' for provider property (line 156)
+  - Replaced 'any' type with 'Partial<AISettings>' in complete() procedure (line 400)
+  - Replaced 'as any' cast with 'as CoreMessage[]' for messages in complete() (line 426)
+  - Replaced 'any' type with 'Partial<AISettings>' in stream() procedure (line 547)
+  - Replaced 'as any' cast with 'as CoreMessage[]' for messages in stream() (line 612)
+  - Eliminated 5 instances of 'any' type usage, improving type safety and developer experience
+
 ## [0.0.23] - 2026-01-22
 
 ### Added
