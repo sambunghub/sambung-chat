@@ -138,7 +138,7 @@ export async function handleComplete(
     // Generate completion using AI SDK
     const result = await generateText({
       model,
-      messages: input.messages as any,
+      messages: input.messages,
       ...aiSettings,
     });
 

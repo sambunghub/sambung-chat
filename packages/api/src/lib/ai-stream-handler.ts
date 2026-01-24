@@ -139,7 +139,7 @@ export async function* handleStream(
     // Start streaming with AI SDK
     const result = await streamText({
       model,
-      messages: input.messages as any,
+      messages: input.messages,
       ...aiSettings,
     });
 
