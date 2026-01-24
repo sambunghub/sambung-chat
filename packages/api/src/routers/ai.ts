@@ -153,7 +153,7 @@ async function getModelConfig(modelId: string, userId: string): Promise<Provider
 
   // Build provider configuration
   const config: ProviderConfig = {
-    provider: model.provider as any,
+    provider: model.provider as AIProvider,
     modelId: model.modelId,
     apiKey: '', // Will be set below
   };
