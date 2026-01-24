@@ -1,29 +1,14 @@
 /**
  * Markdown Renderer with Syntax Highlighting, Mermaid, and LaTeX Support
  *
- * Main orchestrator that combines LaTeX and Mermaid renderers
  * Uses marked for parsing and basic code formatting
+ * Supports Mermaid diagrams for flowcharts, sequence diagrams, etc.
+ * Supports LaTeX math rendering with KaTeX (lazy-loaded)
  */
 
 import { marked } from 'marked';
 import DOMPurify from 'isomorphic-dompurify';
-import {
-  escapeHtml as escapeHtmlLatex,
-  protectLatexDelimiters,
-  restoreLatexPlaceholders,
-  detectLatex,
-  ensureLoaded as ensureKatexLoaded,
-  isLoaded as isKatexLoaded,
-} from '$lib/renderers/latex-renderer';
-import {
-  renderMermaidCode,
-  detectMermaid,
-  ensureLoaded as ensureMermaidLoaded,
-  isLoaded as isMermaidLoaded,
-} from '$lib/renderers/mermaid-renderer';
-
-// Re-export escapeHtml for convenience (use latex version)
-export const escapeHtml = escapeHtmlLatex;
+import { loadKatex, loadKatexCss, loadMermaid } from '$lib/utils/lazy-load';
 
 /**
  * Configure marked renderer with basic code styling
@@ -33,6 +18,165 @@ marked.setOptions({
   gfm: true,
 });
 
+/**
+ * Escape HTML to prevent XSS
+ */
+function escapeHtml(text: string): string {
+  const map: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;',
+  };
+  return text.replace(/[&<>"']/g, (m) => map[m] || m);
+}
+
+/**
+ * Unescape HTML entities - used for Mermaid code that needs raw characters
+ * Reverses the escapeHtml() function for specific use cases
+ */
+function unescapeHtml(text: string): string {
+  const map: Record<string, string> = {
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#039;': "'",
+    '&#39;': "'",
+    '&apos;': "'",
+  };
+  // Must replace &amp; last to avoid double-unescaping
+  return text.replace(/&(quot|apos|lt|gt|#039|#39);/g, (m) => map[m] || m).replace(/&amp;/g, '&');
+}
+
+/**
+ * Cache for lazy-loaded KaTeX module
+ */
+let cachedKatex: typeof import('katex') | null = null;
+let katexLoadInProgress: Promise<typeof import('katex')> | null = null;
+
+/**
+ * Render LaTeX math to HTML using KaTeX
+ * Note: This function will trigger lazy-loading of KaTeX on first call if not already loaded.
+ * For better performance, call ensureMarkdownDependencies() before rendering.
+ */
+async function renderLatex(latex: string, displayMode: boolean): Promise<string> {
+  try {
+    // Load katex if not cached
+    if (!cachedKatex) {
+      if (katexLoadInProgress) {
+        // Wait for existing load to complete
+        cachedKatex = await katexLoadInProgress;
+      } else {
+        // Start new load
+        katexLoadInProgress = loadKatex();
+        cachedKatex = await katexLoadInProgress;
+      }
+    }
+
+    if (!cachedKatex) {
+      throw new Error('KaTeX failed to load');
+    }
+
+    return cachedKatex.renderToString(latex, {
+      displayMode,
+      throwOnError: false,
+      strict: false,
+      trust: false,
+      macros: {
+        '\\R': '\\mathbb{R}',
+      },
+    });
+  } catch (error) {
+    console.error('LaTeX rendering error:', error);
+    return `<span class="text-red-500" title="LaTeX error: ${error instanceof Error ? error.message : 'Unknown error'}">\\(${latex}\\)</span>`;
+  }
+}
+
+/**
+ * Synchronous fallback for rendering LaTeX (used if KaTeX not pre-loaded)
+ * Returns the raw LaTeX string with a warning
+ */
+function renderLatexSync(latex: string, displayMode: boolean): string {
+  if (cachedKatex) {
+    try {
+      return cachedKatex.renderToString(latex, {
+        displayMode,
+        throwOnError: false,
+        strict: false,
+        trust: false,
+        macros: {
+          '\\R': '\\mathbb{R}',
+        },
+      });
+    } catch (error) {
+      console.error('LaTeX rendering error:', error);
+      return `<span class="text-red-500" title="LaTeX error: ${error instanceof Error ? error.message : 'Unknown error'}">\\(${latex}\\)</span>`;
+    }
+  }
+
+  // KaTeX not loaded yet - return placeholder
+  console.warn('KaTeX not loaded. Call ensureMarkdownDependencies() before rendering.');
+  return `<span class="text-yellow-600 dark:text-yellow-400" title="LaTeX not loaded - call ensureMarkdownDependencies() first">\\(${latex}\\)</span>`;
+}
+
+/**
+ * Protect LaTeX delimiters before markdown parsing
+ * Returns: { processed: string, map: Map<string, {latex: string, displayMode: boolean}> }
+ */
+function protectLatexDelimiters(text: string): {
+  processed: string;
+  latexMap: Map<string, { latex: string; displayMode: boolean }>;
+} {
+  const latexMap = new Map<string, { latex: string; displayMode: boolean }>();
+  let processed = text;
+  let placeholderIndex = 0;
+
+  // Protect block math ($$...$$)
+  processed = processed.replace(/\$\$([\s\S]*?)\$\$/g, (_match, latex) => {
+    const placeholder = `%%%LATEX_BLOCK_${placeholderIndex}%%%`;
+    latexMap.set(placeholder, { latex: latex.trim(), displayMode: true });
+    placeholderIndex++;
+    return placeholder;
+  });
+
+  // Protect inline math ($...$) but not when preceded by backslash (escaped $)
+  processed = processed.replace(/(?<!\\)\$([^$\n]+?)(?<!\\)\$/g, (match, latex) => {
+    // Skip if this looks like currency (short, no spaces around, or ends with currency-like patterns)
+    if (latex.length <= 2 && !/[0-9]/.test(latex)) {
+      return match; // Keep original for currency-like patterns
+    }
+    const placeholder = `%%%LATEX_INLINE_${placeholderIndex}%%%`;
+    latexMap.set(placeholder, { latex: latex.trim(), displayMode: false });
+    placeholderIndex++;
+    return placeholder;
+  });
+
+  return { processed, latexMap };
+}
+
+/**
+ * Restore LaTeX placeholders with rendered KaTeX HTML
+ * Note: Uses renderLatexSync() which requires KaTeX to be pre-loaded via ensureMarkdownDependencies()
+ */
+function restoreLatexPlaceholders(
+  html: string,
+  latexMap: Map<string, { latex: string; displayMode: boolean }>
+): string {
+  let restored = html;
+
+  for (const [placeholder, { latex, displayMode }] of latexMap) {
+    const rendered = renderLatexSync(latex, displayMode);
+    restored = restored.replace(placeholder, rendered);
+  }
+
+  return restored;
+}
+
+// Counter for unique mermaid diagram IDs
+let mermaidCounter = 0;
+
 // Custom renderer for code blocks
 const renderer = new marked.Renderer();
 
@@ -40,8 +184,30 @@ renderer.code = function (code: { text: string; lang?: string; escaped?: boolean
   const validLanguage = code.lang || 'text';
 
   // Check if this is a mermaid diagram
+  // Mermaid parser needs raw text, not HTML entities
+  // But we still escape for sanitization, then unescape for Mermaid
   if (validLanguage === 'mermaid') {
-    return renderMermaidCode(code.text, code.escaped);
+    const diagramId = `mermaid-diagram-${mermaidCounter++}`;
+
+    // First escape to sanitize any potential XSS
+    let mermaidCode = code.escaped ? code.text : escapeHtml(code.text);
+
+    // Then unescape to restore raw characters needed by Mermaid parser
+    // This gives us XSS protection during the escape phase
+    // while providing raw text to Mermaid parser
+    mermaidCode = unescapeHtml(mermaidCode);
+
+    // Use data-mermaid attribute for Mermaid v11
+    return `
+      <div class="relative group my-4">
+        <div class="flex items-center justify-between px-4 py-2 bg-purple-500/10 rounded-t-lg border-b border-purple-500/20">
+          <span class="text-xs font-mono text-purple-400">Mermaid Diagram</span>
+        </div>
+        <div class="p-4 rounded-b-lg bg-muted/30 flex justify-center">
+          <pre class="mermaid" data-mermaid="${diagramId}" style="background: transparent;">${mermaidCode}</pre>
+        </div>
+      </div>
+    `;
   }
 
   // For other code blocks, escape HTML to prevent XSS
@@ -62,6 +228,276 @@ renderer.code = function (code: { text: string; lang?: string; escaped?: boolean
 marked.setOptions({ renderer });
 
 /**
+ * Detect current theme (dark or light)
+ * Uses Tailwind's dark mode class detection
+ */
+function detectTheme(): 'dark' | 'light' {
+  if (typeof window === 'undefined') return 'light';
+  // Check for Tailwind dark mode class
+  return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+}
+
+/**
+ * Get Mermaid theme configuration based on current theme
+ */
+function getMermaidTheme() {
+  const theme = detectTheme();
+
+  if (theme === 'dark') {
+    return {
+      startOnLoad: false,
+      theme: 'dark',
+      securityLevel: 'loose',
+      themeVariables: {
+        // Dark mode colors - optimized for visibility on dark backgrounds
+        // Start/Stop nodes (rounded rectangles) - Green for start, Red for stop
+        primaryColor: '#22c55e', // green-500 (START nodes)
+        primaryTextColor: '#ffffff', // white
+        primaryBorderColor: '#4ade80', // green-400
+
+        // Decision nodes (diamonds) - Amber/Yellow for high contrast
+        secondaryColor: '#f59e0b', // amber-500
+        secondaryTextColor: '#ffffff', // white
+        secondaryBorderColor: '#fbbf24', // amber-400
+
+        // Process nodes (rectangles) - Indigo
+        tertiaryColor: '#6366f1', // indigo-500
+        tertiaryTextColor: '#ffffff', // white
+        tertiaryBorderColor: '#818cf8', // indigo-400
+
+        lineColor: '#94a3b8', // slate-400
+        background: '#0f172a', // slate-900
+
+        // Main background for regular nodes
+        mainBkg: '#6366f1', // indigo-500
+        mainTextColor: '#ffffff', // white
+        nodeBorder: '#818cf8', // indigo-400
+
+        // Cluster backgrounds
+        clusterBkg: '#1e293b80', // slate-800 with opacity
+        clusterBorder: '#475569', // slate-600
+
+        titleColor: '#f1f5f9', // slate-100
+        edgeLabelBackground: '#1e293b', // slate-800
+        edgeLabelTextColor: '#f1f5f9', // slate-100
+
+        actorBkg: '#3b82f6', // blue-500
+        actorBorder: '#60a5fa', // blue-400
+        actorTextColor: '#ffffff', // white
+        actorLineColor: '#94a3b8', // slate-400
+
+        signalColor: '#94a3b8', // slate-400
+        signalTextColor: '#f1f5f9', // slate-100
+
+        labelBoxBkgColor: '#1e293b', // slate-800
+        labelBoxBorderColor: '#475569', // slate-600
+        labelTextColor: '#f1f5f9', // slate-100
+
+        loopTextColor: '#f1f5f9', // slate-100
+
+        noteBorderColor: '#f59e0b', // amber-500
+        noteBkgColor: '#451a0310', // amber-950 with low opacity
+        noteTextColor: '#fef3c7', // amber-100
+
+        activationBorderColor: '#6366f1', // indigo-500
+        activationBkgColor: '#6366f120', // indigo-500 with opacity
+
+        sequenceNumberColor: '#f8fafc', // slate-50
+
+        // End node specific styling
+        endColor: '#ef4444', // red-500 (END nodes)
+        endTextColor: '#ffffff', // white
+      },
+    };
+  }
+
+  // Light mode theme
+  return {
+    startOnLoad: false,
+    theme: 'default',
+    securityLevel: 'loose',
+    themeVariables: {
+      // Light mode colors - high contrast for all node types
+
+      // Start/Stop nodes (rounded rectangles) - Green for start, Red for stop
+      primaryColor: '#22c55e', // green-500 (START nodes)
+      primaryTextColor: '#ffffff', // white
+      primaryBorderColor: '#16a34a', // green-600
+
+      // Decision nodes (diamonds) - Amber/Yellow for high contrast
+      secondaryColor: '#f59e0b', // amber-500
+      secondaryTextColor: '#ffffff', // white
+      secondaryBorderColor: '#d97706', // amber-600
+
+      // Process nodes (rectangles) - Indigo
+      tertiaryColor: '#6366f1', // indigo-500
+      tertiaryTextColor: '#ffffff', // white
+      tertiaryBorderColor: '#4f46e5', // indigo-600
+
+      lineColor: '#64748b', // slate-500
+      background: '#ffffff',
+
+      // Main background for regular nodes
+      mainBkg: '#6366f1', // indigo-500
+      mainTextColor: '#ffffff', // white
+      nodeBorder: '#4f46e5', // indigo-600
+
+      // Cluster backgrounds
+      clusterBkg: '#f1f5f980', // slate-100 with opacity
+      clusterBorder: '#cbd5e1', // slate-300
+
+      titleColor: '#0f172a', // slate-900
+      edgeLabelBackground: '#f8fafc', // slate-50
+      edgeLabelTextColor: '#0f172a', // slate-900
+
+      actorBkg: '#3b82f6', // blue-500
+      actorBorder: '#2563eb', // blue-600
+      actorTextColor: '#ffffff', // white
+      actorLineColor: '#64748b', // slate-500
+
+      signalColor: '#64748b', // slate-500
+      signalTextColor: '#0f172a', // slate-900
+
+      labelBoxBkgColor: '#f8fafc', // slate-50
+      labelBoxBorderColor: '#e2e8f0', // slate-200
+      labelTextColor: '#0f172a', // slate-900
+
+      loopTextColor: '#0f172a', // slate-900
+
+      noteBorderColor: '#f59e0b', // amber-500
+      noteBkgColor: '#fef3c7', // amber-100
+      noteTextColor: '#78350f', // amber-900
+
+      activationBorderColor: '#6366f1', // indigo-500
+      activationBkgColor: '#e0e7ff20', // indigo-100 with low opacity
+
+      sequenceNumberColor: '#0f172a', // slate-900
+
+      // End node specific styling
+      endColor: '#ef4444', // red-500 (END nodes)
+      endTextColor: '#ffffff', // white
+    },
+  };
+}
+
+/**
+ * Initialize Mermaid diagrams after rendering
+ * This should be called after the DOM is updated
+ * Note: This will lazy-load Mermaid if not already loaded
+ */
+export async function initMermaidDiagrams() {
+  // Load Mermaid if not already loaded
+  // Check for window.mermaid directly instead of isMermaidLoaded()
+  // because isMermaidLoaded() returns true when load promise is created,
+  // not when mermaid is actually available
+  if (typeof window !== 'undefined' && !(window as any).mermaid) {
+    try {
+      await loadMermaid();
+    } catch (error) {
+      console.error('Failed to load Mermaid:', error);
+      return;
+    }
+  }
+
+  if (typeof window !== 'undefined' && (window as any).mermaid) {
+    const mermaid = (window as any).mermaid;
+
+    // Find all mermaid diagrams in the DOM
+    const diagrams = document.querySelectorAll('pre.mermaid[data-mermaid]');
+
+    if (diagrams.length === 0) {
+      return;
+    }
+
+    // Detect current theme
+    const currentTheme = detectTheme();
+    const previousTheme = (window as any).mermaidTheme;
+
+    // Re-initialize if theme changed
+    if (previousTheme !== currentTheme) {
+      // Clear previous initialization
+      if ((window as any).mermaidInitialized) {
+        await mermaid.initialize({ startOnLoad: false });
+        (window as any).mermaidInitialized = false;
+      }
+    }
+
+    // Initialize mermaid with current theme if not already initialized
+    if (!(window as any).mermaidInitialized) {
+      await mermaid.initialize(getMermaidTheme());
+      (window as any).mermaidInitialized = true;
+      (window as any).mermaidTheme = currentTheme;
+    }
+
+    // Render each diagram individually
+    const diagramArray = Array.from(diagrams);
+    for (const diagram of diagramArray) {
+      try {
+        const definition = diagram.textContent || '';
+        const id =
+          diagram.getAttribute('data-mermaid') ||
+          `mermaid-${Math.random().toString(36).substr(2, 9)}`;
+
+        // Create SVG from mermaid definition
+        const { svg } = await mermaid.render(id, definition);
+
+        // Replace the pre element with the SVG
+        diagram.outerHTML = `<div class="flex justify-center items-center p-4 rounded-b-lg bg-muted/30">${svg}</div>`;
+      } catch (error) {
+        console.error('Failed to render mermaid diagram:', error);
+
+        // Get error message (first line only for cleaner display)
+        let errorMessage = 'Unable to render diagram';
+        if (error instanceof Error) {
+          errorMessage = error.message.split('\n')[0];
+        }
+
+        // Get original diagram code for reference
+        const originalCode = diagram.textContent || '';
+
+        // Replace entire pre element (not innerHTML) to prevent Mermaid from re-parsing error message
+        // Using outerHTML ensures the mermaid class and data-mermaid attribute are removed
+        diagram.outerHTML = `
+          <div class="p-4 rounded-b-lg bg-muted/30 border border-red-500/30">
+            <details class="group" open>
+              <summary class="cursor-pointer text-red-500 font-medium flex items-center gap-2 hover:text-red-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <span>Diagram rendering failed: ${escapeHtml(errorMessage)}</span>
+              </summary>
+              <div class="mt-3">
+                <p class="text-sm text-muted-foreground mb-2">The mermaid diagram could not be rendered. This may be due to:</p>
+                <ul class="text-sm text-muted-foreground list-disc list-inside mb-3 space-y-1">
+                  <li>Incompatible syntax with Mermaid v11.12.2</li>
+                  <li>Special characters in node labels that conflict with Mermaid keywords</li>
+                  <li>Invalid diagram structure</li>
+                </ul>
+                <div class="text-xs text-muted-foreground mb-1">Original diagram code:</div>
+                <pre class="overflow-x-auto p-3 rounded bg-black/5 dark:bg-black/30 text-xs font-mono border border-border">${escapeHtml(originalCode)}</pre>
+              </div>
+            </details>
+          </div>
+        `;
+      }
+    }
+  }
+}
+
+/**
+ * Force re-render all Mermaid diagrams with current theme
+ * Call this when the app theme changes
+ */
+export async function reinitMermaidDiagrams() {
+  if (typeof window !== 'undefined') {
+    // Reset initialization state to force re-init with new theme
+    (window as any).mermaidInitialized = false;
+    (window as any).mermaidTheme = undefined;
+    await initMermaidDiagrams();
+  }
+}
+
+/**
  * Ensure all markdown rendering dependencies are loaded
  * This function pre-loads KaTeX and Mermaid to avoid lazy-loading during rendering
  * Call this before rendering markdown with LaTeX or Mermaid diagrams
@@ -69,14 +505,32 @@ marked.setOptions({ renderer });
  */
 export async function ensureMarkdownDependencies(): Promise<void> {
   try {
-    // Load KaTeX if not already loaded
-    if (!isKatexLoaded()) {
-      await ensureKatexLoaded();
+    // Load KaTeX and CSS if not already loaded
+    if (!cachedKatex && !katexLoadInProgress) {
+      katexLoadInProgress = loadKatex();
+      try {
+        cachedKatex = await katexLoadInProgress;
+      } finally {
+        // Always clear the in-progress flag, even on failure
+        katexLoadInProgress = null;
+      }
+    } else if (katexLoadInProgress) {
+      // Wait for existing load to complete
+      try {
+        cachedKatex = await katexLoadInProgress;
+      } catch {
+        // If load failed and initiator didn't clean up, reset for retry
+        katexLoadInProgress = null;
+        throw new Error('KaTeX load failed');
+      }
     }
 
+    // Load KaTeX CSS (using static import)
+    await loadKatexCss();
+
     // Load Mermaid if not already loaded
-    if (!isMermaidLoaded()) {
-      await ensureMermaidLoaded();
+    if (typeof window !== 'undefined' && !(window as any).mermaid) {
+      await loadMermaid();
     }
   } catch (error) {
     console.error('Failed to load markdown dependencies:', error);
@@ -85,38 +539,55 @@ export async function ensureMarkdownDependencies(): Promise<void> {
 }
 
 /**
- * Detect what rendering features are needed in the text
+ * Setup theme change observer for Mermaid diagrams
+ * Automatically re-renders diagrams when the theme changes
  */
-export function detectMarkdownFeatures(text: string): {
-  hasLatex: boolean;
-  hasMermaid: boolean;
-} {
-  return {
-    hasLatex: detectLatex(text),
-    hasMermaid: detectMermaid(text),
-  };
-}
+export function setupMermaidThemeObserver() {
+  if (typeof window === 'undefined') return;
 
-/**
- * Conditionally load dependencies based on content
- * Only loads what's needed for the given markdown text
- */
-export async function ensureDependenciesForContent(text: string): Promise<void> {
-  const features = detectMarkdownFeatures(text);
-
-  if (features.hasLatex && !isKatexLoaded()) {
-    await ensureKatexLoaded();
+  // Avoid setting up multiple observers
+  if ((window as any).mermaidThemeObserverSetup) {
+    return;
   }
+  (window as any).mermaidThemeObserverSetup = true;
 
-  if (features.hasMermaid && !isMermaidLoaded()) {
-    await ensureMermaidLoaded();
-  }
+  // Use MutationObserver to watch for class changes on the html element
+  const observer = new MutationObserver(async (mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+        const currentTheme = detectTheme();
+        const previousTheme = (window as any).mermaidTheme;
+
+        // Re-render diagrams only if theme actually changed
+        if (previousTheme && previousTheme !== currentTheme) {
+          // Small delay to ensure CSS has been applied
+          setTimeout(async () => {
+            // Find all rendered Mermaid SVGs
+            const svgContainers = document.querySelectorAll('.bg-muted\\/30 svg[id^="mermaid-"]');
+
+            if (svgContainers.length > 0) {
+              await reinitMermaidDiagrams();
+            }
+          }, 50);
+        }
+      }
+    }
+  });
+
+  // Observe the html element for class changes
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class'],
+  });
+
+  // Store observer for cleanup if needed
+  (window as any).mermaidThemeObserver = observer;
 }
 
 /**
  * Render markdown to HTML (synchronous)
- * Supports LaTeX math rendering with KaTeX and Mermaid diagrams
- * Note: marked.parse returns Promise in v17+, but we use marked.lexer/parser for backward compat
+ * Supports LaTeX math rendering with KaTeX
+ * Note: marked.parse returns Promise in v17+, but we use marked.parse() for backward compat
  */
 export function renderMarkdownSync(markdown: string): string {
   if (!markdown) return '';
@@ -212,10 +683,3 @@ export function renderMarkdownSync(markdown: string): string {
     return `<p>${escapeHtml(markdown)}</p>`;
   }
 }
-
-// Re-export Mermaid functions for backward compatibility
-export {
-  initMermaidDiagrams,
-  reinitMermaidDiagrams,
-  setupMermaidThemeObserver,
-} from '$lib/renderers/mermaid-renderer';
