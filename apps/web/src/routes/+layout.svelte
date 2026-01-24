@@ -8,25 +8,17 @@
 
   const { children } = $props();
 
-  // SSR-safe: only render ModeWatcher after mount to prevent hydration issues
-  let mounted = $state(false);
-
+  // Setup Mermaid theme observer on mount (browser only)
   onMount(() => {
-    mounted = true;
     // Setup Mermaid theme observer to detect theme changes
     setupMermaidThemeObserver();
   });
 </script>
 
-<!-- ModeWatcher must be at root level for global theme tracking -->
-<!-- Render only after mount to prevent hydration mismatch -->
-{#if mounted || browser}
-  <ModeWatcher defaultMode="dark" />
-{/if}
-
 {@render children()}
 
-<!-- Toaster requires browser environment for portal rendering -->
-{#if mounted || browser}
+<!-- ModeWatcher and Toaster: render only in browser to prevent hydration issues -->
+{#if browser}
+  <ModeWatcher defaultMode="dark" />
   <Toaster richColors position="top-right" />
 {/if}
