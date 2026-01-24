@@ -2,13 +2,9 @@
   import { Button } from '$lib/components/ui/button/index.js';
   import AlertCircleIcon from '@lucide/svelte/icons/alert-circle';
   import RefreshCwIcon from '@lucide/svelte/icons/refresh-cw';
+  import type { ChatListErrorStateProps } from './types.js';
 
-  interface Props {
-    error: string | null;
-    onRetry: () => void;
-  }
-
-  let { error, onRetry }: Props = $props();
+  let { error, onRetry }: ChatListErrorStateProps = $props();
 </script>
 
 <div class="flex flex-col items-center gap-3 p-4 text-center">

@@ -1,60 +1,6 @@
 <script lang="ts">
   import FolderItem from './FolderItem.svelte';
-
-  // Types
-  interface MatchingMessage {
-    id: string;
-    chatId: string;
-    role: string;
-    content: string;
-    createdAt: Date;
-  }
-
-  interface Chat {
-    id: string;
-    title: string;
-    modelId: string;
-    pinned: boolean;
-    folderId: string | null;
-    createdAt: Date;
-    updatedAt: Date;
-    matchingMessages?: MatchingMessage[];
-  }
-
-  interface Folder {
-    id: string;
-    name: string;
-    userId: string;
-    createdAt: Date;
-  }
-
-  interface FolderGroup {
-    folder: Folder;
-    chats: Chat[];
-  }
-
-  interface Props {
-    folderGroups: FolderGroup[];
-    currentChatId: string | undefined;
-    searchQuery: string;
-    folders: Folder[];
-    collapsedFolders: Record<string, boolean>;
-    renamingFolderId: string | null;
-    folderRenameValue: string;
-    onSelectChat: (chatId: string) => void;
-    onDeleteChat: (chatId: string) => void;
-    onRenameChat: (chatId: string, newTitle: string) => void;
-    onTogglePin: (chatId: string) => void;
-    onMoveToFolder: (chatId: string, folderId: string | null) => void;
-    onCreateFolder: (chatId: string) => void;
-    onToggleFolder: (folderId: string) => void;
-    onStartFolderRename: (folderId: string, folderName: string) => void;
-    onSaveFolderRename: () => void;
-    onCancelFolderRename: () => void;
-    onDeleteFolder: (folderId: string, folderName: string) => void;
-    onFolderKeydown: (e: KeyboardEvent) => void;
-    onFolderRenameValueChange: (value: string) => void;
-  }
+  import type { FolderChatsSectionProps } from './types.js';
 
   let {
     folderGroups,
@@ -77,7 +23,7 @@
     onDeleteFolder,
     onFolderKeydown,
     onFolderRenameValueChange
-  }: Props = $props();
+  }: FolderChatsSectionProps = $props();
 
   function isFolderCollapsed(folderId: string): boolean {
     return collapsedFolders[folderId] ?? true;

@@ -7,15 +7,9 @@
   import CodeIcon from '@lucide/svelte/icons/code';
   import PackageIcon from '@lucide/svelte/icons/package';
   import PlusIcon from '@lucide/svelte/icons/plus';
+  import type { ChatListHeaderProps } from './types.js';
 
-  interface Props {
-    title: string;
-    exporting: boolean;
-    onCreateNewChat: () => void;
-    onExportAll: (format: 'json' | 'md' | 'zip') => void;
-  }
-
-  let { title, exporting, onCreateNewChat, onExportAll }: Props = $props();
+  let { title, exporting, onCreateNewChat, onExportAll }: ChatListHeaderProps = $props();
 </script>
 
 <div class="mb-3 flex items-center justify-between">

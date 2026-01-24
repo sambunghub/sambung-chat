@@ -1,10 +1,7 @@
 <script lang="ts">
-  interface Props {
-    loading: boolean;
-    searching: boolean;
-  }
+  import type { ChatListLoadingStateProps } from './types.js';
 
-  let { loading, searching }: Props = $props();
+  let { loading, searching }: ChatListLoadingStateProps = $props();
 </script>
 
 <div class="text-muted-foreground flex items-center justify-center p-8 text-sm">

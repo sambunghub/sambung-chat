@@ -2,27 +2,7 @@
   import { Input } from '$lib/components/ui/input/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import SlidersHorizontalIcon from '@lucide/svelte/icons/sliders-horizontal';
-
-  // Types
-  interface Folder {
-    id: string;
-    name: string;
-    userId: string;
-    createdAt: Date;
-  }
-
-  interface Props {
-    searchQuery: string;
-    folders: Folder[];
-    selectedFolderId: string;
-    showPinnedOnly: boolean;
-    hasActiveFilters: boolean;
-    onSearchChange: (query: string) => void;
-    onSearchKeydown: (e: KeyboardEvent) => void;
-    onFolderChange: (folderId: string) => void;
-    onPinnedChange: (checked: boolean) => void;
-    onOpenAdvancedFilters: () => void;
-  }
+  import type { ChatListFiltersProps } from './types.js';
 
   let {
     searchQuery,
@@ -35,7 +15,7 @@
     onFolderChange,
     onPinnedChange,
     onOpenAdvancedFilters
-  }: Props = $props();
+  }: ChatListFiltersProps = $props();
 </script>
 
 <div class="space-y-2">

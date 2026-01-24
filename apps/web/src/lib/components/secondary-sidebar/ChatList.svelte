@@ -11,7 +11,8 @@
   import PinnedChatsSection from './chat-list/PinnedChatsSection.svelte';
   import FolderChatsSection from './chat-list/FolderChatsSection.svelte';
   import NoFolderChatsSection from './chat-list/NoFolderChatsSection.svelte';
-  import { groupChatsByFolder, type Chat, type Folder } from './chat-list/utils/chat-grouping.js';
+  import { groupChatsByFolder } from './chat-list/utils/chat-grouping.js';
+  import type { Chat, Folder } from './chat-list/types.js';
   import * as Sidebar from '$lib/components/ui/sidebar/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';

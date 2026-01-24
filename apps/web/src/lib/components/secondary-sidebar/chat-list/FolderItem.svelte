@@ -6,57 +6,7 @@
   import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
   import PencilIcon from '@lucide/svelte/icons/pencil';
   import Trash2Icon from '@lucide/svelte/icons/trash-2';
-
-  // Types
-  interface MatchingMessage {
-    id: string;
-    chatId: string;
-    role: string;
-    content: string;
-    createdAt: Date;
-  }
-
-  interface Chat {
-    id: string;
-    title: string;
-    modelId: string;
-    pinned: boolean;
-    folderId: string | null;
-    createdAt: Date;
-    updatedAt: Date;
-    matchingMessages?: MatchingMessage[];
-  }
-
-  interface Folder {
-    id: string;
-    name: string;
-    userId: string;
-    createdAt: Date;
-  }
-
-  interface Props {
-    folder: Folder;
-    folderChats: Chat[];
-    isCollapsed: boolean;
-    isRenaming: boolean;
-    renameValue: string;
-    currentChatId: string | undefined;
-    searchQuery: string;
-    folders: Folder[];
-    onToggle: () => void;
-    onStartRename: () => void;
-    onSaveRename: () => void;
-    onCancelRename: () => void;
-    onDelete: () => void;
-    onFolderKeydown: (e: KeyboardEvent) => void;
-    onFolderRenameValueChange: (value: string) => void;
-    onSelectChat: (chatId: string) => void;
-    onDeleteChat: (chatId: string) => void;
-    onRenameChat: (chatId: string, newTitle: string) => void;
-    onTogglePin: (chatId: string) => void;
-    onMoveToFolder: (chatId: string, folderId: string | null) => void;
-    onCreateFolder: (chatId: string) => void;
-  }
+  import type { FolderItemProps } from './types.js';
 
   let {
     folder,
@@ -80,7 +30,7 @@
     onTogglePin,
     onMoveToFolder,
     onCreateFolder
-  }: Props = $props();
+  }: FolderItemProps = $props();
 </script>
 
 <div class="mb-3">
