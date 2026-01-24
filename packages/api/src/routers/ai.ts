@@ -609,7 +609,7 @@ export const aiRouter = {
         // Start streaming with AI SDK
         const result = await streamText({
           model,
-          messages: input.messages as any,
+          messages: input.messages as CoreMessage[],
           ...aiSettings,
         });
 
