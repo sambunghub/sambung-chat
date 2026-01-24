@@ -2,7 +2,7 @@
   "feature": "Split monolithic ChatList.svelte (632 lines) into smaller focused components",
   "description": "Refactor ChatList.svelte by extracting focused components for header, chat groups, folder management, and data fetching. Currently handles 7+ responsibilities: chat CRUD, folder management, search/filtering, grouping, state management, UI rendering, and navigation.",
   "created_at": "2026-01-21T07:44:13.411Z",
-  "updated_at": "2026-01-24T03:06:20.472Z",
+  "updated_at": "2026-01-24T03:09:17.173Z",
   "status": "in_progress",
   "planStatus": "in_progress",
   "phases": [
@@ -114,17 +114,17 @@
       "id": "phase-4",
       "name": "Extract Chat Group Components",
       "description": "Extract pinned chats, folder chats, and no-folder sections",
-      "status": "pending",
+      "status": "in_progress",
       "subtasks": [
         {
           "id": "4.1",
           "name": "Create PinnedChatsSection.svelte",
           "description": "Extract pinned chats display section",
-          "status": "pending",
+          "status": "completed",
           "files_involved": [
             "apps/web/src/lib/components/secondary-sidebar/chat-list/PinnedChatsSection.svelte"
           ],
-          "notes": "Props: pinnedChats, currentChatId, searchQuery, folders, onSelectChat, onDeleteChat, onRenameChat, onTogglePin, onMoveToFolder, onCreateFolder"
+          "notes": "Created PinnedChatsSection component with presentational pattern. Props: pinnedChats, currentChatId, searchQuery, folders, onSelectChat, onDeleteChat, onRenameChat, onTogglePin, onMoveToFolder, onCreateFolder. Size: 81 lines (including type definitions). Type checks: ✅ Passed. Component renders 'Pinned' heading and list of pinned chat items using ChatListItem."
         },
         {
           "id": "4.2",
