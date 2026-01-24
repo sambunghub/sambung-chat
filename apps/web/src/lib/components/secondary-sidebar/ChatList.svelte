@@ -6,6 +6,9 @@
   import ChatEmptyState from './ChatEmptyState.svelte';
   import ChatListHeader from './chat-list/ChatListHeader.svelte';
   import ChatListFilters from './chat-list/ChatListFilters.svelte';
+  import PinnedChatsSection from './chat-list/PinnedChatsSection.svelte';
+  import FolderChatsSection from './chat-list/FolderChatsSection.svelte';
+  import NoFolderChatsSection from './chat-list/NoFolderChatsSection.svelte';
   import * as Sidebar from '$lib/components/ui/sidebar/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
@@ -13,11 +16,6 @@
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import * as Dialog from '$lib/components/ui/dialog/index.js';
   import { exportAllChats, type ChatsByFolder } from '$lib/utils/chat-export';
-  import FolderIcon from '@lucide/svelte/icons/folder';
-  import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
-  import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
-  import PencilIcon from '@lucide/svelte/icons/pencil';
-  import Trash2Icon from '@lucide/svelte/icons/trash-2';
   import FilterIcon from '@lucide/svelte/icons/filter';
   import RotateCcwIcon from '@lucide/svelte/icons/rotate-ccw';
 
@@ -437,22 +435,10 @@
     };
   }
 
-  // Check if folder is collapsed (default to true = hidden)
-  function isFolderCollapsed(folderId: string): boolean {
-    return collapsedFolders[folderId] ?? true;
-  }
-
   // Handle folder rename
   function startFolderRename(folderId: string, folderName: string) {
     renamingFolderId = folderId;
     folderRenameValue = folderName;
-  }
-
-  // Handle folder keyboard events (for accessibility)
-  function handleFolderKeyPress(folderId: string, folderName: string, e: KeyboardEvent) {
-    if (e.key === 'Enter') {
-      startFolderRename(folderId, folderName);
-    }
   }
 
   async function saveFolderRename() {
@@ -625,176 +611,56 @@
     {:else}
       <div class="h-full max-h-[50vh] overflow-y-auto">
         <div class="px-2">
-          <!-- Pinned Section -->
-          {#if groupedChats().pinnedChats.length > 0}
-            <div class="mb-4">
-              <h3
-                class="text-muted-foreground mb-2 flex items-center gap-1.5 px-2 text-xs font-semibold uppercase"
-              >
-                Pinned
-              </h3>
-              {#each groupedChats().pinnedChats as chat (chat.id)}
-                <ChatListItem
-                  {chat}
-                  {folders}
-                  isActive={currentChatId === chat.id}
-                  onSelect={() => selectChat(chat.id)}
-                  onDelete={() => deleteChat(chat.id)}
-                  onRename={(newTitle) => renameChat(chat.id, newTitle)}
-                  onTogglePin={() => togglePin(chat.id)}
-                  onMoveToFolder={(folderId) => moveChatToFolder(chat.id, folderId)}
-                  onCreateFolder={() => createFolder(chat.id)}
-                  {searchQuery}
-                  matchingMessages={chat.matchingMessages}
-                />
-              {/each}
-            </div>
-          {/if}
+          <PinnedChatsSection
+            pinnedChats={groupedChats().pinnedChats}
+            {currentChatId}
+            {searchQuery}
+            {folders}
+            onSelectChat={selectChat}
+            onDeleteChat={deleteChat}
+            onRenameChat={renameChat}
+            onTogglePin={togglePin}
+            onMoveToFolder={moveChatToFolder}
+            onCreateFolder={createFolder}
+          />
 
-          <!-- Folders Section -->
-          {#each groupedChats().folderGroups as { folder, chats: folderChats } (folder.id)}
-            {#if folderChats.length > 0}
-              <div class="mb-3">
-                <!-- Collapsible Folder Header -->
-                <div
-                  class="group/folder relative"
-                  ondblclick={() => startFolderRename(folder.id, folder.name)}
-                  onkeydown={(e) => handleFolderKeyPress(folder.id, folder.name, e)}
-                  role="button"
-                  tabindex="0"
-                  aria-label={`Folder ${folder.name}, double-click to rename`}
-                >
-                  {#if renamingFolderId === folder.id}
-                    <!-- Inline Rename Input -->
-                    <input
-                      type="text"
-                      class="bg-background focus:ring-ring w-full rounded border px-2 py-1 text-xs font-semibold uppercase focus:ring-1 focus:outline-none"
-                      bind:value={folderRenameValue}
-                      onkeydown={handleFolderKeydown}
-                      onblur={saveFolderRename}
-                      use:autofocus
-                    />
-                  {:else}
-                    <!-- Folder Display -->
-                    <div
-                      role="button"
-                      tabindex="0"
-                      aria-label={`Toggle folder ${folder.name}`}
-                      onclick={(e) => {
-                        // Only toggle if not clicking on actions
-                        if ((e.target as HTMLElement).closest('[data-action]')) return;
-                        toggleFolder(folder.id);
-                      }}
-                      onkeydown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          toggleFolder(folder.id);
-                        }
-                      }}
-                      class="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex w-full cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-semibold uppercase transition-colors"
-                    >
-                      {#if isFolderCollapsed(folder.id)}
-                        <ChevronRightIcon class="size-3.5" />
-                      {:else}
-                        <ChevronDownIcon class="size-3.5" />
-                      {/if}
-                      <FolderIcon class="size-3" />
-                      <span class="flex-1 text-left">{folder.name}</span>
+          <FolderChatsSection
+            folderGroups={groupedChats().folderGroups}
+            {currentChatId}
+            {searchQuery}
+            {folders}
+            collapsedFolders={collapsedFolders}
+            renamingFolderId={renamingFolderId}
+            folderRenameValue={folderRenameValue}
+            onSelectChat={selectChat}
+            onDeleteChat={deleteChat}
+            onRenameChat={renameChat}
+            onTogglePin={togglePin}
+            onMoveToFolder={moveChatToFolder}
+            onCreateFolder={createFolder}
+            onToggleFolder={toggleFolder}
+            onStartFolderRename={startFolderRename}
+            onSaveFolderRename={saveFolderRename}
+            onCancelFolderRename={cancelFolderRename}
+            onDeleteFolder={deleteFolder}
+            onFolderKeydown={handleFolderKeydown}
+            onFolderRenameValueChange={(value) => {
+              folderRenameValue = value;
+            }}
+          />
 
-                      <!-- Folder Actions (visible on hover) -->
-                      <span
-                        class="flex gap-0.5 opacity-0 transition-opacity group-hover/folder:opacity-100"
-                      >
-                        <div
-                          data-action
-                          onclick={() => startFolderRename(folder.id, folder.name)}
-                          onkeydown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault();
-                              startFolderRename(folder.id, folder.name);
-                            }
-                          }}
-                          class="text-muted-foreground hover:text-foreground hover:bg-accent cursor-pointer rounded p-0.5"
-                          role="button"
-                          tabindex="0"
-                          aria-label={`Rename folder ${folder.name}`}
-                          title="Rename folder"
-                        >
-                          <PencilIcon class="size-3" />
-                        </div>
-                        <div
-                          data-action
-                          onclick={() => deleteFolder(folder.id, folder.name)}
-                          onkeydown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault();
-                              deleteFolder(folder.id, folder.name);
-                            }
-                          }}
-                          class="text-muted-foreground hover:text-destructive hover:bg-accent cursor-pointer rounded p-0.5"
-                          role="button"
-                          tabindex="0"
-                          aria-label={`Delete folder ${folder.name}`}
-                          title="Delete folder"
-                        >
-                          <Trash2Icon class="size-3" />
-                        </div>
-                      </span>
-
-                      <span class="text-muted-foreground text-xs">
-                        {folderChats.length}
-                      </span>
-                    </div>
-                  {/if}
-                </div>
-
-                <!-- Folder Chats (only show when expanded) -->
-                {#if !isFolderCollapsed(folder.id)}
-                  {#each folderChats as chat (chat.id)}
-                    <ChatListItem
-                      {chat}
-                      {folders}
-                      isActive={currentChatId === chat.id}
-                      onSelect={() => selectChat(chat.id)}
-                      onDelete={() => deleteChat(chat.id)}
-                      onRename={(newTitle) => renameChat(chat.id, newTitle)}
-                      onTogglePin={() => togglePin(chat.id)}
-                      onMoveToFolder={(folderId) => moveChatToFolder(chat.id, folderId)}
-                      onCreateFolder={() => createFolder(chat.id)}
-                      {searchQuery}
-                      matchingMessages={chat.matchingMessages}
-                    />
-                  {/each}
-                {/if}
-              </div>
-            {/if}
-          {/each}
-
-          <!-- No Folder Section -->
-          {#if groupedChats().noFolderChats.length > 0}
-            <div class="mb-4">
-              <h3
-                class="text-muted-foreground mb-2 flex items-center gap-1.5 px-2 text-xs font-semibold uppercase"
-              >
-                No Folder
-              </h3>
-              {#each groupedChats().noFolderChats as chat (chat.id)}
-                <ChatListItem
-                  {chat}
-                  {folders}
-                  isActive={currentChatId === chat.id}
-                  onSelect={() => selectChat(chat.id)}
-                  onDelete={() => deleteChat(chat.id)}
-                  onRename={(newTitle) => renameChat(chat.id, newTitle)}
-                  onTogglePin={() => togglePin(chat.id)}
-                  onMoveToFolder={(folderId) => moveChatToFolder(chat.id, folderId)}
-                  onCreateFolder={() => createFolder(chat.id)}
-                  {searchQuery}
-                  matchingMessages={chat.matchingMessages}
-                />
-              {/each}
-            </div>
-          {/if}
+          <NoFolderChatsSection
+            noFolderChats={groupedChats().noFolderChats}
+            {currentChatId}
+            {searchQuery}
+            {folders}
+            onSelectChat={selectChat}
+            onDeleteChat={deleteChat}
+            onRenameChat={renameChat}
+            onTogglePin={togglePin}
+            onMoveToFolder={moveChatToFolder}
+            onCreateFolder={createFolder}
+          />
         </div>
       </div>
     {/if}

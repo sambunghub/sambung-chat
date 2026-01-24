@@ -2,7 +2,7 @@
   "feature": "Split monolithic ChatList.svelte (632 lines) into smaller focused components",
   "description": "Refactor ChatList.svelte by extracting focused components for header, chat groups, folder management, and data fetching. Currently handles 7+ responsibilities: chat CRUD, folder management, search/filtering, grouping, state management, UI rendering, and navigation.",
   "created_at": "2026-01-21T07:44:13.411Z",
-  "updated_at": "2026-01-24T03:11:29.624Z",
+  "updated_at": "2026-01-24T03:21:59.645Z",
   "status": "in_progress",
   "planStatus": "in_progress",
   "phases": [
@@ -150,11 +150,12 @@
           "id": "4.4",
           "name": "Create FolderItem.svelte",
           "description": "Extract individual folder item with rename/delete actions",
-          "status": "pending",
+          "status": "completed",
           "files_involved": [
             "apps/web/src/lib/components/secondary-sidebar/chat-list/FolderItem.svelte"
           ],
-          "notes": "Props: folder, folderChats, isCollapsed, isRenaming, renameValue, currentChatId, searchQuery, folders, onToggle, onStartRename, onSaveRename, onCancelRename, onDelete, onFolderKeydown, onSelectChat, onDeleteChat, onRenameChat, onTogglePin, onMoveToFolder, onCreateFolder"
+          "notes": "Created FolderItem.svelte component (203 lines) with:\n- Individual folder rendering with collapsible header\n- Inline rename UI with keyboard navigation\n- Hover actions (rename, delete buttons)\n- Chat list rendering when expanded\n- Accessibility features (ARIA labels, keyboard support)\n\nUpdated FolderChatsSection.svelte to use FolderItem (214→113 lines, 47% reduction)\n- Simplified to iterate over folder groups and render FolderItem\n- Properly maps parent callbacks to child props\n\nType checks: ✅ 0 errors, 16 pre-existing warnings\nBuild: ✅ Passes successfully\nPattern: Presentational component (no internal state)",
+          "updated_at": "2026-01-24T03:21:03.839679+00:00"
         },
         {
           "id": "4.5",
@@ -329,5 +330,6 @@
     "Types are properly exported and reused",
     "Components are properly organized in chat-list/ directory"
   ],
-  "recoveryNote": "Task recovered from stuck state at 2026-01-24T02:44:18.403Z"
+  "recoveryNote": "Task recovered from stuck state at 2026-01-24T02:44:18.403Z",
+  "last_updated": "2026-01-24T03:21:03.839692+00:00"
 }
