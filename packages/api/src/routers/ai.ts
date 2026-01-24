@@ -544,7 +544,7 @@ export const aiRouter = {
         const model = createAIProvider(modelConfig);
 
         // Prepare AI SDK settings
-        const aiSettings: any = {};
+        const aiSettings: Partial<AISettings> = {};
 
         if (input.settings) {
           if (input.settings.temperature !== undefined) {
