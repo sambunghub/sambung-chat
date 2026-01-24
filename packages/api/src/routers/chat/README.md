@@ -8,7 +8,7 @@ The Chat Domain Module provides a complete API for managing chat conversations, 
 
 The module is organized into domain-specific submodules, following the single responsibility principle:
 
-```
+```text
 packages/api/src/routers/chat/
 ├── index.ts           # Main entry point - combines all routers
 ├── crud.ts            # CRUD operations (create, read, update, delete)
@@ -637,13 +637,13 @@ This module was refactored from a single `chat.ts` file into domain-specific mod
 
 **Before**:
 
-```
+```text
 packages/api/src/routers/chat.ts (900+ lines)
 ```
 
 **After**:
 
-```
+```text
 packages/api/src/routers/chat/
 ├── index.ts          # 29 lines - module composition
 ├── crud.ts           # 120 lines - basic operations

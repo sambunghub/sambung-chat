@@ -52,6 +52,10 @@ export const organizationRouter = {
         .where(and(eq(chats.id, input.id), eq(chats.userId, userId)))
         .returning();
 
+      if (results.length === 0 || !results[0]) {
+        throw new Error('Chat not found');
+      }
+
       return results[0];
     }),
 };

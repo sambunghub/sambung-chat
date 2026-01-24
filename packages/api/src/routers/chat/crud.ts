@@ -1,5 +1,5 @@
 import { db } from '@sambung-chat/db';
-import { chats } from '@sambung-chat/db/schema/chat';
+import { chats, messages } from '@sambung-chat/db/schema/chat';
 import { eq, and, desc, asc } from 'drizzle-orm';
 import z from 'zod';
 import { protectedProcedure, withCsrfProtection, o } from '../../index';
@@ -45,7 +45,6 @@ export const crudRouter = {
       const chat = chatResults[0];
 
       // Get messages for this chat
-      const { messages } = await import('@sambung-chat/db/schema/chat');
       const chatMessages = await db
         .select()
         .from(messages)
@@ -101,6 +100,10 @@ export const crudRouter = {
         .set(data)
         .where(and(eq(chats.id, id), eq(chats.userId, userId)))
         .returning();
+
+      if (results.length === 0 || !results[0]) {
+        throw new Error('Chat not found');
+      }
 
       return results[0];
     }),

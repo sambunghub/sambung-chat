@@ -184,18 +184,12 @@ renderer.code = function (code: { text: string; lang?: string; escaped?: boolean
   const validLanguage = code.lang || 'text';
 
   // Check if this is a mermaid diagram
-  // Mermaid parser needs raw text, not HTML entities
-  // But we still escape for sanitization, then unescape for Mermaid
   if (validLanguage === 'mermaid') {
     const diagramId = `mermaid-diagram-${mermaidCounter++}`;
 
-    // First escape to sanitize any potential XSS
-    let mermaidCode = code.escaped ? code.text : escapeHtml(code.text);
-
-    // Then unescape to restore raw characters needed by Mermaid parser
-    // This gives us XSS protection during the escape phase
-    // while providing raw text to Mermaid parser
-    mermaidCode = unescapeHtml(mermaidCode);
+    // Use code.text directly - Mermaid will parse and sanitize the diagram content
+    // The rendered SVG will be sanitized with DOMPurify before insertion
+    const mermaidCode = code.text;
 
     // Use data-mermaid attribute for Mermaid v11
     return `
@@ -247,7 +241,7 @@ function getMermaidTheme() {
     return {
       startOnLoad: false,
       theme: 'dark',
-      securityLevel: 'loose',
+      securityLevel: 'strict',
       themeVariables: {
         // Dark mode colors - optimized for visibility on dark backgrounds
         // Start/Stop nodes (rounded rectangles) - Green for start, Red for stop
@@ -315,7 +309,7 @@ function getMermaidTheme() {
   return {
     startOnLoad: false,
     theme: 'default',
-    securityLevel: 'loose',
+    securityLevel: 'strict',
     themeVariables: {
       // Light mode colors - high contrast for all node types
 
@@ -441,8 +435,53 @@ export async function initMermaidDiagrams() {
         // Create SVG from mermaid definition
         const { svg } = await mermaid.render(id, definition);
 
-        // Replace the pre element with the SVG
-        diagram.outerHTML = `<div class="flex justify-center items-center p-4 rounded-b-lg bg-muted/30">${svg}</div>`;
+        // Sanitize SVG with DOMPurify before inserting (defense in depth)
+        // Mermaid is configured with securityLevel: 'strict', but we add an extra layer of protection
+        const sanitizedSvg = DOMPurify.sanitize(svg, {
+          ADD_TAGS: [
+            'svg',
+            'path',
+            'g',
+            'rect',
+            'circle',
+            'text',
+            'line',
+            'polygon',
+            'polyline',
+            'ellipse',
+            'foreignObject',
+          ],
+          ADD_ATTR: [
+            'viewBox',
+            'xmlns',
+            'width',
+            'height',
+            'd',
+            'fill',
+            'stroke',
+            'stroke-width',
+            'x',
+            'y',
+            'cx',
+            'cy',
+            'r',
+            'rx',
+            'ry',
+            'transform',
+            'text-anchor',
+            'font-family',
+            'font-size',
+            'font-weight',
+            'dominant-baseline',
+            'alignment-baseline',
+            'points',
+            'class',
+            'style',
+          ],
+        });
+
+        // Replace the pre element with the sanitized SVG
+        diagram.outerHTML = `<div class="flex justify-center items-center p-4 rounded-b-lg bg-muted/30">${sanitizedSvg}</div>`;
       } catch (error) {
         console.error('Failed to render mermaid diagram:', error);
 

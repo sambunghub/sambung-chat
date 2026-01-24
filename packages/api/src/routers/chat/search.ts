@@ -102,7 +102,7 @@ export const searchRouter = {
         }
 
         // Join with both models and messages tables
-        // Use DISTINCT ON to avoid duplicate chats when multiple messages match
+        // Use SELECT DISTINCT (via selectDistinct) to avoid duplicate chats when multiple messages match
         const { messages } = await import('@sambung-chat/db/schema/chat');
         query = db
           .selectDistinct({
@@ -148,7 +148,7 @@ export const searchRouter = {
           .orderBy(desc(chats.pinned), desc(chats.updatedAt));
       } else if (needsMessagesJoin) {
         // Join only with messages table
-        // Use DISTINCT ON to avoid duplicate chats when multiple messages match
+        // Use SELECT DISTINCT (via selectDistinct) to avoid duplicate chats when multiple messages match
         const { messages } = await import('@sambung-chat/db/schema/chat');
         query = db
           .selectDistinct({
