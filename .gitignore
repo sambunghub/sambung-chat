@@ -53,6 +53,9 @@ coverage
 test-results
 playwright-report
 
+# Development reports (verification, test results, summaries)
+docs/reports/
+
 # Misc
 *.tgz
 .cache
