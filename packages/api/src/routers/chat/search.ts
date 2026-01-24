@@ -1,5 +1,5 @@
 import { db } from '@sambung-chat/db';
-import { chats } from '@sambung-chat/db/schema/chat';
+import { chats, messages } from '@sambung-chat/db/schema/chat';
 import { models } from '@sambung-chat/db/schema/model';
 import { eq, and, desc, asc, sql, gte, lte, inArray, ilike } from 'drizzle-orm';
 import z from 'zod';
@@ -54,7 +54,6 @@ export const searchRouter = {
       if (normalizedQuery) {
         if (input.searchInMessages) {
           // Search in both title and message content
-          const { messages } = await import('@sambung-chat/db/schema/chat');
           conditions.push(
             sql`(${chats.title} ILIKE ${`%${normalizedQuery}%`} OR ${messages.content} ILIKE ${`%${normalizedQuery}%`})`
           );
@@ -103,7 +102,6 @@ export const searchRouter = {
 
         // Join with both models and messages tables
         // Use SELECT DISTINCT (via selectDistinct) to avoid duplicate chats when multiple messages match
-        const { messages } = await import('@sambung-chat/db/schema/chat');
         query = db
           .selectDistinct({
             id: chats.id,
@@ -149,7 +147,6 @@ export const searchRouter = {
       } else if (needsMessagesJoin) {
         // Join only with messages table
         // Use SELECT DISTINCT (via selectDistinct) to avoid duplicate chats when multiple messages match
-        const { messages } = await import('@sambung-chat/db/schema/chat');
         query = db
           .selectDistinct({
             id: chats.id,
@@ -180,7 +177,6 @@ export const searchRouter = {
       let resultsWithSnippets = results;
       if (input.searchInMessages && normalizedQuery && results.length > 0) {
         const chatIds = results.map((r) => r.id);
-        const { messages } = await import('@sambung-chat/db/schema/chat');
 
         // Get all matching messages for these chats
         const matchingMessages = await db
