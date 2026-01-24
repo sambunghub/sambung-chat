@@ -2,7 +2,7 @@
   "feature": "Split monolithic ChatList.svelte (632 lines) into smaller focused components",
   "description": "Refactor ChatList.svelte by extracting focused components for header, chat groups, folder management, and data fetching. Currently handles 7+ responsibilities: chat CRUD, folder management, search/filtering, grouping, state management, UI rendering, and navigation.",
   "created_at": "2026-01-21T07:44:13.411Z",
-  "updated_at": "2026-01-24T03:09:17.173Z",
+  "updated_at": "2026-01-24T03:11:29.624Z",
   "status": "in_progress",
   "planStatus": "in_progress",
   "phases": [
@@ -130,21 +130,21 @@
           "id": "4.2",
           "name": "Create NoFolderChatsSection.svelte",
           "description": "Extract no-folder chats display section",
-          "status": "pending",
+          "status": "completed",
           "files_involved": [
             "apps/web/src/lib/components/secondary-sidebar/chat-list/NoFolderChatsSection.svelte"
           ],
-          "notes": "Props: noFolderChats, currentChatId, searchQuery, folders, onSelectChat, onDeleteChat, onRenameChat, onTogglePin, onMoveToFolder, onCreateFolder"
+          "notes": "Created NoFolderChatsSection component with presentational pattern. Props: noFolderChats, currentChatId, searchQuery, folders, onSelectChat, onDeleteChat, onRenameChat, onTogglePin, onMoveToFolder, onCreateFolder. Size: 81 lines (including type definitions). Type checks: ✅ Passed. Component renders 'No Folder' heading and list of chats without folders using ChatListItem."
         },
         {
           "id": "4.3",
           "name": "Create FolderChatsSection.svelte",
           "description": "Extract folder chats display with collapsible folders",
-          "status": "pending",
+          "status": "completed",
           "files_involved": [
             "apps/web/src/lib/components/secondary-sidebar/chat-list/FolderChatsSection.svelte"
           ],
-          "notes": "Props: folderGroups, currentChatId, searchQuery, folders, collapsedFolders, onSelectChat, onDeleteChat, onRenameChat, onTogglePin, onMoveToFolder, onCreateFolder, onToggleFolder, onStartFolderRename, onSaveFolderRename, onCancelFolderRename, onDeleteFolder, renamingFolderId, folderRenameValue, onFolderKeydown"
+          "notes": "Created FolderChatsSection component with collapsible folders, inline rename UI, and chat list rendering. Props: folderGroups, currentChatId, searchQuery, folders, collapsedFolders, renamingFolderId, folderRenameValue, onSelectChat, onDeleteChat, onRenameChat, onTogglePin, onMoveToFolder, onCreateFolder, onToggleFolder, onStartFolderRename, onSaveFolderRename, onCancelFolderRename, onDeleteFolder, onFolderKeydown, onFolderRenameValueChange. Size: 214 lines (includes inline folder rendering that will be extracted to FolderItem in 4.4). Type checks: ✅ Passed. Component renders folder groups with collapsible headers (chevron icons), folder actions (rename, delete on hover), inline rename input, and chat list when expanded."
         },
         {
           "id": "4.4",
