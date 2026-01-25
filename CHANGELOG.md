@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.25] - 2026-01-26
+
+### Fixed
+
+- **ChatList: Infinite Loading Issue**: Fix ChatList stuck in infinite loading state ([apps/web/src/lib/components/secondary-sidebar/chat-list/useChatListData.ts](apps/web/src/lib/components/secondary-sidebar/chat-list/useChatListData.ts))
+  - Replace Svelte 5 runes (`$state`, `$derived`) with Svelte stores (`writable`, `derived`)
+  - Svelte runes only work inside .svelte component files, not in .ts composables
+  - Use stores in .ts files is the correct pattern for reactive state management
+  - Update ChatList.svelte to use `$storeName` syntax for store subscriptions
+
+- **ChatList: ESLint Error**: Fix prefer-svelte-reactivity error with reduce method ([apps/web/src/lib/components/secondary-sidebar/chat-list/useChatListData.ts:110-120](apps/web/src/lib/components/secondary-sidebar/chat-list/useChatListData.ts:110-120))
+  - Replace Set-based unique provider logic with reduce method
+  - Avoid using built-in Set class to satisfy svelte/prefer-svelte-reactivity rule
+  - Maintain type safety with intermediate `string[]` type and final `Provider[]` assertion
+
+### Changed
+
+- **ChatList Refactoring**: Split monolithic ChatList component (1052+ lines) into smaller, maintainable modules
+  - Created ChatListHeader.svelte - Header with title and actions
+  - Created ChatListFilters.svelte - Search and filter controls
+  - Created ChatListFilterDialog.svelte - Advanced filter dialog
+  - Created PinnedChatsSection.svelte - Pinned chats list
+  - Created NoFolderChatsSection.svelte - Uncategorized chats list
+  - Created FolderChatsSection.svelte - Folder-based chat groups
+  - Created FolderItem.svelte - Individual folder item
+  - Created ChatListLoadingState.svelte - Loading state component
+  - Created ChatListErrorState.svelte - Error state component
+  - Created useChatListData.ts - Data fetching composable with stores
+  - Created utils/chat-grouping.ts - Chat grouping utilities
+  - Created types.ts - Shared TypeScript types
+  - Refactored ChatList.svelte to orchestrate components (170 lines)
+  - Improved code maintainability and testability
+
 ## [0.0.24] - 2026-01-24
 
 ### Fixed
