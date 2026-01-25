@@ -78,6 +78,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Use ```bash for shell commands
   - Ensures proper syntax highlighting and linter compliance
 
+## [0.0.25] - 2026-01-25
+
+### Changed
+
+- **ChatList Refactoring**: Split monolithic ChatList component (1052+ lines) into smaller, maintainable modules ([apps/web/src/lib/components/secondary-sidebar/chat-list/](apps/web/src/lib/components/secondary-sidebar/chat-list/))
+  - Created ChatListHeader.svelte - Header with title and actions
+  - Created ChatListFilters.svelte - Search and filter controls
+  - Created ChatListFilterDialog.svelte - Advanced filter dialog
+  - Created PinnedChatsSection.svelte - Pinned chats list
+  - Created NoFolderChatsSection.svelte - Uncategorized chats list
+  - Created FolderChatsSection.svelte - Folder-based chat groups
+  - Created FolderItem.svelte - Individual folder item
+  - Created ChatListLoadingState.svelte - Loading state component
+  - Created ChatListErrorState.svelte - Error state component
+  - Created useChatListData.ts - Data fetching composable
+  - Created utils/chat-grouping.ts - Chat grouping utilities
+  - Created types.ts - Shared TypeScript types
+  - Refactored ChatList.svelte to orchestrate components (147 lines)
+  - Improved code maintainability and testability
+  - Type checks passed with 0 errors
+
 ## [0.0.23] - 2026-01-22
 
 ### Added
