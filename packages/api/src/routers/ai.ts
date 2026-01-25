@@ -62,6 +62,25 @@ type AISettings = {
 };
 
 /**
+ * Helper function to build AI settings from input
+ * Reduces code duplication between complete and stream handlers
+ *
+ * @param settings - Optional completion settings from input
+ * @returns Partial AISettings object
+ */
+function buildAISettings(settings?: Partial<AISettings>): Partial<AISettings> {
+  if (!settings) return {};
+  return {
+    temperature: settings.temperature,
+    maxTokens: settings.maxTokens,
+    topP: settings.topP,
+    topK: settings.topK,
+    frequencyPenalty: settings.frequencyPenalty,
+    presencePenalty: settings.presencePenalty,
+  };
+}
+
+/**
  * Helper function to get decrypted API key
  *
  * SECURITY: This function validates both apiKeyId AND userId to prevent
@@ -406,28 +425,7 @@ export const aiRouter = {
         const model = createAIProvider(modelConfig);
 
         // Prepare AI SDK settings
-        const aiSettings: Partial<AISettings> = {};
-
-        if (input.settings) {
-          if (input.settings.temperature !== undefined) {
-            aiSettings.temperature = input.settings.temperature;
-          }
-          if (input.settings.maxTokens !== undefined) {
-            aiSettings.maxTokens = input.settings.maxTokens;
-          }
-          if (input.settings.topP !== undefined) {
-            aiSettings.topP = input.settings.topP;
-          }
-          if (input.settings.topK !== undefined) {
-            aiSettings.topK = input.settings.topK;
-          }
-          if (input.settings.frequencyPenalty !== undefined) {
-            aiSettings.frequencyPenalty = input.settings.frequencyPenalty;
-          }
-          if (input.settings.presencePenalty !== undefined) {
-            aiSettings.presencePenalty = input.settings.presencePenalty;
-          }
-        }
+        const aiSettings = buildAISettings(input.settings);
 
         // Generate completion
         const result = await generateText({
@@ -553,28 +551,7 @@ export const aiRouter = {
         const model = createAIProvider(modelConfig);
 
         // Prepare AI SDK settings
-        const aiSettings: Partial<AISettings> = {};
-
-        if (input.settings) {
-          if (input.settings.temperature !== undefined) {
-            aiSettings.temperature = input.settings.temperature;
-          }
-          if (input.settings.maxTokens !== undefined) {
-            aiSettings.maxTokens = input.settings.maxTokens;
-          }
-          if (input.settings.topP !== undefined) {
-            aiSettings.topP = input.settings.topP;
-          }
-          if (input.settings.topK !== undefined) {
-            aiSettings.topK = input.settings.topK;
-          }
-          if (input.settings.frequencyPenalty !== undefined) {
-            aiSettings.frequencyPenalty = input.settings.frequencyPenalty;
-          }
-          if (input.settings.presencePenalty !== undefined) {
-            aiSettings.presencePenalty = input.settings.presencePenalty;
-          }
-        }
+        const aiSettings = buildAISettings(input.settings);
 
         // If chatId is provided, save user message and create placeholder for assistant
         if (input.chatId) {
@@ -664,13 +641,25 @@ export const aiRouter = {
           usage: finalUsage,
         } as const;
       } catch (error) {
-        // Clean up placeholder message if streaming failed
-        if (assistantMessageId && input.chatId && fullText.length === 0) {
+        // Handle cleanup of placeholder message on streaming failure
+        if (assistantMessageId && input.chatId) {
           try {
-            await db.delete(messages).where(eq(messages.id, assistantMessageId));
-          } catch (deleteError) {
+            if (fullText.length > 0) {
+              // Persist partial content if streaming errored after emitting some deltas
+              await db
+                .update(messages)
+                .set({ content: fullText })
+                .where(eq(messages.id, assistantMessageId));
+              console.error(
+                '[AI Router] Streaming failed after partial content, persisted partial response'
+              );
+            } else {
+              // Delete placeholder if no content was generated
+              await db.delete(messages).where(eq(messages.id, assistantMessageId));
+            }
+          } catch (cleanupError) {
             // Log but don't throw - we still need to yield the error to client
-            console.error('[AI Router] Failed to clean up placeholder message:', deleteError);
+            console.error('[AI Router] Failed to clean up placeholder message:', cleanupError);
           }
         }
 
