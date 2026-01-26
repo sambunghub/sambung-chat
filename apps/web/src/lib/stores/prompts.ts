@@ -113,7 +113,16 @@ export async function loadPrompts() {
         updatedAt: new Date(p.updatedAt),
       }));
 
-      prompts.set(transformedPrompts);
+      // Client-side filtering by query (search in name and content)
+      const filteredPrompts = query
+        ? transformedPrompts.filter(
+            (p) =>
+              p.name.toLowerCase().includes(query.toLowerCase()) ||
+              p.content.toLowerCase().includes(query.toLowerCase())
+          )
+        : transformedPrompts;
+
+      prompts.set(filteredPrompts);
     }
   } catch (error) {
     console.error('Failed to load prompts:', error);

@@ -637,6 +637,8 @@ describe('Prompt Router Tests', () => {
   describe('getPublicTemplates - Public Templates Browsing', () => {
     let otherUserId: string;
     const publicPromptIds: string[] = [];
+    // Track testUserId prompts created in this describe block to prevent leaks
+    const getPublicTemplatesTestPromptIds: string[] = [];
 
     beforeAll(async () => {
       // Create another user for testing public prompts from different users
@@ -689,7 +691,12 @@ describe('Prompt Router Tests', () => {
         if (promptData.isPublic) {
           publicPromptIds.push(prompt.id);
         }
-        createdPromptIds.push(prompt.id);
+        // Track testUserId prompts separately for cleanup in afterAll
+        if (promptData.userId === testUserId) {
+          getPublicTemplatesTestPromptIds.push(prompt.id);
+        } else {
+          createdPromptIds.push(prompt.id);
+        }
       }
     });
 
@@ -700,6 +707,15 @@ describe('Prompt Router Tests', () => {
         await db.delete(user).where(eq(user.id, otherUserId));
       } catch (error) {
         console.error('Error cleaning up other user:', error);
+      }
+
+      // Clean up testUserId prompts created in this describe block
+      try {
+        if (getPublicTemplatesTestPromptIds.length > 0) {
+          await db.delete(prompts).where(inArray(prompts.id, getPublicTemplatesTestPromptIds));
+        }
+      } catch (error) {
+        console.error('Error cleaning up testUserId prompts:', error);
       }
     });
 

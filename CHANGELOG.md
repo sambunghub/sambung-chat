@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.33] - 2026-01-26
+
+### Fixed
+
+- **My Prompts Search**: Fix search functionality not working for My Prompts category ([apps/web/src/lib/stores/prompts.ts](apps/web/src/lib/stores/prompts.ts))
+  - Add client-side filtering by name and content for My Prompts
+  - Search now works consistently across both My Prompts and Marketplace
+  - Uses case-insensitive matching for better user experience
+
+- **Test Cleanup Leaks**: Fix testUserId prompt leaks in getPublicTemplates tests ([packages/api/src/routers/prompt.test.ts](packages/api/src/routers/prompt.test.ts))
+  - Add local array `getPublicTemplatesTestPromptIds` to track testUserId prompts
+  - Properly clean up testUserId prompts in afterAll to prevent database pollution
+  - Separate tracking for testUserId vs otherUserId prompts for accurate cleanup
+
 ## [0.0.32] - 2026-01-26
 
 ### Fixed
