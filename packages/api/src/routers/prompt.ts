@@ -314,4 +314,55 @@ export const promptRouter = {
 
       return newPrompt;
     }),
+
+  // Export all user's prompts as JSON
+  exportPrompts: protectedProcedure
+    .input(
+      z.object({
+        category: z
+          .enum(['general', 'coding', 'writing', 'analysis', 'creative', 'business', 'custom'])
+          .optional(),
+        dateFrom: z.coerce.date().optional(),
+        dateTo: z.coerce.date().optional(),
+      })
+    )
+    .handler(async ({ input, context }) => {
+      const userId = context.session.user.id;
+      const { category, dateFrom, dateTo } = input;
+
+      // Build conditions
+      const conditions = [eq(prompts.userId, userId)];
+
+      // Filter by category
+      if (category !== undefined) {
+        conditions.push(eq(prompts.category, category));
+      }
+
+      // Add date range filter
+      if (dateFrom) {
+        conditions.push(gte(prompts.createdAt, dateFrom));
+      }
+
+      if (dateTo) {
+        conditions.push(lte(prompts.createdAt, dateTo));
+      }
+
+      // Fetch prompts with filters
+      const userPrompts = await db
+        .select({
+          id: prompts.id,
+          name: prompts.name,
+          content: prompts.content,
+          variables: prompts.variables,
+          category: prompts.category,
+          isPublic: prompts.isPublic,
+          createdAt: prompts.createdAt,
+          updatedAt: prompts.updatedAt,
+        })
+        .from(prompts)
+        .where(and(...conditions))
+        .orderBy(desc(prompts.updatedAt));
+
+      return userPrompts;
+    }),
 };
