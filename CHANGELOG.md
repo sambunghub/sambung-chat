@@ -5,6 +5,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.34] - 2026-01-26
+
+### Added
+
+- **User Preferences System**: Add appearance settings with user preferences database and router ([packages/db/src/schema/user-preferences.ts](packages/db/src/schema/user-preferences.ts))
+  - Create `user_preferences` table with fields: sidebarWidth, fontSize, privacyMode
+  - Font size options: small (14px), medium (16px), large (18px), extra-large (20px)
+  - Sidebar width range: 200-400px with 10px increments
+  - Privacy mode toggle to hide chat content in sidebar
+
+- **User Preferences Router**: Add ORPC router for preferences management ([packages/api/src/routers/user-preferences.ts](packages/api/src/routers/user-preferences.ts))
+  - `get` procedure: Retrieves user preferences or creates with defaults
+  - `update` procedure: Updates individual or multiple preference fields
+  - Input validation for sidebar width (200-400) and font size enum
+  - Automatic preference creation on first access with sensible defaults
+
+- **User Preferences Store**: Add Svelte store for preferences state management ([apps/web/src/lib/stores/user-preferences.ts](apps/web/src/lib/stores/user-preferences.ts))
+  - Load preferences from API and apply to document immediately
+  - Optimistic updates with automatic rollback on error
+  - Helper stores for individual values: sidebarWidth, fontSize, privacyMode
+  - CSS variable injection for font size (--font-size-base)
+  - Privacy mode class toggle on body element (.privacy-mode)
+
+- **Appearance Settings Page**: Add UI for customization ([apps/web/src/routes/app/settings/appearance/+page.svelte](apps/web/src/routes/app/settings/appearance/+page.svelte))
+  - Sidebar width slider with live preview (200-400px range)
+  - Font size selector with 4 options and live text preview
+  - Privacy mode toggle switch
+  - Reset to defaults button
+  - Toast notifications for all actions
+  - Loading and error states
+
+- **Slider Component**: Add reusable slider UI component ([apps/web/src/lib/components/ui/slider/](apps/web/src/lib/components/ui/slider/))
+  - Custom styled range input with progress fill
+  - Webkit and Firefox thumb styling
+  - Focus states and disabled states
+  - ARIA attributes for accessibility
+
+### Tested
+
+- **User Preferences Tests**: Add comprehensive router tests ([packages/api/src/routers/user-preferences.test.ts](packages/api/src/routers/user-preferences.test.ts))
+  - Test default preference creation on first access
+  - Test preference retrieval returns existing data
+  - Test individual field updates (sidebarWidth, fontSize, privacyMode)
+  - Test multiple field updates in single call
+  - Test input validation for invalid values
+
 ## [0.0.33] - 2026-01-26
 
 ### Fixed

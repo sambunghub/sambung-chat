@@ -9,6 +9,7 @@ import { modelRouter } from './model';
 import { apiKeyRouter } from './api-keys';
 import { promptRouter } from './prompt';
 import { userRouter } from './user';
+import { userPreferencesRouter } from './user-preferences';
 import { aiRouter } from './ai';
 import { generateCsrfToken } from '../utils/csrf';
 import { csrfPersistentRateLimiter } from '../utils/rate-limiter';
@@ -66,6 +67,7 @@ export const appRouter = {
   apiKey: apiKeyRouter,
   prompt: promptRouter,
   user: userRouter,
+  userPreferences: userPreferencesRouter,
   ai: aiRouter,
 };
 export type AppRouter = typeof appRouter;
