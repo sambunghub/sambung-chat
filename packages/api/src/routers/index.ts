@@ -11,6 +11,7 @@ import { promptRouter } from './prompt';
 import { userRouter } from './user';
 import { aiRouter } from './ai';
 import { appearanceRouter } from './appearance';
+import { themeRouter } from './theme';
 import { generateCsrfToken } from '../utils/csrf';
 import { csrfPersistentRateLimiter } from '../utils/rate-limiter';
 
@@ -69,6 +70,7 @@ export const appRouter = {
   user: userRouter,
   ai: aiRouter,
   appearance: appearanceRouter,
+  theme: themeRouter,
 };
 export type AppRouter = typeof appRouter;
 export type AppRouterClient = RouterClient<typeof appRouter>;
