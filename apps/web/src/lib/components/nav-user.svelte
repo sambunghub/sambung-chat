@@ -6,6 +6,7 @@
   import KeyIcon from '@lucide/svelte/icons/key';
   import LogOutIcon from '@lucide/svelte/icons/log-out';
   import CpuIcon from '@lucide/svelte/icons/cpu';
+  import PaletteIcon from '@lucide/svelte/icons/palette';
 
   import * as Avatar from '$lib/components/ui/avatar/index.js';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
@@ -95,6 +96,13 @@
           <DropdownMenu.Item onclick={() => goto('/app/settings/models')} class="cursor-pointer">
             <CpuIcon />
             Models
+          </DropdownMenu.Item>
+          <DropdownMenu.Item
+            onclick={() => goto('/app/settings/appearance')}
+            class="cursor-pointer"
+          >
+            <PaletteIcon />
+            Appearance
           </DropdownMenu.Item>
         </DropdownMenu.Group>
         <DropdownMenu.Separator />
