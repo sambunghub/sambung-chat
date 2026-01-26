@@ -58,6 +58,13 @@
         "description": "Application settings"
       },
       {
+        "id": "appearance",
+        "label": "Appearance",
+        "icon": "Palette",
+        "path": "/app/settings/appearance",
+        "description": "Customize appearance and themes"
+      },
+      {
         "id": "theme",
         "label": "Toggle Theme",
         "icon": "Sun",
