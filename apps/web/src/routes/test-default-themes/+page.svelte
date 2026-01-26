@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { lightTheme, darkTheme, highContrastTheme } from '$lib/themes';
 	import type { Theme } from '$lib/types/theme';
 	import { browser } from '$app/environment';
