@@ -258,7 +258,7 @@
                             value={option.value}
                             checked={fontSize === option.value}
                             disabled={updating}
-                            onchange={() => handleFontSizeChange(option.value)}
+                            onchange={(_) => handleFontSizeChange(option.value)}
                             class="mt-1"
                             aria-label={option.label}
                           />
@@ -305,7 +305,7 @@
                     id="privacy-mode"
                     bind:checked={privacyMode}
                     disabled={updating}
-                    onchange={async () => await handlePrivacyModeChange(privacyMode)}
+                    onchange={async (_) => await handlePrivacyModeChange(privacyMode)}
                   />
                 </div>
                 <div class="bg-muted/50 rounded-md border p-4">

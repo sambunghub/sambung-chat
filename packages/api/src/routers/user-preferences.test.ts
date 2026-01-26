@@ -1,15 +1,25 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { db } from '@sambung-chat/db';
 import { userPreferences } from '@sambung-chat/db/schema/user-preferences';
+import { user } from '@sambung-chat/db/schema/auth';
 import { eq } from 'drizzle-orm';
 import { userPreferencesRouter } from './user-preferences';
 import { createContext } from '../index';
 import { faker } from '@faker-js/faker';
+import { generateULID } from '@sambung-chat/db/utils/ulid';
 
-// Helper to get user table
-function getUserTable() {
-  const schema = (db as unknown as { schema?: { user?: unknown } }).schema;
-  return (schema?.user ?? db) as never;
+// Helper to create mock Hono context
+function createMockContext(userId: string) {
+  const headers = new Headers();
+  const mockReq = {
+    raw: {
+      headers,
+    },
+  };
+  return {
+    req: mockReq,
+    session: { user: { id: userId } },
+  };
 }
 
 describe('User Preferences Router', () => {
@@ -18,16 +28,16 @@ describe('User Preferences Router', () => {
 
   beforeAll(async () => {
     // Create test user
-    const userTable = getUserTable();
-    const [user] = await db
-      .insert(userTable)
+    testUserId = generateULID();
+    await db
+      .insert(user)
       .values({
+        id: testUserId,
         email: `user-preferences-test-${Date.now()}@example.com`,
         name: faker.person.fullName(),
+        emailVerified: true,
       })
       .returning();
-
-    testUserId = user.id;
   });
 
   afterAll(async () => {
@@ -37,8 +47,7 @@ describe('User Preferences Router', () => {
     }
 
     // Cleanup test user
-    const userTable = getUserTable();
-    await db.delete(userTable).where(eq(userTable.id, testUserId));
+    await db.delete(user).where(eq(user.id, testUserId));
   });
 
   beforeEach(() => {
@@ -47,14 +56,13 @@ describe('User Preferences Router', () => {
 
   describe('get', () => {
     it('should create default preferences if not exists', async () => {
+      const mockHonoContext = createMockContext(testUserId);
       const context = await createContext({
-        context: {
-          session: { user: { id: testUserId } },
-        } as never,
+        context: mockHonoContext as never,
       });
 
       // First call should create defaults
-      const result = await userPreferencesRouter.get.handler({ context } as never);
+      const result = await userPreferencesRouter.get({ context } as never);
 
       expect(result).toBeDefined();
       expect(result.userId).toBe(testUserId);
@@ -66,17 +74,16 @@ describe('User Preferences Router', () => {
     });
 
     it('should return existing preferences', async () => {
+      const mockHonoContext = createMockContext(testUserId);
       const context = await createContext({
-        context: {
-          session: { user: { id: testUserId } },
-        } as never,
+        context: mockHonoContext as never,
       });
 
       // Create initial preferences
-      const initial = await userPreferencesRouter.get.handler({ context } as never);
+      const initial = await userPreferencesRouter.get({ context } as never);
 
       // Call again should return same preferences
-      const result = await userPreferencesRouter.get.handler({ context } as never);
+      const result = await userPreferencesRouter.get({ context } as never);
 
       expect(result.id).toBe(initial.id);
       expect(result.userId).toBe(testUserId);
@@ -87,17 +94,16 @@ describe('User Preferences Router', () => {
 
   describe('update', () => {
     it('should update sidebar width', async () => {
+      const mockHonoContext = createMockContext(testUserId);
       const context = await createContext({
-        context: {
-          session: { user: { id: testUserId } },
-        } as never,
+        context: mockHonoContext as never,
       });
 
       // Create initial preferences
-      await userPreferencesRouter.get.handler({ context } as never);
+      await userPreferencesRouter.get({ context } as never);
 
       // Update sidebar width
-      const result = await userPreferencesRouter.update.handler({
+      const result = await userPreferencesRouter.update({
         context: context as never,
         input: { sidebarWidth: 350 },
       });
@@ -110,17 +116,16 @@ describe('User Preferences Router', () => {
     });
 
     it('should update font size', async () => {
+      const mockHonoContext = createMockContext(testUserId);
       const context = await createContext({
-        context: {
-          session: { user: { id: testUserId } },
-        } as never,
+        context: mockHonoContext as never,
       });
 
       // Create initial preferences
-      await userPreferencesRouter.get.handler({ context } as never);
+      await userPreferencesRouter.get({ context } as never);
 
       // Update font size
-      const result = await userPreferencesRouter.update.handler({
+      const result = await userPreferencesRouter.update({
         context: context as never,
         input: { fontSize: 'large' },
       });
@@ -131,17 +136,16 @@ describe('User Preferences Router', () => {
     });
 
     it('should update privacy mode', async () => {
+      const mockHonoContext = createMockContext(testUserId);
       const context = await createContext({
-        context: {
-          session: { user: { id: testUserId } },
-        } as never,
+        context: mockHonoContext as never,
       });
 
       // Create initial preferences
-      await userPreferencesRouter.get.handler({ context } as never);
+      await userPreferencesRouter.get({ context } as never);
 
       // Update privacy mode
-      const result = await userPreferencesRouter.update.handler({
+      const result = await userPreferencesRouter.update({
         context: context as never,
         input: { privacyMode: true },
       });
@@ -152,17 +156,16 @@ describe('User Preferences Router', () => {
     });
 
     it('should update multiple fields at once', async () => {
+      const mockHonoContext = createMockContext(testUserId);
       const context = await createContext({
-        context: {
-          session: { user: { id: testUserId } },
-        } as never,
+        context: mockHonoContext as never,
       });
 
       // Create initial preferences
-      await userPreferencesRouter.get.handler({ context } as never);
+      await userPreferencesRouter.get({ context } as never);
 
       // Update multiple fields
-      const result = await userPreferencesRouter.update.handler({
+      const result = await userPreferencesRouter.update({
         context: context as never,
         input: {
           sidebarWidth: 300,
@@ -179,18 +182,17 @@ describe('User Preferences Router', () => {
     });
 
     it('should reject invalid sidebar width', async () => {
+      const mockHonoContext = createMockContext(testUserId);
       const context = await createContext({
-        context: {
-          session: { user: { id: testUserId } },
-        } as never,
+        context: mockHonoContext as never,
       });
 
       // Create initial preferences
-      await userPreferencesRouter.get.handler({ context } as never);
+      await userPreferencesRouter.get({ context } as never);
 
       // Try to update with invalid width (too small)
       await expect(
-        userPreferencesRouter.update.handler({
+        userPreferencesRouter.update({
           context: context as never,
           input: { sidebarWidth: 150 },
         })
@@ -198,7 +200,7 @@ describe('User Preferences Router', () => {
 
       // Try to update with invalid width (too large)
       await expect(
-        userPreferencesRouter.update.handler({
+        userPreferencesRouter.update({
           context: context as never,
           input: { sidebarWidth: 500 },
         })
@@ -206,18 +208,17 @@ describe('User Preferences Router', () => {
     });
 
     it('should reject invalid font size', async () => {
+      const mockHonoContext = createMockContext(testUserId);
       const context = await createContext({
-        context: {
-          session: { user: { id: testUserId } },
-        } as never,
+        context: mockHonoContext as never,
       });
 
       // Create initial preferences
-      await userPreferencesRouter.get.handler({ context } as never);
+      await userPreferencesRouter.get({ context } as never);
 
       // Try to update with invalid font size
       await expect(
-        userPreferencesRouter.update.handler({
+        userPreferencesRouter.update({
           context: context as never,
           input: { fontSize: 'invalid' as never },
         })

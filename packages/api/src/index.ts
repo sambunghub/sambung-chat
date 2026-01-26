@@ -1,5 +1,6 @@
 import { ORPCError, os } from '@orpc/server';
 
+import { createContext } from './context';
 import type { Context } from './context';
 import { validateCsrfToken } from './utils/csrf';
 
@@ -59,4 +60,4 @@ const withCsrfProtection = o.middleware(async ({ context, next }) => {
   return next();
 });
 
-export { withCsrfProtection };
+export { withCsrfProtection, createContext };
