@@ -105,25 +105,71 @@ export const promptRouter = {
           .enum(['general', 'coding', 'writing', 'analysis', 'creative', 'business', 'custom'])
           .optional(),
         isPublic: z.boolean().optional(),
+        changeReason: z.string().optional(),
       })
     )
     .handler(async ({ input, context }) => {
       const userId = context.session.user.id;
-      const { id, ...data } = input;
+      const { id, changeReason, ...data } = input;
 
-      const results = await db
-        .update(prompts)
-        .set(data)
-        .where(and(eq(prompts.id, id), eq(prompts.userId, userId)))
-        .returning();
+      // Use transaction to ensure version entry and prompt update are atomic
+      try {
+        const [updatedPrompt] = await db.transaction(async (tx) => {
+          // Fetch current prompt state before update
+          const currentPromptResults = await tx
+            .select()
+            .from(prompts)
+            .where(and(eq(prompts.id, id), eq(prompts.userId, userId)));
 
-      if (results.length === 0) {
-        throw new ORPCError('NOT_FOUND', {
-          message: 'Prompt not found or you do not have permission to update it',
+          if (currentPromptResults.length === 0) {
+            throw new ORPCError('NOT_FOUND', {
+              message: 'Prompt not found or you do not have permission to update it',
+            });
+          }
+
+          const currentPrompt = currentPromptResults[0];
+
+          // Get the next version number
+          const versionResults = await tx
+            .select({ versionNumber: promptVersions.versionNumber })
+            .from(promptVersions)
+            .where(eq(promptVersions.promptId, id))
+            .orderBy(desc(promptVersions.versionNumber))
+            .limit(1);
+
+          const nextVersionNumber = versionResults.length > 0 ? versionResults[0].versionNumber + 1 : 1;
+
+          // Create version entry with old values
+          await tx.insert(promptVersions).values({
+            promptId: currentPrompt.id,
+            userId: currentPrompt.userId,
+            name: currentPrompt.name,
+            content: currentPrompt.content,
+            variables: currentPrompt.variables,
+            category: currentPrompt.category,
+            versionNumber: nextVersionNumber,
+            changeReason: changeReason || 'Updated prompt',
+          });
+
+          // Update the prompt with new values
+          const results = await tx
+            .update(prompts)
+            .set(data)
+            .where(eq(prompts.id, id))
+            .returning();
+
+          return results;
+        });
+
+        return updatedPrompt;
+      } catch (error) {
+        if (error instanceof ORPCError) {
+          throw error;
+        }
+        throw new ORPCError('INTERNAL_SERVER_ERROR', {
+          message: `Failed to update prompt: ${error instanceof Error ? error.message : String(error)}`,
         });
       }
-
-      return results[0];
     }),
 
   // Delete prompt
