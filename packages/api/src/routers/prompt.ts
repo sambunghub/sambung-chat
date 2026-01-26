@@ -574,4 +574,99 @@ export const promptRouter = {
 
       return versions;
     }),
+
+  // Restore prompt to a specific version
+  restoreVersion: protectedProcedure
+    .use(withCsrfProtection)
+    .input(
+      z.object({
+        promptId: ulidSchema,
+        versionNumber: z.number().int().positive(),
+      })
+    )
+    .handler(async ({ input, context }) => {
+      const userId = context.session.user.id;
+      const { promptId, versionNumber } = input;
+
+      // Use transaction to ensure version entry and prompt update are atomic
+      try {
+        const [restoredPrompt] = await db.transaction(async (tx) => {
+          // Verify prompt ownership and fetch current state
+          const currentPromptResults = await tx
+            .select()
+            .from(prompts)
+            .where(and(eq(prompts.id, promptId), eq(prompts.userId, userId)));
+
+          if (currentPromptResults.length === 0) {
+            throw new ORPCError('NOT_FOUND', {
+              message: 'Prompt not found or you do not have permission to restore it',
+            });
+          }
+
+          const currentPrompt = currentPromptResults[0];
+
+          // Fetch the specific version to restore
+          const versionResults = await tx
+            .select()
+            .from(promptVersions)
+            .where(
+              and(eq(promptVersions.promptId, promptId), eq(promptVersions.versionNumber, versionNumber))
+            );
+
+          if (versionResults.length === 0) {
+            throw new ORPCError('NOT_FOUND', {
+              message: `Version ${versionNumber} not found for this prompt`,
+            });
+          }
+
+          const versionToRestore = versionResults[0];
+
+          // Get the next version number for the audit trail entry
+          const versionCountResults = await tx
+            .select({ versionNumber: promptVersions.versionNumber })
+            .from(promptVersions)
+            .where(eq(promptVersions.promptId, promptId))
+            .orderBy(desc(promptVersions.versionNumber))
+            .limit(1);
+
+          const nextVersionNumber =
+            versionCountResults.length > 0 ? versionCountResults[0].versionNumber + 1 : 1;
+
+          // Create version entry with current state before restoring (for audit trail)
+          await tx.insert(promptVersions).values({
+            promptId: currentPrompt.id,
+            userId: currentPrompt.userId,
+            name: currentPrompt.name,
+            content: currentPrompt.content,
+            variables: currentPrompt.variables,
+            category: currentPrompt.category,
+            versionNumber: nextVersionNumber,
+            changeReason: `Restored from version ${versionNumber}`,
+          });
+
+          // Update the prompt with the restored version's data
+          const results = await tx
+            .update(prompts)
+            .set({
+              name: versionToRestore.name,
+              content: versionToRestore.content,
+              variables: versionToRestore.variables,
+              category: versionToRestore.category,
+            })
+            .where(eq(prompts.id, promptId))
+            .returning();
+
+          return results;
+        });
+
+        return restoredPrompt;
+      } catch (error) {
+        if (error instanceof ORPCError) {
+          throw error;
+        }
+        throw new ORPCError('INTERNAL_SERVER_ERROR', {
+          message: `Failed to restore prompt: ${error instanceof Error ? error.message : String(error)}`,
+        });
+      }
+    }),
 };
