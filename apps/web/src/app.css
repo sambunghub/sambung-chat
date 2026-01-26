@@ -6,6 +6,10 @@
 
 :root {
   --radius: 0.625rem;
+  /* Appearance settings (will be overridden by apply-settings utility) */
+  --font-size-base: 16px;
+  --font-family-base: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --sidebar-width: 280px;
   /* Default light theme colors (will be overridden by theme manager) */
   --background: 0 0% 100%;
   --foreground: 222 47% 11%;
@@ -120,5 +124,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-size: var(--font-size-base);
+    font-family: var(--font-family-base);
   }
 }
