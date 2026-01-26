@@ -64,7 +64,17 @@ function saveToStorage(settings: AppearanceSettings): void {
  * Appearance Settings Store
  *
  * Manages appearance settings using Svelte 5 runes with localStorage sync.
- * Settings are persisted locally and can be synced to the backend.
+ *
+ * STORAGE STRATEGY:
+ * 1. localStorage is the PRIMARY storage and source of truth
+ * 2. Backend sync is SECONDARY and happens asynchronously with debouncing
+ * 3. If backend is unavailable, settings remain functional via localStorage
+ * 4. All changes are immediately saved to localStorage before attempting backend sync
+ *
+ * FALLBACK BEHAVIOR:
+ * - Initialization: Tries backend first, falls back to localStorage if unavailable
+ * - Updates: Saves to localStorage immediately, syncs to backend in background
+ * - Errors: Backend sync failures don't affect localStorage persistence
  */
 class AppearanceStore {
 	// Reactive state using Svelte 5 runes
@@ -82,7 +92,13 @@ class AppearanceStore {
 	}
 
 	/**
-	 * Initialize settings - load from backend if available, otherwise use localStorage defaults
+	 * Initialize settings - load from backend if available, otherwise use localStorage
+	 *
+	 * FALLBACK BEHAVIOR:
+	 * 1. Attempts to load from backend first (for authenticated users)
+	 * 2. If backend fails (offline, unauthenticated, server error), falls back to localStorage
+	 * 3. If localStorage is empty, uses DEFAULT_SETTINGS
+	 * 4. Backend settings are synced to localStorage for future use
 	 */
 	async initialize(): Promise<void> {
 		if (!browser) return;
@@ -103,12 +119,15 @@ class AppearanceStore {
 					themeId: backendSettings.themeId,
 				};
 
-				// Sync to localStorage
+				// Sync to localStorage for offline fallback
 				saveToStorage(this.settings);
 			}
 		} catch (error) {
-			// Backend might not be available or user not authenticated
-			// Use localStorage values as fallback
+			// FALLBACK: Backend unavailable - use localStorage as source of truth
+			// This handles:
+			// - Network errors (offline, server down)
+			// - Authentication errors (not logged in)
+			// - API errors (endpoint not available)
 			console.info('Could not load settings from backend, using localStorage:', error);
 			this.settings = loadFromStorage() || { ...DEFAULT_SETTINGS };
 		} finally {
@@ -118,6 +137,11 @@ class AppearanceStore {
 
 	/**
 	 * Update a single setting
+	 *
+	 * FALLBACK BEHAVIOR:
+	 * 1. Immediately saves to localStorage (primary storage)
+	 * 2. Schedules backend sync in background (1 second debounce)
+	 * 3. If backend sync fails, settings remain safe in localStorage
 	 */
 	updateSetting<K extends keyof AppearanceSettings>(
 		key: K,
@@ -125,15 +149,20 @@ class AppearanceStore {
 	): void {
 		this.settings[key] = value;
 
-		// Save to localStorage immediately
+		// IMMEDIATE: Save to localStorage first (primary storage)
 		saveToStorage(this.settings);
 
-		// Schedule backend sync (debounced)
+		// BACKGROUND: Schedule backend sync (fails silently if unavailable)
 		this.scheduleSync();
 	}
 
 	/**
 	 * Update multiple settings at once
+	 *
+	 * FALLBACK BEHAVIOR:
+	 * 1. Immediately saves all updates to localStorage (primary storage)
+	 * 2. Schedules backend sync in background (1 second debounce)
+	 * 3. If backend sync fails, settings remain safe in localStorage
 	 */
 	updateSettings(updates: Partial<Omit<AppearanceSettings, 'id'>>): void {
 		this.settings = {
@@ -141,30 +170,34 @@ class AppearanceStore {
 			...updates,
 		};
 
-		// Save to localStorage immediately
+		// IMMEDIATE: Save to localStorage first (primary storage)
 		saveToStorage(this.settings);
 
-		// Schedule backend sync (debounced)
+		// BACKGROUND: Schedule backend sync (fails silently if unavailable)
 		this.scheduleSync();
 	}
 
 	/**
 	 * Reset all settings to defaults
+	 *
+	 * FALLBACK BEHAVIOR:
+	 * 1. Immediately resets localStorage to defaults (primary storage)
+	 * 2. Attempts to sync to backend (fails gracefully if unavailable)
+	 * 3. Settings remain functional even if backend reset fails
 	 */
 	async resetToDefaults(): Promise<void> {
 		this.settings = { ...DEFAULT_SETTINGS };
 
-		// Save to localStorage immediately
+		// IMMEDIATE: Save to localStorage first (primary storage)
 		saveToStorage(this.settings);
 
-		// Sync to backend immediately
-		await this.syncToBackend();
-
-		// Also call reset API to ensure backend matches
+		// BACKGROUND: Try to sync to backend (fails gracefully)
 		try {
+			await this.syncToBackend();
 			await orpc.appearance.resetSettings();
 		} catch (error) {
-			console.error('Failed to reset settings on backend:', error);
+			console.error('Failed to reset settings on backend (using localStorage):', error);
+			// Don't throw - localStorage already has the reset values
 		}
 	}
 
@@ -186,6 +219,12 @@ class AppearanceStore {
 
 	/**
 	 * Sync settings to backend immediately
+	 *
+	 * FALLBACK BEHAVIOR:
+	 * - This is a BEST-EFFORT sync to backend
+	 * - If sync fails, settings remain safe in localStorage
+	 * - Errors are logged but don't affect the user experience
+	 * - localStorage remains the source of truth
 	 */
 	async syncToBackend(): Promise<void> {
 		if (!browser || this.syncing) return;
@@ -203,8 +242,9 @@ class AppearanceStore {
 			});
 		} catch (error) {
 			this.error = 'Failed to sync settings to backend';
-			console.error('Failed to sync appearance settings:', error);
-			// Don't throw - localStorage is still the source of truth
+			console.error('Failed to sync appearance settings (settings remain in localStorage):', error);
+			// DON'T THROW: localStorage is still the source of truth
+			// The user's settings are safe and functional
 		} finally {
 			this.syncing = false;
 		}
