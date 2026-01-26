@@ -1,5 +1,6 @@
 import { db } from '@sambung-chat/db';
 import { prompts } from '@sambung-chat/db/schema/prompt';
+import { user } from '@sambung-chat/db/schema/auth';
 import { eq, and, desc, gte, lte, sql } from 'drizzle-orm';
 import z from 'zod';
 import { ORPCError } from '@orpc/server';
@@ -178,6 +179,62 @@ export const promptRouter = {
         .from(prompts)
         .where(and(...conditions))
         .orderBy(desc(prompts.updatedAt));
+
+      return results;
+    }),
+
+  // Get all public prompts from all users
+  getPublicTemplates: protectedProcedure
+    .input(
+      z.object({
+        limit: z.coerce.number().min(1).max(100).default(20),
+        offset: z.coerce.number().min(0).default(0),
+        category: z
+          .enum(['general', 'coding', 'writing', 'analysis', 'creative', 'business', 'custom'])
+          .optional(),
+        query: z.string().optional(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const { limit, offset, category, query } = input;
+
+      // Normalize query: trim whitespace to prevent searching for empty/whitespace-only strings
+      const normalizedQuery = query?.trim();
+
+      // Build conditions for public prompts only
+      const conditions = [eq(prompts.isPublic, true)];
+
+      // Filter by category
+      if (category !== undefined) {
+        conditions.push(eq(prompts.category, category));
+      }
+
+      // Build search conditions for name and content
+      if (normalizedQuery) {
+        conditions.push(
+          sql`(${prompts.name} ILIKE ${`%${normalizedQuery}%`} OR ${prompts.content} ILIKE ${`%${normalizedQuery}%`})`
+        );
+      }
+
+      // Fetch public prompts with user information
+      const results = await db
+        .select({
+          id: prompts.id,
+          name: prompts.name,
+          content: prompts.content,
+          variables: prompts.variables,
+          category: prompts.category,
+          isPublic: prompts.isPublic,
+          createdAt: prompts.createdAt,
+          updatedAt: prompts.updatedAt,
+          authorName: user.name,
+        })
+        .from(prompts)
+        .innerJoin(user, eq(prompts.userId, user.id))
+        .where(and(...conditions))
+        .orderBy(desc(prompts.createdAt))
+        .limit(limit)
+        .offset(offset);
 
       return results;
     }),
