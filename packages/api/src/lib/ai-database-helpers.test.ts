@@ -20,9 +20,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ORPCError } from '@orpc/server';
 
 // Mock the database and encryption modules BEFORE importing the functions under test
-// Use vi.hoisted to ensure mocks are available at module initialization time
-const mockSelect = vi.hoisted(() => vi.fn());
-const mockDecrypt = vi.hoisted(() => vi.fn());
+const mockSelect = vi.fn();
+const mockDecrypt = vi.fn();
 
 vi.mock('@sambung-chat/db', () => ({
   db: {
