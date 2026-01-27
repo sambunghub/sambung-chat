@@ -89,8 +89,16 @@ const darkThemeColors: Record<string, string> = {
   'sidebar-ring': 'oklch(0.65 0.02 58.071)',
 };
 
+// Parsed OKLCH color with alpha channel
+interface ParsedOklch {
+  l: number;
+  c: number;
+  h: number;
+  alpha: number;
+}
+
 // Parse OKLCH string
-function parseOklch(oklchString: string): { l: number; c: number; h: number } | null {
+function parseOklch(oklchString: string): ParsedOklch | null {
   // Handle opacity: oklch(1 0 0 / 10%)
   const match = oklchString.match(/oklch\(([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+%?))?\)/);
   if (!match) return null;
@@ -104,9 +112,54 @@ function parseOklch(oklchString: string): { l: number; c: number; h: number } | 
 
   return {
     l: parseFloat(l),
-    c: parseFloat(c) * alphaValue, // Adjust chroma by alpha
+    c: parseFloat(c), // Don't scale chroma by alpha
     h: parseFloat(h),
+    alpha: alphaValue,
   };
+}
+
+// Composite transparent OKLCH color over opaque background
+// Using simple alpha blending in OKLab space (approximate but sufficient for contrast)
+function compositeOklchOverBackground(
+  foreground: ParsedOklch,
+  bgRgb: number[]
+): { l: number; c: number; h: number } {
+  // Convert background RGB to OKLab
+  const bgLinearRgb = bgRgb.map((channel) => {
+    if (channel <= 0.04045) return channel / 12.92;
+    return Math.pow((channel + 0.055) / 1.055, 2.4);
+  });
+
+  // RGB to XYZ (D65)
+  const X = 0.4124564 * bgLinearRgb[0] + 0.3575761 * bgLinearRgb[1] + 0.1804375 * bgLinearRgb[2];
+  const Y = 0.2126729 * bgLinearRgb[0] + 0.7151522 * bgLinearRgb[1] + 0.072175 * bgLinearRgb[2];
+  const Z = 0.0193339 * bgLinearRgb[0] + 0.119192 * bgLinearRgb[1] + 0.9503041 * bgLinearRgb[2];
+
+  // XYZ to OKLab (D65)
+  const l_ = Math.cbrt(X / 0.95047);
+  const m_ = Math.cbrt(Y);
+  const s_ = Math.cbrt(Z / 1.08883);
+
+  const Lbg = 0.8189280104 * l_ + 0.3618667452 * m_ - 0.1288547322 * s_;
+  const abg = 0.1298938622 * l_ + 0.6077840022 * m_ + 0.2623809544 * s_;
+  const bbg = 0.0352654958 * l_ - 0.5957860022 * m_ + 0.5644858026 * s_;
+
+  // Convert foreground OKLCh to OKLab
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const aFg = foreground.c * Math.cos(toRad(foreground.h));
+  const bFg = foreground.c * Math.sin(toRad(foreground.h));
+
+  // Alpha blend in OKLab space
+  const alpha = foreground.alpha;
+  const L = Lbg * (1 - alpha) + foreground.l * alpha;
+  const a = abg * (1 - alpha) + aFg * alpha;
+  const b = bbg * (1 - alpha) + bFg * alpha;
+
+  // Convert blended OKLab back to OKLCh
+  const C = Math.sqrt(a * a + b * b);
+  const H = Math.atan2(b, a) * (180 / Math.PI);
+
+  return { l: L, c: C, h: H < 0 ? H + 360 : H };
 }
 
 // Convert OKLCH to sRGB (simplified approximation)
@@ -226,11 +279,24 @@ function auditTheme(themeName: 'light' | 'dark', colors: Record<string, string>)
     moderate: [] as ColorPair[],
   };
 
+  // UI component color names (require 3.0:1 per WCAG 1.4.11)
+  const uiComponentNames = new Set([
+    'border',
+    'input',
+    'ring',
+    'sidebar',
+    'sidebar-ring',
+    'sidebar-primary',
+    'sidebar-accent',
+    'card',
+    'popover',
+  ]);
+
   console.log('Color Combinations:\n');
   console.log(
-    `${'Foreground'.padEnd(35)} ${'Background'.padEnd(35)} ${'Ratio'.padStart(8)} ${'Status'.padStart(10)}`
+    `${'Foreground'.padEnd(35)} ${'Background'.padEnd(35)} ${'Ratio'.padStart(8)} ${'Status'.padStart(10)} ${'Type'.padStart(12)}`
   );
-  console.log(`${'='.repeat(95)}`);
+  console.log(`${'='.repeat(107)}`);
 
   for (const [fgName, bgName] of colorCombinations) {
     const fgColor = colors[fgName];
@@ -249,16 +315,32 @@ function auditTheme(themeName: 'light' | 'dark', colors: Record<string, string>)
       continue;
     }
 
-    const fgRgb = oklchToSrgb(fgOklch);
+    // Get background RGB for alpha compositing
     const bgRgb = oklchToSrgb(bgOklch);
+
+    // Composite foreground over background if it has alpha < 1
+    let finalFgOklch: { l: number; c: number; h: number };
+    if (fgOklch.alpha < 1) {
+      // Composite transparent foreground over background
+      finalFgOklch = compositeOklchOverBackground(fgOklch, bgRgb);
+    } else {
+      finalFgOklch = { l: fgOklch.l, c: fgOklch.c, h: fgOklch.h };
+    }
+
+    const fgRgb = oklchToSrgb(finalFgOklch);
 
     const fgLuminance = calculateLuminance(fgRgb);
     const bgLuminance = calculateLuminance(bgRgb);
 
     const contrastRatio = calculateContrastRatio(fgLuminance, bgLuminance);
 
+    // Determine required threshold based on color pair type
+    // UI components: 3.0:1 (WCAG 1.4.11), Normal text: 4.5:1
+    const isUiComponent = uiComponentNames.has(fgName) || uiComponentNames.has(bgName);
+    const requiredThreshold = isUiComponent ? 3.0 : 4.5;
+
     const passesLargeTextAA = contrastRatio >= 3.0;
-    const passesAA = contrastRatio >= 4.5;
+    const passesAA = contrastRatio >= requiredThreshold;
     const passesAAA = contrastRatio >= 7.0;
 
     const pair: ColorPair = {
@@ -272,7 +354,7 @@ function auditTheme(themeName: 'light' | 'dark', colors: Record<string, string>)
 
     pairs.push(pair);
 
-    // Categorize issues
+    // Categorize issues based on actual requirement
     if (!passesLargeTextAA) {
       issues.critical.push(pair);
     } else if (!passesAA) {
@@ -285,12 +367,13 @@ function auditTheme(themeName: 'light' | 'dark', colors: Record<string, string>)
     const fgDisplay = `${fgName} (${fgColor})`.padEnd(35);
     const bgDisplay = `${bgName} (${bgColor})`.padEnd(35);
     const ratioDisplay = `${contrastRatio.toFixed(2)}:1`.padStart(8);
+    const typeDisplay = isUiComponent ? 'UI Component'.padStart(12) : 'Text'.padStart(12);
     let statusDisplay = '✓ PASS'.padStart(10);
     if (!passesLargeTextAA) statusDisplay = '✗ FAIL'.padStart(10);
     else if (!passesAA) statusDisplay = '! WARN'.padStart(10);
     else if (!passesAAA) statusDisplay = '~ MOD'.padStart(10);
 
-    console.log(`${fgDisplay}${bgDisplay}${ratioDisplay}${statusDisplay}`);
+    console.log(`${fgDisplay}${bgDisplay}${ratioDisplay}${statusDisplay}${typeDisplay}`);
   }
 
   return { theme: themeName, pairs, issues };

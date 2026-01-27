@@ -110,7 +110,7 @@ test.describe('Accessibility E2E Tests', () => {
 
       if (!isFocused) {
         const tagName = await element.evaluate((el) => el.tagName);
-        console.warn(`Element ${tagName} cannot receive keyboard focus`);
+        throw new Error(`Interactive element <${tagName}> cannot receive keyboard focus`);
       }
     }
   });

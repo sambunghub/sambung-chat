@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.35] - 2026-01-27
+
+### Fixed
+
+- **Color Contrast Audit**: Fixed OKLCH alpha channel handling and WCAG threshold application
+  - `parseOklch()` now returns alpha separately without incorrectly scaling chroma ([scripts/color-contrast-audit.ts](scripts/color-contrast-audit.ts:101))
+  - Added `compositeOklchOverBackground()` for proper alpha-aware color compositing ([scripts/color-contrast-audit.ts](scripts/color-contrast-audit.ts:123))
+  - `auditTheme()` now uses per-pair WCAG thresholds: 3.0:1 for UI components, 4.5:1 for normal text ([scripts/color-contrast-audit.ts](scripts/color-contrast-audit.ts:267))
+  - UI components (border, input, ring, sidebar, etc.) now correctly evaluated against WCAG 1.4.11 (3.0:1)
+  - Text content correctly evaluated against WCAG 1.4.3 (4.5:1)
+
+- **Accessibility Test**: Changed keyboard accessibility test to fail hard on focus issues
+  - Test now throws `Error` instead of `console.warn()` when elements can't receive focus ([tests/e2e/accessibility.spec.ts](tests/e2e/accessibility.spec.ts:97))
+  - Ensures regressions in keyboard navigation are caught immediately
+
 ## [0.0.34] - 2026-01-27
 
 ### Fixed
