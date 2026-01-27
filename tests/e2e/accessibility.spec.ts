@@ -6,11 +6,11 @@
  * Usage: Run with `bun run test:e2e tests/e2e/accessibility.spec.ts`
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 // Helper function to run accessibility audit
-async function runAxeAudit(page, context = 'page') {
+async function runAxeAudit(page: Page, context: string = 'page') {
   const accessibilityScanResults = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
     .analyze();
@@ -58,6 +58,7 @@ test.describe('Accessibility E2E Tests', () => {
 
     // Check that focus is visible
     const focusedElement = await page.evaluate(() => document.activeElement?.tagName);
+    expect(focusedElement).toBeTruthy();
     expect(['BUTTON', 'A', 'INPUT']).toContain(focusedElement);
   });
 
@@ -244,7 +245,9 @@ test.describe('Accessibility E2E Tests', () => {
 
         // Check that focus is still within modal
         const activeElement = await page.evaluate(() => document.activeElement);
-        const isInModal = await modal.evaluate((el: any) => el.contains(document.activeElement));
+        const isInModal = await modal.evaluate((el: HTMLElement) =>
+          el.contains(document.activeElement)
+        );
 
         expect(isInModal).toBe(true);
 

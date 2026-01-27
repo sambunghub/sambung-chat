@@ -214,16 +214,17 @@ describe('CSRF Protection Integration', () => {
       expect(isValid).toBe(true);
     });
 
-    it('should fail validation for token from different secret', () => {
+    it('should validate token successfully with consistent secret', () => {
       // Generate token with current secret
       const token1 = generateCsrfToken();
 
       // Token should be valid with current secret
       expect(validateCsrfToken(token1)).toBe(true);
 
-      // Note: Testing with different environment variables requires
-      // different test isolation approach. The crypto signature
-      // validation ensures tokens are only valid with the same secret.
+      // Note: The crypto signature validation ensures tokens are only
+      // valid with the same secret that was used to generate them.
+      // Testing with different environment variables would require
+      // separate test processes.
     });
 
     it('should handle rapid token generation requests', () => {

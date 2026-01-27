@@ -12,6 +12,23 @@ import { execSync } from 'child_process';
 import { writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
+/**
+ * Axe-core violation result structure
+ */
+interface AxeViolation {
+  id: string;
+  impact: 'critical' | 'serious' | 'moderate' | 'minor' | null;
+  tags: string[];
+  description: string;
+  help: string;
+  helpUrl: string;
+  nodes: Array<{
+    html: string;
+    target: string[];
+    failureSummary: string;
+  }>;
+}
+
 // ANSI color codes for terminal output
 const colors = {
   reset: '\x1b[0m',
@@ -34,7 +51,7 @@ interface AuditResult {
 interface PageAuditResult {
   page: string;
   url: string;
-  violations: any[];
+  violations: AxeViolation[];
   passes: number;
   incomplete: number;
 }
@@ -76,14 +93,17 @@ function runCommand(command: string, description: string): boolean {
 
     log(`   ✓ ${description} completed`, colors.green);
     return true;
-  } catch (error: any) {
+  } catch (error) {
     log(`   ✗ ${description} failed`, colors.red);
 
-    if (error.stdout) {
-      log(`   STDOUT: ${error.stdout}`, colors.yellow);
-    }
-    if (error.stderr) {
-      log(`   STDERR: ${error.stderr}`, colors.yellow);
+    // Type guard for exec sync error
+    if (error && typeof error === 'object') {
+      if ('stdout' in error && error.stdout) {
+        log(`   STDOUT: ${String(error.stdout)}`, colors.yellow);
+      }
+      if ('stderr' in error && error.stderr) {
+        log(`   STDERR: ${String(error.stderr)}`, colors.yellow);
+      }
     }
 
     return false;
@@ -135,7 +155,7 @@ function generateLighthouseReport() {
   );
   log('   If this fails, start the server with: bun run dev:web', colors.yellow);
 
-  const passed = runCommand('bun run test:lighthouse || true', 'Lighthouse accessibility audit');
+  const passed = runCommand('bun run test:lighthouse', 'Lighthouse accessibility audit');
 
   auditResults.push({
     category: 'Lighthouse',
