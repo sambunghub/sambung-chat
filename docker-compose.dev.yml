@@ -94,11 +94,16 @@ services:
       # No AI provider environment variables are needed here
       # Each provider requires an API key which is stored securely in the database
     volumes:
-      # Mount entire project (includes node_modules with symlinks)
-      - ./:/app
-      # Cache bun for faster builds (optional, comment out on Windows)
-      - ~/.bun:/root/.bun
-      - ~/.cache:/root/.cache
+      # Mount source code for hot reload (exclude node_modules)
+      - ./apps/server:/app/apps/server
+      - ./packages:/app/packages
+      # Preserve container's node_modules
+      - /app/node_modules
+      - /app/apps/server/node_modules
+      - /app/packages/node_modules
+      # Cache bun for faster builds
+      - sambungchat_bun_cache:/root/.bun
+      - sambungchat_cache:/root/.cache
     depends_on:
       postgres:
         condition: service_healthy
@@ -157,18 +162,18 @@ services:
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
       KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
     volumes:
-      # Mount entire apps/web folder for configs and src
+      # Mount source code for hot reload (exclude node_modules)
       - ./apps/web:/app/apps/web
-      # Prevent container's node_modules from overriding host's
-      - /app/apps/web/node_modules
-      # Mount packages (shared dependencies)
       - ./packages:/app/packages
-      - /app/packages/node_modules
-      # Mount root package.json for workspace
       - ./package.json:/app/package.json
+      - ./bun.lockb:/app/bun.lockb
+      # Preserve container's node_modules
+      - /app/node_modules
+      - /app/apps/web/node_modules
+      - /app/packages/node_modules
       # Cache bun for faster builds
-      - ~/.bun:/root/.bun
-      - ~/.cache:/root/.cache
+      - sambungchat_bun_cache:/root/.bun
+      - sambungchat_cache:/root/.cache
     depends_on:
       - server
     networks:
@@ -176,12 +181,16 @@ services:
     # Keep container running for development
     tty: true
     stdin_open: true
-    # Install deps in container, then run vite
-    command: ["sh", "-c", "cd /app/apps/web && bun install && bun run dev -- --host 0.0.0.0 --port 5174"]
+    # Dependencies are pre-installed in Dockerfile.dev, just run dev server
+    command: ["bun", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5174"]
 
 # =============================================================================
 # Volumes
 # =============================================================================
 volumes:
   postgres_data:
+    driver: local
+  sambungchat_bun_cache:
+    driver: local
+  sambungchat_cache:
     driver: local

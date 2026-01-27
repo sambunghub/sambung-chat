@@ -1,10 +1,12 @@
 # =============================================================================
 # Development Dockerfile for SambungChat
 # =============================================================================
-# Simplified Dockerfile for development with hot reload
+# Optimized Dockerfile for development with hot reload
 #
-# Entire project is mounted as volume, so we only need base image with Bun
-# and proper runtime setup.
+# Strategy:
+# - Pre-install dependencies in the image for faster container startup
+# - Mount source code via volumes for hot reload
+# - Use named volumes for bun cache to speed up rebuilds
 #
 # =============================================================================
 
@@ -17,8 +19,17 @@ WORKDIR /app
 # Set development environment
 ENV NODE_ENV=development
 
-# Copy package files for context (not strictly needed but good for caching)
+# Copy package files and install dependencies
+# This ensures dependencies are pre-installed in the image
 COPY package.json bun.lock* ./
+COPY packages packages/
+COPY apps apps/
+
+# Install all dependencies (including dev dependencies for hot reload)
+RUN bun install --frozen-lockfile
 
 # Expose ports
 EXPOSE 3000 5173
+
+# Set default working directory
+WORKDIR /app

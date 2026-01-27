@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.36] - 2026-01-27
+
+### Changed
+
+- **Docker Development Setup**: Optimized Docker development environment for faster hot reload and startup
+  - Fixed volume mounting to avoid `node_modules` conflicts between host and container ([docker-compose.dev.yml](docker-compose.dev.yml:97-106))
+  - Pre-install dependencies in `Dockerfile.dev` to eliminate `bun install` on container start ([Dockerfile.dev](Dockerfile.dev:22-29))
+  - Added named volumes for bun cache to speed up rebuilds ([docker-compose.dev.yml](docker-compose.dev.yml:193-196))
+  - Removed redundant `bun install` from web container command ([docker-compose.dev.yml](docker-compose.dev.yml:185))
+
+- **Docker Production Setup**: Added proper health check endpoint for container orchestration
+  - New `/health` endpoint with database connectivity check ([apps/server/src/index.ts](apps/server/src/index.ts:459-485))
+  - Returns service status, uptime, environment, and database health
+  - Returns 503 when database is unavailable for proper container restart
+
+### Added
+
+- **Database Management Scripts**: Docker database backup and restore utilities
+  - `docker:db:backup` - Create timestamped database backups ([package.json](package.json:79))
+  - `docker:db:restore` - Restore from backup files ([package.json](package.json:80))
+  - `docker:db:reset` - Drop and recreate database schema ([package.json](package.json:81))
+
 ## [0.0.35] - 2026-01-27
 
 ### Fixed

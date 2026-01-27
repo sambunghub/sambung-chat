@@ -14,6 +14,8 @@ export default [
       '**/*.d.ts',
       '.turbo/**',
       '.auto-claude/**',
+      '.worktrees/',
+      '.worktrees/**',
       'examples/**',
       '*_mermaid_*.js',
       '*_diagrams.js',

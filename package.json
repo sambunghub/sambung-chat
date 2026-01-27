@@ -75,7 +75,10 @@
     "docker:dev:down": "docker-compose -f docker-compose.dev.yml down",
     "docker:prod": "docker-compose -f docker-compose.prod.yml up -d --build",
     "docker:prod:logs": "docker-compose -f docker-compose.prod.yml logs -f",
-    "docker:prod:down": "docker-compose -f docker-compose.prod.yml down"
+    "docker:prod:down": "docker-compose -f docker-compose.prod.yml down",
+    "docker:db:backup": "docker exec sambungchat-postgres pg_dump -U ${POSTGRES_USER:-postgres} ${POSTGRES_DB:-sambungchat_dev} > db-backup-$(date +%Y%m%d-%H%M%S).sql",
+    "docker:db:restore": "cat db-backup-*.sql | docker exec -i sambungchat-postgres psql -U ${POSTGRES_USER:-postgres} ${POSTGRES_DB:-sambungchat_dev}",
+    "docker:db:reset": "docker exec sambungchat-postgres psql -U ${POSTGRES_USER:-postgres} ${POSTGRES_DB:-sambungchat_dev} -c \"DROP SCHEMA public CASCADE; CREATE SCHEMA public;\" && bun run db:push"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.15",
