@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import * as Dialog from '$lib/components/ui/dialog/index.js';
   import DialogContent from '$lib/components/ui/dialog/dialog-content.svelte';
   import DialogTitle from '$lib/components/ui/dialog/dialog-title.svelte';
@@ -49,52 +50,61 @@
   ];
 
   let { open = $bindable(false) }: { open?: boolean } = $props();
+
+  // Track if component is mounted to avoid hydration mismatch
+  let isMounted = $state(false);
+
+  onMount(() => {
+    isMounted = true;
+  });
 </script>
 
-<Dialog.Root bind:open>
-  <DialogContent class="max-h-[80vh] overflow-y-auto sm:max-w-2xl">
-    <DialogTitle class="flex items-center gap-2">
-      <HelpCircleIcon class="size-5" />
-      Keyboard Shortcuts
-    </DialogTitle>
-    <DialogDescription>
-      Navigate and use SambungChat more efficiently with these keyboard shortcuts.
-    </DialogDescription>
+{#if isMounted}
+  <Dialog.Root bind:open>
+    <DialogContent class="max-h-[80vh] overflow-y-auto sm:max-w-2xl">
+      <DialogTitle class="flex items-center gap-2">
+        <HelpCircleIcon class="size-5" />
+        Keyboard Shortcuts
+      </DialogTitle>
+      <DialogDescription>
+        Navigate and use SambungChat more efficiently with these keyboard shortcuts.
+      </DialogDescription>
 
-    <div class="space-y-6 py-4">
-      {#each shortcutGroups as group}
-        <div>
-          <h3 class="text-foreground mb-3 font-semibold">{group.title}</h3>
-          <div class="space-y-2">
-            {#each group.shortcuts as shortcut}
-              <div class="flex items-center justify-between gap-4">
-                <span class="text-muted-foreground text-sm">{shortcut.description}</span>
-                <div class="flex gap-1">
-                  {#each shortcut.keys as key}
-                    <kbd
-                      class={cn(
-                        'bg-muted text-muted-foreground border-border inline-flex min-h-[2rem] min-w-[2.5rem] items-center justify-center rounded border px-2 py-1 text-xs font-medium shadow-sm',
-                        shortcut.keys.length > 1 && 'first:rounded-r-none last:rounded-l-none'
-                      )}
-                    >
-                      {key}
-                    </kbd>
-                  {/each}
+      <div class="space-y-6 py-4">
+        {#each shortcutGroups as group}
+          <div>
+            <h3 class="text-foreground mb-3 font-semibold">{group.title}</h3>
+            <div class="space-y-2">
+              {#each group.shortcuts as shortcut}
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-muted-foreground text-sm">{shortcut.description}</span>
+                  <div class="flex gap-1">
+                    {#each shortcut.keys as key}
+                      <kbd
+                        class={cn(
+                          'bg-muted text-muted-foreground border-border inline-flex min-h-[2rem] min-w-[2.5rem] items-center justify-center rounded border px-2 py-1 text-xs font-medium shadow-sm',
+                          shortcut.keys.length > 1 && 'first:rounded-r-none last:rounded-l-none'
+                        )}
+                      >
+                        {key}
+                      </kbd>
+                    {/each}
+                  </div>
                 </div>
-              </div>
-            {/each}
+              {/each}
+            </div>
           </div>
-        </div>
-      {/each}
-    </div>
+        {/each}
+      </div>
 
-    <div class="bg-muted/50 border-border mt-4 rounded border p-4">
-      <p class="text-muted-foreground text-sm">
-        <strong class="text-foreground">Tip:</strong> Most interactive elements are keyboard
-        accessible. Press
-        <kbd class="bg-background mx-1 rounded border px-1.5 py-0.5 text-xs">Tab</kbd> to move between
-        elements and look for visible focus indicators.
-      </p>
-    </div>
-  </DialogContent>
-</Dialog.Root>
+      <div class="bg-muted/50 border-border mt-4 rounded border p-4">
+        <p class="text-muted-foreground text-sm">
+          <strong class="text-foreground">Tip:</strong> Most interactive elements are keyboard
+          accessible. Press
+          <kbd class="bg-background mx-1 rounded border px-1.5 py-0.5 text-xs">Tab</kbd> to move between
+          elements and look for visible focus indicators.
+        </p>
+      </div>
+    </DialogContent>
+  </Dialog.Root>
+{/if}
