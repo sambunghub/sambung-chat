@@ -1,4 +1,6 @@
+export * from './appearance-settings';
 export * from './auth';
+export * from './theme';
 export * from './todo';
 export * from './chat';
 export * from './prompt';

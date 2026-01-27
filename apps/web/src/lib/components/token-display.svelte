@@ -17,12 +17,7 @@
     promptTokens?: number;
   }
 
-  let {
-    currentTokens = 0,
-    isStreaming = false,
-    exactTokens,
-    promptTokens,
-  }: Props = $props();
+  let { currentTokens = 0, isStreaming = false, exactTokens, promptTokens }: Props = $props();
 
   // Display tokens: use exact if available and not streaming, otherwise use current
   let displayTokens = $derived(
@@ -42,7 +37,7 @@
 
 {#if displayTokens > 0 || isStreaming}
   <div
-    class="text-muted-foreground inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-xs"
+    class="text-muted-foreground bg-muted inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs"
     title="Tokens used"
   >
     <svg
@@ -65,10 +60,7 @@
       tokens
     </span>
     {#if isStreaming}
-      <span
-        class="animate-pulse"
-        aria-label="Streaming"
-      >⋯</span>
+      <span class="animate-pulse" aria-label="Streaming">⋯</span>
     {/if}
   </div>
 {/if}

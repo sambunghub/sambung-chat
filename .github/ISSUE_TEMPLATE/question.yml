@@ -1,6 +1,6 @@
 name: ❓ Question
 description: Needs clarification
-labels: ["question", "needs-triage"]
+labels: ['question', 'needs-triage']
 body:
   - type: markdown
     attributes:
@@ -34,7 +34,7 @@ body:
     attributes:
       label: Version
       description: Which version are you using?
-      placeholder: "e.g., 0.0.17"
+      placeholder: 'e.g., 0.0.17'
 
   - type: textarea
     id: question

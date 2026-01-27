@@ -1,6 +1,6 @@
 name: ✨ Feature Request
 description: Suggest a new feature
-labels: ["feature", "needs-triage"]
+labels: ['feature', 'needs-triage']
 body:
   - type: checkboxes
     id: checklist

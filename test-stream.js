@@ -8,8 +8,8 @@ const options = {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'Cookie': process.env.SESSION_COOKIE || ''
-  }
+    Cookie: process.env.SESSION_COOKIE || '',
+  },
 };
 
 const testData = {
@@ -19,11 +19,11 @@ const testData = {
       parts: [
         {
           type: 'text',
-          text: 'Say "Hello, this is a streaming test!" and count to 5.'
-        }
-      ]
-    }
-  ]
+          text: 'Say "Hello, this is a streaming test!" and count to 5.',
+        },
+      ],
+    },
+  ],
 };
 
 const req = http.request(options, (res) => {

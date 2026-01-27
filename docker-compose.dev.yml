@@ -107,7 +107,7 @@ services:
     # Keep container running for development
     tty: true
     stdin_open: true
-    command: ["sh", "-c", "cd /app/apps/server && bun run --hot src/index.ts"]
+    command: ['sh', '-c', 'cd /app/apps/server && bun run --hot src/index.ts']
 
   # ==========================================================================
   # Web Frontend (with Hot Reload)
@@ -177,7 +177,8 @@ services:
     tty: true
     stdin_open: true
     # Install deps in container, then run vite
-    command: ["sh", "-c", "cd /app/apps/web && bun install && bun run dev -- --host 0.0.0.0 --port 5174"]
+    command:
+      ['sh', '-c', 'cd /app/apps/web && bun install && bun run dev -- --host 0.0.0.0 --port 5174']
 
 # =============================================================================
 # Volumes

@@ -120,9 +120,7 @@ export type AvailableModel = BaseProviderModel;
  * // Returns: AvailableModel[] for each provider
  * ```
  */
-export function transformToAvailableModel<T extends BaseProviderModel>(
-  model: T
-): AvailableModel {
+export function transformToAvailableModel<T extends BaseProviderModel>(model: T): AvailableModel {
   return {
     id: model.id,
     name: model.name,

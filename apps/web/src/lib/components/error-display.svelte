@@ -105,47 +105,35 @@
     </div>
   {/if}
 
-  <div class="flex-1 min-w-0">
-    <div class="text-sm font-medium flex items-center gap-2">
+  <div class="min-w-0 flex-1">
+    <div class="flex items-center gap-2 text-sm font-medium">
       <span>{errorTitle()}</span>
       {#if code}
-        <span class="text-xs opacity-70 font-mono">({code})</span>
+        <span class="font-mono text-xs opacity-70">({code})</span>
       {/if}
     </div>
 
-    <p class="text-sm mt-1 opacity-90">
+    <p class="mt-1 text-sm opacity-90">
       {message}
     </p>
 
     {#if errorHint()}
-      <p class="text-xs mt-2 opacity-75">
+      <p class="mt-2 text-xs opacity-75">
         💡 {errorHint()}
       </p>
     {/if}
 
     {#if onRetry || onSettings}
-      <div class="flex gap-2 mt-3">
+      <div class="mt-3 flex gap-2">
         {#if onRetry}
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onclick={onRetry}
-            class="gap-1.5"
-          >
+          <Button type="button" size="sm" variant="outline" onclick={onRetry} class="gap-1.5">
             <RefreshCwIcon class="size-3.5" />
             <span>Retry</span>
           </Button>
         {/if}
 
         {#if onSettings}
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            onclick={onSettings}
-            class="gap-1.5"
-          >
+          <Button type="button" size="sm" variant="ghost" onclick={onSettings} class="gap-1.5">
             <SettingsIcon class="size-3.5" />
             <span>Settings</span>
           </Button>
@@ -158,7 +146,7 @@
     <button
       type="button"
       onclick={onDismiss}
-      class="shrink-0 opacity-70 hover:opacity-100 transition-opacity"
+      class="shrink-0 opacity-70 transition-opacity hover:opacity-100"
       aria-label="Dismiss error"
     >
       <XIcon class="size-4" />

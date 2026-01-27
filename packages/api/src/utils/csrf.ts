@@ -68,7 +68,10 @@ export function generateCsrfToken(): string {
  * }
  * ```
  */
-export function validateCsrfToken(tokenString: string, maxAge: number = DEFAULT_TOKEN_EXPIRATION): boolean {
+export function validateCsrfToken(
+  tokenString: string,
+  maxAge: number = DEFAULT_TOKEN_EXPIRATION
+): boolean {
   const secret = env.BETTER_AUTH_SECRET;
 
   if (!secret || secret.length < 32) {
@@ -184,7 +187,10 @@ export function getCsrfTokenTimestamp(tokenString: string): Date | null {
  * }
  * ```
  */
-export function isCsrfTokenExpired(tokenString: string, maxAge: number = DEFAULT_TOKEN_EXPIRATION): boolean {
+export function isCsrfTokenExpired(
+  tokenString: string,
+  maxAge: number = DEFAULT_TOKEN_EXPIRATION
+): boolean {
   const timestamp = getCsrfTokenTimestamp(tokenString);
   if (!timestamp) {
     return true; // Invalid format, consider as expired

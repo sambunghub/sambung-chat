@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { generateCsrfToken, validateCsrfToken, getCsrfTokenTimestamp, isCsrfTokenExpired } from '../csrf';
+import {
+  generateCsrfToken,
+  validateCsrfToken,
+  getCsrfTokenTimestamp,
+  isCsrfTokenExpired,
+} from '../csrf';
 
 describe('CSRF Utilities', () => {
   beforeAll(() => {
@@ -68,7 +73,7 @@ describe('CSRF Utilities', () => {
     it('should reject expired token', () => {
       const token = generateCsrfToken();
       const parts = token.split('|');
-      const oldTimestamp = Date.now() - (2 * 60 * 60 * 1000); // 2 hours ago
+      const oldTimestamp = Date.now() - 2 * 60 * 60 * 1000; // 2 hours ago
       parts[1] = oldTimestamp.toString();
       const expiredToken = parts.join('|');
 
@@ -115,7 +120,7 @@ describe('CSRF Utilities', () => {
     it('should return true for expired token', () => {
       const token = generateCsrfToken();
       const parts = token.split('|');
-      const oldTimestamp = Date.now() - (2 * 60 * 60 * 1000); // 2 hours ago
+      const oldTimestamp = Date.now() - 2 * 60 * 60 * 1000; // 2 hours ago
       parts[1] = oldTimestamp.toString();
       const expiredToken = parts.join('|');
 
