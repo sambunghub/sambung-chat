@@ -23,6 +23,9 @@
       sidebar.toggle();
     }
   }
+
+  // Get open state from sidebar
+  const isOpen = $derived(sidebar?.open ?? false);
 </script>
 
 <Button
@@ -33,6 +36,7 @@
   class={cn('size-7', className)}
   type="button"
   onclick={handleToggle}
+  aria-expanded={isOpen}
   {...restProps}
 >
   <PanelLeftIcon />

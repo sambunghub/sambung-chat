@@ -60,9 +60,10 @@
       placeholder="e.g., John Doe"
       required
       disabled={submitting}
+      aria-describedby="display-name-description"
       class="disabled:cursor-not-allowed disabled:opacity-50"
     />
-    <p class="text-muted-foreground text-xs">
+    <p id="display-name-description" class="text-muted-foreground text-xs">
       Your display name will be shown across the application
     </p>
   </div>
@@ -75,9 +76,12 @@
       placeholder="Tell us a little about yourself..."
       rows={4}
       disabled={submitting}
+      aria-describedby="bio-description"
       class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 flex min-h-[80px] w-full rounded-md border px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
     ></textarea>
-    <p class="text-muted-foreground text-xs">A brief description about you (optional)</p>
+    <p id="bio-description" class="text-muted-foreground text-xs">
+      A brief description about you (optional)
+    </p>
   </div>
 </div>
 

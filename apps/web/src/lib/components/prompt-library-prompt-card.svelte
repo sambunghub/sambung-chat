@@ -101,43 +101,44 @@
         </div>
       </div>
       {#if onedit || ondelete || oncopy || onview}
-        <DropdownMenu.DropdownMenu>
-          <DropdownMenu.DropdownMenuTrigger
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger
             class="hover:bg-accent shrink-0 rounded p-1"
             onclick={(e) => e.stopPropagation()}
+            aria-label="Options for {prompt.name}"
           >
             <EditIcon class="size-4" />
-          </DropdownMenu.DropdownMenuTrigger>
-          <DropdownMenu.DropdownMenuContent>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content>
             {#if onview}
-              <DropdownMenu.DropdownMenuItem onclick={() => onview?.(prompt.id)}>
+              <DropdownMenu.Item onclick={() => onview?.(prompt.id)}>
                 <EyeIcon class="mr-2 size-4" />
                 View
-              </DropdownMenu.DropdownMenuItem>
+              </DropdownMenu.Item>
             {/if}
             {#if onedit}
-              <DropdownMenu.DropdownMenuItem onclick={() => onedit?.(prompt.id)}>
+              <DropdownMenu.Item onclick={() => onedit?.(prompt.id)}>
                 <EditIcon class="mr-2 size-4" />
                 Edit
-              </DropdownMenu.DropdownMenuItem>
+              </DropdownMenu.Item>
             {/if}
             {#if oncopy}
-              <DropdownMenu.DropdownMenuItem onclick={() => oncopy?.(prompt.content)}>
+              <DropdownMenu.Item onclick={() => oncopy?.(prompt.content)}>
                 <CopyIcon class="mr-2 size-4" />
                 Copy to Clipboard
-              </DropdownMenu.DropdownMenuItem>
+              </DropdownMenu.Item>
             {/if}
             {#if ondelete}
-              <DropdownMenu.DropdownMenuItem
+              <DropdownMenu.Item
                 onclick={() => ondelete?.(prompt.id)}
                 class="text-destructive focus:text-destructive"
               >
                 <Trash2Icon class="mr-2 size-4" />
                 Delete
-              </DropdownMenu.DropdownMenuItem>
+              </DropdownMenu.Item>
             {/if}
-          </DropdownMenu.DropdownMenuContent>
-        </DropdownMenu.DropdownMenu>
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
       {/if}
     </div>
     <CardDescription class="flex items-center gap-2 text-xs">

@@ -243,6 +243,7 @@
                 'group/actions focus:ring-ring data-[state=open]:bg-accent absolute right-1 size-7 rounded-sm p-0 opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100',
             })}
             onclick={(e) => e.stopPropagation()}
+            aria-label="Options for {chat.title}"
           >
             <MoreVerticalIcon class="size-4" />
           </button>

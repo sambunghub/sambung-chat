@@ -4,6 +4,7 @@
   import { ModeWatcher } from 'mode-watcher';
   import { Toaster } from 'svelte-sonner';
   import { setupMermaidThemeObserver } from '$lib/markdown-renderer';
+  import SkipLinks from '$lib/components/skip-links.svelte';
   import '../app.css';
 
   const { children } = $props();
@@ -14,6 +15,8 @@
     setupMermaidThemeObserver();
   });
 </script>
+
+<SkipLinks />
 
 {@render children()}
 

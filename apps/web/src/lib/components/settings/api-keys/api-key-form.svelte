@@ -73,6 +73,7 @@
       id={isEdit ? 'edit-provider' : 'provider'}
       bind:value={formData.provider}
       disabled={submitting}
+      aria-describedby={isEdit ? 'edit-provider-description' : 'provider-description'}
       class="border-input bg-background focus:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
     >
       {#each providers as provider}
@@ -89,9 +90,15 @@
       placeholder="e.g., My OpenAI Key"
       required
       disabled={submitting}
+      aria-describedby={isEdit ? 'edit-name-description' : 'name-description'}
       class="disabled:cursor-not-allowed disabled:opacity-50"
     />
-    <p class="text-muted-foreground text-xs">A friendly name to identify this key</p>
+    <p
+      id={isEdit ? 'edit-name-description' : 'name-description'}
+      class="text-muted-foreground text-xs"
+    >
+      A friendly name to identify this key
+    </p>
   </div>
 
   <div class="space-y-2">
@@ -104,9 +111,13 @@
       autocomplete="off"
       required={!isEdit}
       disabled={submitting}
+      aria-describedby={isEdit ? 'edit-key-description' : 'key-description'}
       class="disabled:cursor-not-allowed disabled:opacity-50"
     />
-    <p class="text-muted-foreground text-xs">
+    <p
+      id={isEdit ? 'edit-key-description' : 'key-description'}
+      class="text-muted-foreground text-xs"
+    >
       {isEdit
         ? 'Leave empty to keep the existing key, or enter a new key to replace it'
         : 'Your API key will be encrypted before storage'}

@@ -112,9 +112,15 @@
       placeholder="e.g., Code Review Assistant"
       required
       disabled={submitting}
+      aria-describedby={isEdit ? 'edit-name-description' : 'name-description'}
       class="disabled:cursor-not-allowed disabled:opacity-50"
     />
-    <p class="text-muted-foreground text-xs">A friendly name to identify this prompt</p>
+    <p
+      id={isEdit ? 'edit-name-description' : 'name-description'}
+      class="text-muted-foreground text-xs"
+    >
+      A friendly name to identify this prompt
+    </p>
   </div>
 
   <div class="space-y-2">
@@ -126,9 +132,13 @@
       required
       disabled={submitting}
       rows={8}
+      aria-describedby={isEdit ? 'edit-content-description' : 'content-description'}
       class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[80px] w-full resize-y rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
     ></textarea>
-    <p class="text-muted-foreground text-xs">
+    <p
+      id={isEdit ? 'edit-content-description' : 'content-description'}
+      class="text-muted-foreground text-xs"
+    >
       The main prompt text. Use <code class="bg-muted rounded px-1 py-0.5">{'{variable}'}</code> for placeholders
     </p>
   </div>
@@ -156,6 +166,7 @@
         placeholder="e.g., company_name"
         disabled={submitting}
         onkeydown={handleVariableKeydown}
+        aria-describedby={isEdit ? 'edit-variables-description' : 'variables-description'}
         class="flex-1 disabled:cursor-not-allowed disabled:opacity-50"
       />
       <Button
@@ -169,7 +180,10 @@
         <PlusIcon class="size-4" />
       </Button>
     </div>
-    <p class="text-muted-foreground text-xs">
+    <p
+      id={isEdit ? 'edit-variables-description' : 'variables-description'}
+      class="text-muted-foreground text-xs"
+    >
       Add variables used in your prompt template. Press Enter or click + to add.
     </p>
 

@@ -143,6 +143,7 @@
   <header class="bg-background sticky top-0 z-10 flex shrink-0 items-center gap-2 border-b p-4">
     <SecondarySidebarTrigger class="-ms-1" />
     <Separator orientation="vertical" class="me-2 data-[orientation=vertical]:h-4" />
+    <h1 class="sr-only">Prompts Library</h1>
     <Breadcrumb.Root>
       <Breadcrumb.List>
         <Breadcrumb.Item>

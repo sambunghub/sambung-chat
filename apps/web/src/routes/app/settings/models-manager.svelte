@@ -12,6 +12,7 @@
     CardTitle,
   } from '$lib/components/ui/card/index.js';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
+  import * as Dialog from '$lib/components/ui/dialog/index.js';
   import PlusIcon from '@lucide/svelte/icons/plus';
   import Settings2Icon from '@lucide/svelte/icons/settings-2';
   import Trash2Icon from '@lucide/svelte/icons/trash-2';
@@ -298,33 +299,34 @@
                   </div>
                 {/if}
               </div>
-              <DropdownMenu.DropdownMenu>
-                <DropdownMenu.DropdownMenuTrigger
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger
                   class="hover:bg-accent rounded p-1"
                   onclick={(e) => e.stopPropagation()}
+                  aria-label="Options for {model.name}"
                 >
                   <EditIcon class="size-4" />
-                </DropdownMenu.DropdownMenuTrigger>
-                <DropdownMenu.DropdownMenuContent>
-                  <DropdownMenu.DropdownMenuItem onclick={() => openEditDialog(model)}>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Content>
+                  <DropdownMenu.Item onclick={() => openEditDialog(model)}>
                     <EditIcon class="mr-2 size-4" />
                     Edit
-                  </DropdownMenu.DropdownMenuItem>
+                  </DropdownMenu.Item>
                   {#if !model.isActive}
-                    <DropdownMenu.DropdownMenuItem onclick={() => handleSetActive(model.id)}>
+                    <DropdownMenu.Item onclick={() => handleSetActive(model.id)}>
                       <ZapIcon class="mr-2 size-4" />
                       Set as Active
-                    </DropdownMenu.DropdownMenuItem>
+                    </DropdownMenu.Item>
                   {/if}
-                  <DropdownMenu.DropdownMenuItem
+                  <DropdownMenu.Item
                     onclick={() => handleDelete(model.id)}
                     class="text-destructive focus:text-destructive"
                   >
                     <Trash2Icon class="mr-2 size-4" />
                     Delete
-                  </DropdownMenu.DropdownMenuItem>
-                </DropdownMenu.DropdownMenuContent>
-              </DropdownMenu.DropdownMenu>
+                  </DropdownMenu.Item>
+                </DropdownMenu.Content>
+              </DropdownMenu.Root>
             </div>
             <CardDescription class="text-xs">
               {getProviderLabel(model.provider)} · {model.modelId}
@@ -356,333 +358,393 @@
 </div>
 
 <!-- Add Model Dialog -->
-{#if showAddDialog}
-  <div
-    class="bg-background/80 fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-    role="dialog"
-  >
-    <div
-      class="bg-background max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-lg border shadow-lg"
-    >
-      <div class="border-b p-6">
-        <h2 class="text-foreground text-xl font-semibold">Add New Model</h2>
-      </div>
-      <div class="max-h-[calc(90vh-140px)] space-y-4 overflow-y-auto p-6">
-        <div class="grid gap-4 md:grid-cols-2">
-          <div class="space-y-2">
-            <Label for="provider">
-              Provider <span class="text-destructive">*</span>
-            </Label>
-            <select
-              id="provider"
-              bind:value={formData.provider}
-              class="border-input bg-background focus:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm focus:ring-1 focus:outline-none"
-            >
-              {#each providers as provider}
-                <option value={provider.value}>{provider.label}</option>
-              {/each}
-            </select>
-          </div>
-
-          <div class="space-y-2">
-            <Label for="modelId">
-              Model ID <span class="text-destructive">*</span>
-            </Label>
-            <Input
-              id="modelId"
-              bind:value={formData.modelId}
-              placeholder="e.g., gpt-4o, claude-3-5-sonnet-20241022, glm-4"
-              required
-            />
-            <p class="text-muted-foreground text-xs">
-              The actual model identifier used by the API. Examples:
-              {#if formData.provider === 'openai'}
-                gpt-4o, gpt-4o-mini, gpt-4-turbo
-              {:else if formData.provider === 'anthropic'}
-                claude-3-5-sonnet-20241022, claude-3-5-haiku-20241022
-              {:else if formData.provider === 'google'}
-                gemini-2.0-flash-exp, gemini-1.5-pro
-              {:else if formData.provider === 'groq'}
-                llama-3.3-70b-versatile, mixtral-8x7b-32768
-              {:else if formData.provider === 'ollama'}
-                llama3.2, codellama:latest
-              {:else if formData.provider === 'openrouter'}
-                openai/gpt-4o, anthropic/claude-3.5-sonnet, google/gemini-2.0-flash-exp
-              {:else if formData.provider === 'custom'}
-                glm-4, glm-4-flash, glm-4-plus (for GLM APIs)
-              {/if}
-            </p>
-          </div>
-
-          <div class="space-y-2 md:col-span-2">
-            <Label for="name">
-              Display Name <span class="text-destructive">*</span>
-            </Label>
-            <Input
-              id="name"
-              bind:value={formData.name}
-              placeholder="e.g., GPT-4o, Claude 3.5 Sonnet, My GLM Model"
-              required
-            />
-            <p class="text-muted-foreground text-xs">
-              A friendly name for display in the UI. Can be different from Model ID.
-            </p>
-          </div>
-
-          <div class="space-y-2 md:col-span-2">
-            <Label for="baseUrl">Base URL (Optional)</Label>
-            <Input
-              id="baseUrl"
-              bind:value={formData.baseUrl}
-              placeholder="https://api.example.com/v1"
-              type="url"
-            />
-            <p class="text-muted-foreground text-xs">
-              For OpenAI-compatible APIs. Automatically removes /chat/completions if present.
-            </p>
-          </div>
-
-          <div class="space-y-2 md:col-span-2">
-            <Label for="apiKeyId">
-              API Key
-              <KeyIcon class="ml-1 inline size-3" />
-            </Label>
-            <select
-              id="apiKeyId"
-              bind:value={formData.apiKeyId}
-              class="border-input bg-background focus:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm focus:ring-1 focus:outline-none"
-            >
-              <option value="">Use environment variables (default)</option>
-              {#each getFilteredApiKeys(formData.provider) as key}
-                <option value={key.id}>{key.name} (•••{key.keyLast4})</option>
-              {/each}
-            </select>
-            <p class="text-muted-foreground text-xs">
-              Select an API key from your stored keys, or leave empty to use environment variables.
-              <a href="/app/settings/api-keys" class="text-primary ml-1 hover:underline"
-                >Manage API Keys</a
-              >
-            </p>
-          </div>
-
-          <div class="space-y-2">
-            <Label for="temperature">Temperature (0-2)</Label>
-            <Input
-              id="temperature"
-              type="number"
-              min="0"
-              max="2"
-              step="0.1"
-              bind:value={formData.temperature}
-            />
-          </div>
-
-          <div class="space-y-2">
-            <Label for="maxTokens">Max Tokens</Label>
-            <Input
-              id="maxTokens"
-              type="number"
-              min="1"
-              max="1000000"
-              bind:value={formData.maxTokens}
-            />
-          </div>
-
-          <div class="space-y-2">
-            <Label for="topP">Top P (0-1)</Label>
-            <Input id="topP" type="number" min="0" max="1" step="0.1" bind:value={formData.topP} />
-          </div>
-
-          <div class="space-y-2">
-            <Label for="topK">Top K (0-100)</Label>
-            <Input id="topK" type="number" min="0" max="100" bind:value={formData.topK} />
-          </div>
+<Dialog.Root bind:open={showAddDialog}>
+  <Dialog.Content class="max-w-2xl">
+    <Dialog.Header>
+      <Dialog.Title>Add New Model</Dialog.Title>
+      <Dialog.Description>Configure your AI model settings and parameters</Dialog.Description>
+    </Dialog.Header>
+    <div class="max-h-[calc(90vh-140px)] space-y-4 overflow-y-auto py-4">
+      <div class="grid gap-4 md:grid-cols-2">
+        <div class="space-y-2">
+          <Label for="provider">
+            Provider <span class="text-destructive" aria-label="required">*</span>
+            <span class="sr-only">(required)</span>
+          </Label>
+          <select
+            id="provider"
+            bind:value={formData.provider}
+            class="border-input bg-background focus:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm focus:ring-1 focus:outline-none"
+          >
+            {#each providers as provider}
+              <option value={provider.value}>{provider.label}</option>
+            {/each}
+          </select>
         </div>
 
-        <div class="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="setActive"
-            bind:checked={formData.isActive}
-            class="border-input bg-background focus:ring-ring rounded border px-2 py-1 text-sm focus:ring-1 focus:outline-none"
+        <div class="space-y-2">
+          <Label for="modelId">
+            Model ID <span class="text-destructive" aria-label="required">*</span>
+            <span class="sr-only">(required)</span>
+          </Label>
+          <Input
+            id="modelId"
+            bind:value={formData.modelId}
+            placeholder="e.g., gpt-4o, claude-3-5-sonnet-20241022, glm-4"
+            required
+            aria-describedby="modelId-description"
           />
-          <Label for="setActive" class="text-sm">Set as active model</Label>
+          <p id="modelId-description" class="text-muted-foreground text-xs">
+            The actual model identifier used by the API. Examples:
+            {#if formData.provider === 'openai'}
+              gpt-4o, gpt-4o-mini, gpt-4-turbo
+            {:else if formData.provider === 'anthropic'}
+              claude-3-5-sonnet-20241022, claude-3-5-haiku-20241022
+            {:else if formData.provider === 'google'}
+              gemini-2.0-flash-exp, gemini-1.5-pro
+            {:else if formData.provider === 'groq'}
+              llama-3.3-70b-versatile, mixtral-8x7b-32768
+            {:else if formData.provider === 'ollama'}
+              llama3.2, codellama:latest
+            {:else if formData.provider === 'openrouter'}
+              openai/gpt-4o, anthropic/claude-3.5-sonnet, google/gemini-2.0-flash-exp
+            {:else if formData.provider === 'custom'}
+              glm-4, glm-4-flash, glm-4-plus (for GLM APIs)
+            {/if}
+          </p>
+        </div>
+
+        <div class="space-y-2 md:col-span-2">
+          <Label for="name">
+            Display Name <span class="text-destructive" aria-label="required">*</span>
+            <span class="sr-only">(required)</span>
+          </Label>
+          <Input
+            id="name"
+            bind:value={formData.name}
+            placeholder="e.g., GPT-4o, Claude 3.5 Sonnet, My GLM Model"
+            required
+            aria-describedby="name-description"
+          />
+          <p id="name-description" class="text-muted-foreground text-xs">
+            A friendly name for display in the UI. Can be different from Model ID.
+          </p>
+        </div>
+
+        <div class="space-y-2 md:col-span-2">
+          <Label for="baseUrl">Base URL (Optional)</Label>
+          <Input
+            id="baseUrl"
+            bind:value={formData.baseUrl}
+            placeholder="https://api.example.com/v1"
+            type="url"
+            aria-describedby="baseUrl-description"
+          />
+          <p id="baseUrl-description" class="text-muted-foreground text-xs">
+            For OpenAI-compatible APIs. Automatically removes /chat/completions if present.
+          </p>
+        </div>
+
+        <div class="space-y-2 md:col-span-2">
+          <Label for="apiKeyId">
+            API Key
+            <KeyIcon class="ml-1 inline size-3" />
+          </Label>
+          <select
+            id="apiKeyId"
+            bind:value={formData.apiKeyId}
+            aria-describedby="apiKeyId-description"
+            class="border-input bg-background focus:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm focus:ring-1 focus:outline-none"
+          >
+            <option value="">Use environment variables (default)</option>
+            {#each getFilteredApiKeys(formData.provider) as key}
+              <option value={key.id}>{key.name} (•••{key.keyLast4})</option>
+            {/each}
+          </select>
+          <p id="apiKeyId-description" class="text-muted-foreground text-xs">
+            Select an API key from your stored keys, or leave empty to use environment variables.
+            <a href="/app/settings/api-keys" class="text-primary ml-1 hover:underline"
+              >Manage API Keys</a
+            >
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <Label for="temperature">Temperature (0-2)</Label>
+          <Input
+            id="temperature"
+            type="number"
+            min="0"
+            max="2"
+            step="0.1"
+            bind:value={formData.temperature}
+            aria-describedby="temperature-description"
+          />
+          <p id="temperature-description" class="text-muted-foreground text-xs">
+            Controls randomness in responses. Higher values make output more random.
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <Label for="maxTokens">Max Tokens</Label>
+          <Input
+            id="maxTokens"
+            type="number"
+            min="1"
+            max="1000000"
+            bind:value={formData.maxTokens}
+            aria-describedby="maxTokens-description"
+          />
+          <p id="maxTokens-description" class="text-muted-foreground text-xs">
+            Maximum number of tokens to generate in the completion.
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <Label for="topP">Top P (0-1)</Label>
+          <Input
+            id="topP"
+            type="number"
+            min="0"
+            max="1"
+            step="0.1"
+            bind:value={formData.topP}
+            aria-describedby="topP-description"
+          />
+          <p id="topP-description" class="text-muted-foreground text-xs">
+            Controls diversity via nucleus sampling. Lower values focus on likely tokens.
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <Label for="topK">Top K (0-100)</Label>
+          <Input
+            id="topK"
+            type="number"
+            min="0"
+            max="100"
+            bind:value={formData.topK}
+            aria-describedby="topK-description"
+          />
+          <p id="topK-description" class="text-muted-foreground text-xs">
+            Limits token selection to the K most probable tokens.
+          </p>
         </div>
       </div>
-      <div class="bg-muted/30 flex justify-end gap-2 border-b p-4">
-        <Button variant="outline" onclick={() => (showAddDialog = false)}>Cancel</Button>
+
+      <div class="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="setActive"
+          bind:checked={formData.isActive}
+          class="border-input bg-background focus:ring-ring rounded border px-2 py-1 text-sm focus:ring-1 focus:outline-none"
+        />
+        <Label for="setActive" class="text-sm">Set as active model</Label>
+      </div>
+    </div>
+    <Dialog.Footer>
+      <div class="flex w-full justify-end gap-2">
+        <Dialog.Close>
+          <Button variant="outline">Cancel</Button>
+        </Dialog.Close>
         <Button onclick={handleCreate} disabled={!formData.name || !formData.modelId}>
           <CheckIcon class="mr-2 size-4" />
           Add Model
         </Button>
       </div>
-    </div>
-  </div>
-{/if}
+    </Dialog.Footer>
+  </Dialog.Content>
+</Dialog.Root>
 
 <!-- Edit Model Dialog -->
-{#if showEditDialog && editingModel}
-  <div
-    class="bg-background/80 fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-    role="dialog"
-  >
-    <div
-      class="bg-background max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-lg border shadow-lg"
-    >
-      <div class="border-b p-6">
-        <h2 class="text-foreground text-xl font-semibold">Edit Model</h2>
-      </div>
-      <div class="max-h-[calc(90vh-140px)] space-y-4 overflow-y-auto p-6">
-        <div class="grid gap-4 md:grid-cols-2">
-          <div class="space-y-2 md:col-span-2">
-            <Label for="edit-name">
-              Display Name <span class="text-destructive">*</span>
-            </Label>
-            <Input
-              id="edit-name"
-              bind:value={formData.name}
-              placeholder="e.g., GPT-4o, Claude 3.5 Sonnet, My GLM Model"
-              required
-            />
-            <p class="text-muted-foreground text-xs">
-              A friendly name for display in the UI. Can be different from Model ID.
-            </p>
-          </div>
+<Dialog.Root bind:open={showEditDialog}>
+  <Dialog.Content class="max-w-2xl">
+    <Dialog.Header>
+      <Dialog.Title>Edit Model</Dialog.Title>
+      <Dialog.Description>Update your AI model configuration</Dialog.Description>
+    </Dialog.Header>
+    <div class="max-h-[calc(90vh-140px)] space-y-4 overflow-y-auto py-4">
+      <div class="grid gap-4 md:grid-cols-2">
+        <div class="space-y-2 md:col-span-2">
+          <Label for="edit-name">
+            Display Name <span class="text-destructive" aria-label="required">*</span>
+            <span class="sr-only">(required)</span>
+          </Label>
+          <Input
+            id="edit-name"
+            bind:value={formData.name}
+            placeholder="e.g., GPT-4o, Claude 3.5 Sonnet, My GLM Model"
+            required
+            aria-describedby="edit-name-description"
+          />
+          <p id="edit-name-description" class="text-muted-foreground text-xs">
+            A friendly name for display in the UI. Can be different from Model ID.
+          </p>
+        </div>
 
-          <div class="space-y-2 md:col-span-2">
-            <Label for="edit-modelId">
-              Model ID <span class="text-destructive">*</span>
-            </Label>
-            <Input
-              id="edit-modelId"
-              bind:value={formData.modelId}
-              placeholder="e.g., gpt-4o, claude-3-5-sonnet-20241022, glm-4"
-              required
-            />
-            <p class="text-muted-foreground text-xs">
-              The actual model identifier used by the API. This must match exactly what the provider
-              expects.
-            </p>
-            <div class="bg-muted/50 mt-2 rounded border p-3 text-xs">
-              <div class="mb-2 font-semibold">
-                <a
-                  href="https://openrouter.ai/models"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="text-primary hover:underline"
-                >
-                  View all models on OpenRouter ↗
-                </a>
+        <div class="space-y-2 md:col-span-2">
+          <Label for="edit-modelId">
+            Model ID <span class="text-destructive" aria-label="required">*</span>
+            <span class="sr-only">(required)</span>
+          </Label>
+          <Input
+            id="edit-modelId"
+            bind:value={formData.modelId}
+            placeholder="e.g., gpt-4o, claude-3-5-sonnet-20241022, glm-4"
+            required
+            aria-describedby="edit-modelId-description"
+          />
+          <p id="edit-modelId-description" class="text-muted-foreground text-xs">
+            The actual model identifier used by the API. This must match exactly what the provider
+            expects.
+          </p>
+          <div class="bg-muted/50 mt-2 rounded border p-3 text-xs">
+            <div class="mb-2 font-semibold">
+              <a
+                href="https://openrouter.ai/models"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-primary hover:underline"
+              >
+                View all models on OpenRouter ↗
+              </a>
+            </div>
+            <div class="text-muted-foreground space-y-1">
+              <div><strong>Format examples:</strong></div>
+              <div>
+                • OpenAI: <code class="bg-background rounded px-1">gpt-4o</code>,
+                <code class="bg-background rounded px-1">gpt-4o-mini</code>
               </div>
-              <div class="text-muted-foreground space-y-1">
-                <div><strong>Format examples:</strong></div>
-                <div>
-                  • OpenAI: <code class="bg-background rounded px-1">gpt-4o</code>,
-                  <code class="bg-background rounded px-1">gpt-4o-mini</code>
-                </div>
-                <div>
-                  • Anthropic: <code class="bg-background rounded px-1"
-                    >claude-3-5-sonnet-20241022</code
-                  >
-                </div>
-                <div>
-                  • Google: <code class="bg-background rounded px-1">gemini-2.0-flash-exp</code>
-                </div>
-                <div>
-                  • Custom/GLM: <code class="bg-background rounded px-1">glm-4</code>,
-                  <code class="bg-background rounded px-1">glm-4-flash</code>
-                </div>
-                <div class="text-muted-foreground mt-2">
-                  <strong>OpenRouter format:</strong>
-                  <code class="bg-background rounded px-1">provider/model-name</code>
-                  (e.g.,
-                  <code class="bg-background rounded px-1">anthropic/claude-3.5-sonnet</code>)
-                </div>
+              <div>
+                • Anthropic: <code class="bg-background rounded px-1"
+                  >claude-3-5-sonnet-20241022</code
+                >
+              </div>
+              <div>
+                • Google: <code class="bg-background rounded px-1">gemini-2.0-flash-exp</code>
+              </div>
+              <div>
+                • Custom/GLM: <code class="bg-background rounded px-1">glm-4</code>,
+                <code class="bg-background rounded px-1">glm-4-flash</code>
+              </div>
+              <div class="text-muted-foreground mt-2">
+                <strong>OpenRouter format:</strong>
+                <code class="bg-background rounded px-1">provider/model-name</code>
+                (e.g.,
+                <code class="bg-background rounded px-1">anthropic/claude-3.5-sonnet</code>)
               </div>
             </div>
           </div>
+        </div>
 
-          <div class="space-y-2 md:col-span-2">
-            <Label for="edit-baseUrl">Base URL (Optional)</Label>
-            <Input
-              id="edit-baseUrl"
-              bind:value={formData.baseUrl}
-              placeholder="https://api.example.com/v1"
-              type="url"
-            />
-            <p class="text-muted-foreground text-xs">
-              For OpenAI-compatible APIs. Automatically removes /chat/completions if present.
-            </p>
-          </div>
+        <div class="space-y-2 md:col-span-2">
+          <Label for="edit-baseUrl">Base URL (Optional)</Label>
+          <Input
+            id="edit-baseUrl"
+            bind:value={formData.baseUrl}
+            placeholder="https://api.example.com/v1"
+            type="url"
+            aria-describedby="edit-baseUrl-description"
+          />
+          <p id="edit-baseUrl-description" class="text-muted-foreground text-xs">
+            For OpenAI-compatible APIs. Automatically removes /chat/completions if present.
+          </p>
+        </div>
 
-          <div class="space-y-2 md:col-span-2">
-            <Label for="edit-apiKeyId">
-              API Key
-              <KeyIcon class="ml-1 inline size-3" />
-            </Label>
-            <select
-              id="edit-apiKeyId"
-              bind:value={formData.apiKeyId}
-              class="border-input bg-background focus:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm focus:ring-1 focus:outline-none"
-            >
-              <option value="">Use environment variables (default)</option>
-              {#each editingModel && getFilteredApiKeys(editingModel.provider) as key}
-                <option value={key.id}>{key.name} (•••{key.keyLast4})</option>
-              {/each}
-            </select>
-            <p class="text-muted-foreground text-xs">
-              Select an API key from your stored keys, or leave empty to use environment variables.
-            </p>
-          </div>
+        <div class="space-y-2 md:col-span-2">
+          <Label for="edit-apiKeyId">
+            API Key
+            <KeyIcon class="ml-1 inline size-3" />
+          </Label>
+          <select
+            id="edit-apiKeyId"
+            bind:value={formData.apiKeyId}
+            aria-describedby="edit-apiKeyId-description"
+            class="border-input bg-background focus:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm focus:ring-1 focus:outline-none"
+          >
+            <option value="">Use environment variables (default)</option>
+            {#each editingModel && getFilteredApiKeys(editingModel.provider) as key}
+              <option value={key.id}>{key.name} (•••{key.keyLast4})</option>
+            {/each}
+          </select>
+          <p id="edit-apiKeyId-description" class="text-muted-foreground text-xs">
+            Select an API key from your stored keys, or leave empty to use environment variables.
+          </p>
+        </div>
 
-          <div class="space-y-2">
-            <Label for="edit-temperature">Temperature (0-2)</Label>
-            <Input
-              id="edit-temperature"
-              type="number"
-              min="0"
-              max="2"
-              step="0.1"
-              bind:value={formData.temperature}
-            />
-          </div>
+        <div class="space-y-2">
+          <Label for="edit-temperature">Temperature (0-2)</Label>
+          <Input
+            id="edit-temperature"
+            type="number"
+            min="0"
+            max="2"
+            step="0.1"
+            bind:value={formData.temperature}
+            aria-describedby="edit-temperature-description"
+          />
+          <p id="edit-temperature-description" class="text-muted-foreground text-xs">
+            Controls randomness in responses. Higher values make output more random.
+          </p>
+        </div>
 
-          <div class="space-y-2">
-            <Label for="edit-maxTokens">Max Tokens</Label>
-            <Input
-              id="edit-maxTokens"
-              type="number"
-              min="1"
-              max="1000000"
-              bind:value={formData.maxTokens}
-            />
-          </div>
+        <div class="space-y-2">
+          <Label for="edit-maxTokens">Max Tokens</Label>
+          <Input
+            id="edit-maxTokens"
+            type="number"
+            min="1"
+            max="1000000"
+            bind:value={formData.maxTokens}
+            aria-describedby="edit-maxTokens-description"
+          />
+          <p id="edit-maxTokens-description" class="text-muted-foreground text-xs">
+            Maximum number of tokens to generate in the completion.
+          </p>
+        </div>
 
-          <div class="space-y-2">
-            <Label for="edit-topP">Top P (0-1)</Label>
-            <Input
-              id="edit-topP"
-              type="number"
-              min="0"
-              max="1"
-              step="0.1"
-              bind:value={formData.topP}
-            />
-          </div>
+        <div class="space-y-2">
+          <Label for="edit-topP">Top P (0-1)</Label>
+          <Input
+            id="edit-topP"
+            type="number"
+            min="0"
+            max="1"
+            step="0.1"
+            bind:value={formData.topP}
+            aria-describedby="edit-topP-description"
+          />
+          <p id="edit-topP-description" class="text-muted-foreground text-xs">
+            Controls diversity via nucleus sampling. Lower values focus on likely tokens.
+          </p>
+        </div>
 
-          <div class="space-y-2">
-            <Label for="edit-topK">Top K (0-100)</Label>
-            <Input id="edit-topK" type="number" min="0" max="100" bind:value={formData.topK} />
-          </div>
+        <div class="space-y-2">
+          <Label for="edit-topK">Top K (0-100)</Label>
+          <Input
+            id="edit-topK"
+            type="number"
+            min="0"
+            max="100"
+            bind:value={formData.topK}
+            aria-describedby="edit-topK-description"
+          />
+          <p id="edit-topK-description" class="text-muted-foreground text-xs">
+            Limits token selection to the K most probable tokens.
+          </p>
         </div>
       </div>
-      <div class="bg-muted/30 flex justify-end gap-2 border-b p-4">
-        <Button variant="outline" onclick={() => (showEditDialog = false)}>Cancel</Button>
+    </div>
+    <Dialog.Footer>
+      <div class="flex w-full justify-end gap-2">
+        <Dialog.Close>
+          <Button variant="outline">Cancel</Button>
+        </Dialog.Close>
         <Button onclick={handleUpdate} disabled={!formData.name}>
           <CheckIcon class="mr-2 size-4" />
           Save Changes
         </Button>
       </div>
-    </div>
-  </div>
-{/if}
+    </Dialog.Footer>
+  </Dialog.Content>
+</Dialog.Root>

@@ -46,6 +46,7 @@
 </script>
 
 <div class="w-full max-w-sm">
+  <h1 class="sr-only">Sign in to your account</h1>
   <LoginForm
     onSignIn={data?.showEmailPassword ? handleSignIn : undefined}
     onSSO={data?.showSSO ? handleSSO : undefined}

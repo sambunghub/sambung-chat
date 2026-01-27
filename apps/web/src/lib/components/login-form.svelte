@@ -67,7 +67,11 @@
               placeholder="m@example.com"
               required
               disabled={isSubmitting}
+              aria-describedby="email-description"
             />
+            <p id="email-description" class="text-muted-foreground text-xs">
+              Enter your email address to sign in
+            </p>
           </Field>
           <Field>
             <div class="flex items-center">
@@ -83,7 +87,11 @@
               placeholder="Enter your password"
               required
               disabled={isSubmitting}
+              aria-describedby="password-description"
             />
+            <p id="password-description" class="text-muted-foreground text-xs">
+              Enter your password to access your account
+            </p>
           </Field>
           <Field>
             <Button type="submit" class="w-full" disabled={isSubmitting || !email || !password}>

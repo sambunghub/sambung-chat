@@ -6,15 +6,18 @@
   import KeyIcon from '@lucide/svelte/icons/key';
   import LogOutIcon from '@lucide/svelte/icons/log-out';
   import CpuIcon from '@lucide/svelte/icons/cpu';
+  import KeyboardIcon from '@lucide/svelte/icons/keyboard';
 
   import * as Avatar from '$lib/components/ui/avatar/index.js';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import * as Sidebar from '$lib/components/ui/sidebar/index.js';
   import { useSidebar } from '$lib/components/ui/sidebar/index.js';
+  import KeyboardShortcutsDialog from './keyboard-shortcuts-dialog.svelte';
 
   let { user }: { user: { name: string; email: string; avatar?: string } } = $props();
 
   const sidebar = useSidebar();
+  let showKeyboardShortcuts = $state(false);
 
   // Get initials from user name
   function getInitials(name: string): string {
@@ -96,6 +99,16 @@
             <CpuIcon />
             Models
           </DropdownMenu.Item>
+          <DropdownMenu.Item
+            onclick={() => {
+              showKeyboardShortcuts = true;
+            }}
+            class="cursor-pointer"
+          >
+            <KeyboardIcon />
+            Keyboard Shortcuts
+            <DropdownMenu.Shortcut>?</DropdownMenu.Shortcut>
+          </DropdownMenu.Item>
         </DropdownMenu.Group>
         <DropdownMenu.Separator />
         <DropdownMenu.Item onclick={() => goto('/logout')} class="cursor-pointer">
@@ -106,3 +119,5 @@
     </DropdownMenu.Root>
   </Sidebar.MenuItem>
 </Sidebar.Menu>
+
+<KeyboardShortcutsDialog bind:open={showKeyboardShortcuts} />

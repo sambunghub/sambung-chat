@@ -106,31 +106,32 @@
         </CardTitle>
       </div>
       {#if onedit || ondelete}
-        <DropdownMenu.DropdownMenu>
-          <DropdownMenu.DropdownMenuTrigger
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger
             class="hover:bg-accent rounded p-1"
             onclick={(e) => e.stopPropagation()}
+            aria-label="Options for {apiKey.name}"
           >
             <EditIcon class="size-4" />
-          </DropdownMenu.DropdownMenuTrigger>
-          <DropdownMenu.DropdownMenuContent>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content>
             {#if onedit}
-              <DropdownMenu.DropdownMenuItem onclick={() => onedit?.(apiKey.id)}>
+              <DropdownMenu.Item onclick={() => onedit?.(apiKey.id)}>
                 <EditIcon class="mr-2 size-4" />
                 Edit
-              </DropdownMenu.DropdownMenuItem>
+              </DropdownMenu.Item>
             {/if}
             {#if ondelete}
-              <DropdownMenu.DropdownMenuItem
+              <DropdownMenu.Item
                 onclick={() => ondelete?.(apiKey.id)}
                 class="text-destructive focus:text-destructive"
               >
                 <Trash2Icon class="mr-2 size-4" />
                 Delete
-              </DropdownMenu.DropdownMenuItem>
+              </DropdownMenu.Item>
             {/if}
-          </DropdownMenu.DropdownMenuContent>
-        </DropdownMenu.DropdownMenu>
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
       {/if}
     </div>
     <CardDescription class="text-xs">
@@ -153,6 +154,7 @@
             variant="ghost"
             class="h-6 w-6 p-0"
             onclick={() => ontogglevisibility?.(apiKey.id)}
+            aria-label={showKey ? 'Hide API key' : 'Show API key'}
           >
             {#if showKey}
               <EyeOffIcon class="size-3" />
@@ -171,7 +173,13 @@
             >
               {fullKey}
             </code>
-            <Button size="sm" variant="ghost" class="h-6 w-6 p-0" onclick={() => oncopy?.(fullKey)}>
+            <Button
+              size="sm"
+              variant="ghost"
+              class="h-6 w-6 p-0"
+              onclick={() => oncopy?.(fullKey)}
+              aria-label="Copy API key to clipboard"
+            >
               <CopyIcon class="size-3" />
             </Button>
           </div>

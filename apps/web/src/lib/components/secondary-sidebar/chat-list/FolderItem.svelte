@@ -64,6 +64,7 @@
         role="button"
         tabindex="0"
         aria-label={`Toggle folder ${folder.name}`}
+        aria-expanded={!isCollapsed}
         onclick={(e) => {
           // Only toggle if not clicking on actions
           if ((e.target as HTMLElement).closest('[data-action]')) return;

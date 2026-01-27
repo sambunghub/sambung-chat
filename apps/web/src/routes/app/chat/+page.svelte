@@ -325,6 +325,7 @@
   <div class="flex items-center gap-2">
     <SecondarySidebarTrigger class="-ms-1" />
     <Separator orientation="vertical" class="data-[orientation=vertical]:h-4" />
+    <h1 class="sr-only">Chat</h1>
     <Breadcrumb.Root>
       <Breadcrumb.List>
         <Breadcrumb.Item>

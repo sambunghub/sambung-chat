@@ -74,6 +74,7 @@
   onclick={() => (isOpen = !isOpen)}
   role="button"
   tabindex="0"
+  aria-expanded={isOpen}
   onkeydown={(e) => e.key === 'Enter' && (isOpen = !isOpen)}
 >
   <!-- Folder Icon -->

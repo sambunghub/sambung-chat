@@ -92,7 +92,7 @@
   <!-- Avatar Preview -->
   <Avatar class="size-20">
     {#if displayUrl}
-      <AvatarImage src={displayUrl} alt="Profile picture" />
+      <AvatarImage src={displayUrl} alt="{userName}'s profile picture" />
     {/if}
     <AvatarFallback class="bg-primary text-primary-foreground text-lg">
       {getInitials(userName)}

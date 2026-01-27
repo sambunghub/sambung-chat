@@ -70,7 +70,11 @@
               placeholder="John Doe"
               required
               disabled={isSubmitting}
+              aria-describedby="name-description"
             />
+            <p id="name-description" class="text-muted-foreground text-xs">
+              Your full name for account identification
+            </p>
           </Field>
           <Field>
             <FieldLabel for="email">Email</FieldLabel>
@@ -81,7 +85,11 @@
               placeholder="m@example.com"
               required
               disabled={isSubmitting}
+              aria-describedby="email-description"
             />
+            <p id="email-description" class="text-muted-foreground text-xs">
+              We'll send account updates to this email
+            </p>
           </Field>
           <Field>
             <FieldLabel for="password">Password</FieldLabel>
@@ -92,8 +100,9 @@
               placeholder="Create a password"
               required
               disabled={isSubmitting}
+              aria-describedby="password-description password-strength password-requirements"
             />
-            <PasswordStrengthMeter {password} class="mt-3" />
+            <PasswordStrengthMeter {password} class="mt-3" id="password-strength" />
             <details class="group mt-3">
               <summary
                 class="text-muted-foreground hover:text-foreground flex cursor-pointer items-center gap-1 text-xs select-none"
@@ -101,7 +110,7 @@
                 <span class="transition-transform duration-200 group-open:rotate-90">▶</span>
                 <span>Show password requirements</span>
               </summary>
-              <div class="mt-2 pl-4">
+              <div id="password-requirements" class="mt-2 pl-4">
                 <PasswordRequirements {password} />
               </div>
             </details>

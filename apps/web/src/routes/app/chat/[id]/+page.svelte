@@ -731,34 +731,44 @@
         </div>
       </div>
       <div class="flex gap-2">
-        <DropdownMenu.DropdownMenu>
-          <DropdownMenu.DropdownMenuTrigger
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger
             class="bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-8 items-center justify-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors"
             title="Export chat"
+            aria-label="Export chat"
           >
             <DownloadIcon class="size-4" />
-          </DropdownMenu.DropdownMenuTrigger>
-          <DropdownMenu.DropdownMenuContent>
-            <DropdownMenu.DropdownMenuItem onclick={() => handleExport('md')}>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content>
+            <DropdownMenu.Item onclick={() => handleExport('md')}>
               <CodeIcon class="mr-2 size-4" />
               <span>Markdown</span>
-            </DropdownMenu.DropdownMenuItem>
-            <DropdownMenu.DropdownMenuItem onclick={() => handleExport('json')}>
+            </DropdownMenu.Item>
+            <DropdownMenu.Item onclick={() => handleExport('json')}>
               <FileJsonIcon class="mr-2 size-4" />
               <span>JSON</span>
-            </DropdownMenu.DropdownMenuItem>
-            <DropdownMenu.DropdownMenuItem onclick={() => handleExport('txt')}>
+            </DropdownMenu.Item>
+            <DropdownMenu.Item onclick={() => handleExport('txt')}>
               <FileTextIcon class="mr-2 size-4" />
               <span>Plain Text</span>
-            </DropdownMenu.DropdownMenuItem>
-          </DropdownMenu.DropdownMenuContent>
-        </DropdownMenu.DropdownMenu>
+            </DropdownMenu.Item>
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
       </div>
     </div>
   </div>
 
   <!-- Messages Area -->
-  <div bind:this={messagesContainer} class="flex-1 overflow-y-auto px-6 py-4">
+  <!-- ARIA live region for screen reader announcements of new messages -->
+  <!-- aria-live="polite" waits for user to finish speaking before announcing -->
+  <!-- aria-atomic="false" announces only the new message, not entire container -->
+  <div
+    bind:this={messagesContainer}
+    class="flex-1 overflow-y-auto px-6 py-4"
+    role="log"
+    aria-live="polite"
+    aria-atomic="false"
+  >
     {#if loading}
       <div class="flex h-full items-center justify-center">
         <div class="w-full max-w-3xl">
@@ -886,7 +896,10 @@
     {/if}
 
     {#if errorMessage}
-      <div class="mx-auto mt-4 max-w-3xl">
+      <!-- ARIA live region for error announcements -->
+      <!-- aria-live="assertive" immediately announces important errors -->
+      <!-- aria-atomic="true" announces the complete error message -->
+      <div class="mx-auto mt-4 max-w-3xl" role="alert" aria-live="assertive" aria-atomic="true">
         <ErrorDisplay
           message={errorMessage}
           code={errorCode}
@@ -926,6 +939,7 @@
               variant="outline"
               onclick={handleStop}
               title="Stop generation"
+              aria-label="Stop generation"
             >
               <SquareIcon class="size-4" />
             </Button>
@@ -936,6 +950,7 @@
               disabled={!input.trim() || isSubmitting}
               title="Send message"
               class="relative"
+              aria-label="Send message"
             >
               {#if isSubmitting}
                 <svg

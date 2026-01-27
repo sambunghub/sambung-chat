@@ -46,6 +46,7 @@
 </script>
 
 <div class="w-full max-w-sm">
+  <h1 class="sr-only">Create your account</h1>
   <RegisterForm
     onSignUp={data?.showEmailPassword ? handleSignUp : undefined}
     onSSO={data?.showSSO ? handleSSO : undefined}

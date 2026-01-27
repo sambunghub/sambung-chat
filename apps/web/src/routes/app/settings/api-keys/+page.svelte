@@ -9,6 +9,7 @@
   import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
   import { ApiKeyForm, ApiKeyList, type ApiKeyFormData } from '$lib/components/settings/api-keys';
   import { toast } from 'svelte-sonner';
+  import * as Dialog from '$lib/components/ui/dialog/index.js';
 
   // Type assertion for apiKey router (temporary workaround until types are regenerated)
   const apiKeyClient = orpc as any & {
@@ -326,60 +327,40 @@
 </div>
 
 <!-- Add API Key Dialog -->
-{#if showAddDialog}
-  <div
-    class="bg-background/80 fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-    role="dialog"
-    tabindex="-1"
-    aria-labelledby="add-dialog-title"
-    onclick={(e) => {
-      if (e.target === e.currentTarget) showAddDialog = false;
-    }}
-  >
-    <div
-      class="bg-background max-h-[90vh] w-full max-w-lg overflow-hidden rounded-lg border shadow-lg"
-    >
-      <div class="border-b p-6">
-        <h2 id="add-dialog-title" class="text-foreground text-xl font-semibold">Add New API Key</h2>
-      </div>
-      <div class="max-h-[calc(90vh-140px)] overflow-y-auto p-6">
-        <ApiKeyForm
-          bind:data={formData}
-          {submitting}
-          onsubmit={handleCreate}
-          oncancel={() => (showAddDialog = false)}
-        />
-      </div>
+<Dialog.Root bind:open={showAddDialog}>
+  <Dialog.Content class="max-w-lg">
+    <Dialog.Header>
+      <Dialog.Title>Add New API Key</Dialog.Title>
+      <Dialog.Description>
+        Enter your API key details to add a new provider credential
+      </Dialog.Description>
+    </Dialog.Header>
+    <div class="max-h-[calc(90vh-140px)] overflow-y-auto py-4">
+      <ApiKeyForm
+        bind:data={formData}
+        {submitting}
+        onsubmit={handleCreate}
+        oncancel={() => (showAddDialog = false)}
+      />
     </div>
-  </div>
-{/if}
+  </Dialog.Content>
+</Dialog.Root>
 
 <!-- Edit API Key Dialog -->
-{#if showEditDialog && editingKey}
-  <div
-    class="bg-background/80 fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-    role="dialog"
-    tabindex="-1"
-    aria-labelledby="edit-dialog-title"
-    onclick={(e) => {
-      if (e.target === e.currentTarget) showEditDialog = false;
-    }}
-  >
-    <div
-      class="bg-background max-h-[90vh] w-full max-w-lg overflow-hidden rounded-lg border shadow-lg"
-    >
-      <div class="border-b p-6">
-        <h2 id="edit-dialog-title" class="text-foreground text-xl font-semibold">Edit API Key</h2>
-      </div>
-      <div class="max-h-[calc(90vh-140px)] overflow-y-auto p-6">
-        <ApiKeyForm
-          bind:data={formData}
-          isEdit={true}
-          {submitting}
-          onsubmit={handleUpdate}
-          oncancel={() => (showEditDialog = false)}
-        />
-      </div>
+<Dialog.Root bind:open={showEditDialog}>
+  <Dialog.Content class="max-w-lg">
+    <Dialog.Header>
+      <Dialog.Title>Edit API Key</Dialog.Title>
+      <Dialog.Description>Update your API key details and settings</Dialog.Description>
+    </Dialog.Header>
+    <div class="max-h-[calc(90vh-140px)] overflow-y-auto py-4">
+      <ApiKeyForm
+        bind:data={formData}
+        isEdit={true}
+        {submitting}
+        onsubmit={handleUpdate}
+        oncancel={() => (showEditDialog = false)}
+      />
     </div>
-  </div>
-{/if}
+  </Dialog.Content>
+</Dialog.Root>

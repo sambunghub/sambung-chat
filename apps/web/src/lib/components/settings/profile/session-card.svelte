@@ -167,6 +167,7 @@
           variant="ghost"
           class="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
           onclick={() => onrevoke?.(session.token)}
+          aria-label="Revoke session for {deviceInfo.browser}"
         >
           <Trash2Icon class="size-4" />
         </Button>

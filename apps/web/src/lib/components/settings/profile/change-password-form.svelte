@@ -3,6 +3,7 @@
   import { Input } from '$lib/components/ui/input/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import CheckIcon from '@lucide/svelte/icons/check';
+  import AlertCircleIcon from '@lucide/svelte/icons/alert-circle';
   import type { ChangePasswordFormData } from './types.js';
 
   // Props for the change password form component
@@ -101,9 +102,11 @@
   <!-- Server Error -->
   {#if error}
     <div
-      class="bg-destructive/15 border-destructive text-destructive rounded-md border p-3 text-sm"
+      class="bg-destructive/15 border-destructive text-destructive flex items-start gap-2 rounded-md border p-3 text-sm"
+      role="alert"
     >
-      {error}
+      <AlertCircleIcon class="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+      <span>{error}</span>
     </div>
   {/if}
 
@@ -121,6 +124,8 @@
         disabled={submitting}
         class="pr-10 disabled:cursor-not-allowed disabled:opacity-50"
         oninput={() => clearValidationError('currentPassword')}
+        aria-describedby="current-password-description current-password-error"
+        aria-invalid={validationErrors.currentPassword ? 'true' : 'false'}
       />
       <button
         type="button"
@@ -167,7 +172,18 @@
       </button>
     </div>
     {#if validationErrors.currentPassword}
-      <p class="text-destructive text-xs">{validationErrors.currentPassword}</p>
+      <p
+        id="current-password-error"
+        class="text-destructive flex items-center gap-1 text-xs"
+        role="alert"
+      >
+        <AlertCircleIcon class="size-3 shrink-0" aria-hidden="true" />
+        <span>{validationErrors.currentPassword}</span>
+      </p>
+    {:else}
+      <p id="current-password-description" class="text-muted-foreground text-xs">
+        Enter your current password to verify your identity
+      </p>
     {/if}
   </div>
 
@@ -185,6 +201,8 @@
         disabled={submitting}
         class="pr-10 disabled:cursor-not-allowed disabled:opacity-50"
         oninput={() => clearValidationError('newPassword')}
+        aria-describedby="new-password-description new-password-error"
+        aria-invalid={validationErrors.newPassword ? 'true' : 'false'}
       />
       <button
         type="button"
@@ -231,9 +249,16 @@
       </button>
     </div>
     {#if validationErrors.newPassword}
-      <p class="text-destructive text-xs">{validationErrors.newPassword}</p>
+      <p
+        id="new-password-error"
+        class="text-destructive flex items-center gap-1 text-xs"
+        role="alert"
+      >
+        <AlertCircleIcon class="size-3 shrink-0" aria-hidden="true" />
+        <span>{validationErrors.newPassword}</span>
+      </p>
     {:else}
-      <p class="text-muted-foreground text-xs">
+      <p id="new-password-description" class="text-muted-foreground text-xs">
         Must be at least 8 characters with uppercase, lowercase, and number
       </p>
     {/if}
@@ -253,6 +278,8 @@
         disabled={submitting}
         class="pr-10 disabled:cursor-not-allowed disabled:opacity-50"
         oninput={() => clearValidationError('confirmPassword')}
+        aria-describedby="confirm-password-description confirm-password-error"
+        aria-invalid={validationErrors.confirmPassword ? 'true' : 'false'}
       />
       <button
         type="button"
@@ -299,7 +326,18 @@
       </button>
     </div>
     {#if validationErrors.confirmPassword}
-      <p class="text-destructive text-xs">{validationErrors.confirmPassword}</p>
+      <p
+        id="confirm-password-error"
+        class="text-destructive flex items-center gap-1 text-xs"
+        role="alert"
+      >
+        <AlertCircleIcon class="size-3 shrink-0" aria-hidden="true" />
+        <span>{validationErrors.confirmPassword}</span>
+      </p>
+    {:else}
+      <p id="confirm-password-description" class="text-muted-foreground text-xs">
+        Re-enter your new password to confirm it matches
+      </p>
     {/if}
   </div>
 </div>

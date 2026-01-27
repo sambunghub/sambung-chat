@@ -11,6 +11,7 @@ export const load: PageServerLoad = async () => {
     process.env.EMAIL_PASSWORD_ENABLED !== 'false';
 
   return {
+    title: 'Sign In - SambungChat',
     showSSO: isSSOEnabled,
     showEmailPassword: isEmailPasswordEnabled,
   };

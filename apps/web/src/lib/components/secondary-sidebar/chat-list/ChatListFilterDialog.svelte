@@ -82,7 +82,7 @@
       {#if providers.length > 0}
         <div class="space-y-2">
           <label class="text-sm font-medium">Providers</label>
-          <DropdownMenu.DropdownMenu>
+          <DropdownMenu.Root>
             <DropdownMenu.Trigger
               class="border-input bg-background hover:bg-accent hover:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground focus:ring-ring flex w-full items-center justify-between rounded-md border px-3 py-2 text-left text-sm focus:ring-1 focus:outline-none"
               type="button"
@@ -126,7 +126,7 @@
                 </DropdownMenu.Item>
               {/if}
             </DropdownMenu.Content>
-          </DropdownMenu.DropdownMenu>
+          </DropdownMenu.Root>
         </div>
       {/if}
 
@@ -134,7 +134,7 @@
       {#if models.length > 0}
         <div class="space-y-2">
           <label class="text-sm font-medium">Models</label>
-          <DropdownMenu.DropdownMenu>
+          <DropdownMenu.Root>
             <DropdownMenu.Trigger
               class="border-input bg-background hover:bg-accent hover:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground focus:ring-ring flex w-full items-center justify-between rounded-md border px-3 py-2 text-left text-sm focus:ring-1 focus:outline-none"
               type="button"
@@ -178,7 +178,7 @@
                 </DropdownMenu.Item>
               {/if}
             </DropdownMenu.Content>
-          </DropdownMenu.DropdownMenu>
+          </DropdownMenu.Root>
         </div>
       {/if}
 

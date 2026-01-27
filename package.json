@@ -62,6 +62,10 @@
     "test:e2e": "node node_modules/playwright/cli.js test",
     "test:e2e:ui": "node node_modules/playwright/cli.js test --ui",
     "test:e2e:debug": "node node_modules/playwright/cli.js test --debug",
+    "test:axe": "vitest run --config tests/accessibility/vitest.config.ts",
+    "test:axe:watch": "vitest --config tests/accessibility/vitest.config.ts",
+    "test:lighthouse": "lhci autorun --collect.url=http://localhost:5173",
+    "test:a11y": "bun run test:axe && bun run test:e2e tests/e2e/accessibility.spec.ts",
     "prepare": "husky",
     "docker:dev": "docker-compose -f docker-compose.dev.yml up",
     "docker:dev:build": "docker-compose -f docker-compose.dev.yml up --build",
@@ -83,7 +87,9 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.0",
     "@eslint/js": "^9.39.2",
+    "@lhci/cli": "^0.14.0",
     "@playwright/test": "^1.50.1",
     "@sambung-chat/config": "workspace:*",
     "@types/bun": "catalog:",
@@ -93,6 +99,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-svelte": "^3.14.0",
     "husky": "^9.1.7",
+    "jest-axe": "^9.0.0",
     "lint-staged": "^16.2.7",
     "playwright": "^1.50.1",
     "prettier": "^3.7.4",

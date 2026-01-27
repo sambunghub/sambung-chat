@@ -22,6 +22,7 @@
   class={buttonClass}
   onclick={handleToggle}
   aria-label={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+  aria-expanded={isOpen}
   data-state={isOpen ? 'open' : 'closed'}
   type="button"
 >

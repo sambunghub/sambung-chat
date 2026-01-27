@@ -1,0 +1,70 @@
+{
+  "ci": {
+    "collect": {
+      "url": [
+        "http://localhost:5173",
+        "http://localhost:5173/chat",
+        "http://localhost:5173/settings"
+      ],
+      "numberOfRuns": 3,
+      "settings": {
+        "onlyCategories": ["accessibility"],
+        "throttling": {
+          "rttMs": 0,
+          "throughputKbps": 0,
+          "cpuSlowdownMultiplier": 1,
+          "requestLatencyMs": 0,
+          "downloadThroughputKbps": 0,
+          "uploadThroughputKbps": 0
+        },
+        "emulatedFormFactor": "desktop",
+        "screenEmulation": {
+          "mobile": false,
+          "width": 1920,
+          "height": 1080,
+          "deviceScaleFactor": 1,
+          "disabled": false
+        },
+        "disableStorageReset": false,
+        "chromeFlags": "--no-sandbox --disable-dev-shm-usage"
+      }
+    },
+    "upload": {
+      "target": "temporary-public-storage"
+    },
+    "assert": {
+      "assertions": {
+        "categories:accessibility": ["error", { "minScore": 0.9 }],
+        "categories:accessibility-score": ["error", { "minScore": 0.9 }],
+        "accessibility:aria-valid-attr-value": "error",
+        "accessibility:aria-valid-attr": "error",
+        "accessibility:aria-required-attr": "error",
+        "accessibility:aria-required-children": "error",
+        "accessibility:aria-roles": "error",
+        "accessibility:button-name": "error",
+        "accessibility:heading-order": "error",
+        "accessibility:image-alt": "error",
+        "accessibility:label": "error",
+        "accessibility:link-name": "error",
+        "accessibility:list": "error",
+        "accessibility:listitem": "error",
+        "accessibility:color-contrast": "error",
+        "accessibility:color-contrast-enhanced": "warn",
+        "accessibility:definition-list": "warn",
+        "accessibility:dlitem": "warn",
+        "accessibility:document-title": "error",
+        "accessibility:duplicate-id": "error",
+        "accessibility:html-has-lang": "error",
+        "accessibility:html-lang-valid": "error",
+        "accessibility:valid-lang": "error",
+        "accessibility:bypass": "warn",
+        "accessibility:frame-title": "error",
+        "accessibility:area-alt": "error"
+      }
+    },
+    "server": {
+      "base_url": "https://your-lhci-server.example.com",
+      "token": "YOUR_TOKEN_HERE"
+    }
+  }
+}
