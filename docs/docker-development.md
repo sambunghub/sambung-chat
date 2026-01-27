@@ -1,126 +1,63 @@
-# Docker Development Guide
+# Docker Development Setup
 
-This guide explains how to run SambungChat entirely in Docker for development.
+**Version:** 1.0.0
+**Last Updated:** January 27, 2026
 
-## Prerequisites
+## Overview
 
-- Docker Desktop or Docker Engine installed
-- Bun installed locally (for initial dependency setup)
-- `.env` file configured (copy from `.env.example`)
+Docker Development setup allows you to run the entire SambungChat stack in Docker containers with **hot reload** enabled.
 
-## Quick Start
+### Quick Start
 
-### 1. Install Dependencies Locally
+1. Configure environment:
+   \`\`\`bash
+   cp .env.example .env
+   \`\`\`
 
-First, install dependencies on your host machine (required for proper Docker volume mounting):
+2. Start services:
+   \`\`\`bash
+   bun run docker:dev:build
+   \`\`\`
 
-```bash
-bun install
-```
+3. Access:
+   - Frontend: http://localhost:5174
+   - Backend: http://localhost:3000
 
-### 2. Configure Environment
-
-Copy the environment example and configure it:
-
-```bash
-cp .env.example .env
-# Edit .env with your configuration
-```
-
-### 3. Start All Services
-
-```bash
-# Start all services (postgres + server + web)
-bun run docker:dev
-
-# Or rebuild and start
-bun run docker:dev:build
-```
-
-### 4. Access Services
-
-- **Web App**: http://localhost:5173
-- **API Server**: http://localhost:3000
-- **PostgreSQL**: localhost:5432
-
-## Available Commands
-
-| Command                    | Description                    |
-| -------------------------- | ------------------------------ |
-| `bun run docker:dev`       | Start all services             |
-| `bun run docker:dev:build` | Rebuild and start all services |
-| `bun run docker:dev:logs`  | View logs from all services    |
-| `bun run docker:dev:down`  | Stop and remove all containers |
+4. Stop:
+   \`\`\`bash
+   bun run docker:dev:down
+   \`\`\`
 
 ## Hot Reload
 
-Both server and web support hot reload:
+- **Backend**: Auto-restart on file changes (Bun --hot mode)
+- **Frontend**: Vite HMR for instant updates
+- **Volumes mounted**: Entire project for live code editing
 
-- **Server**: Uses Bun's `--hot` flag - changes auto-restart the server
-- **Web**: Uses Vite HMR - changes reflect instantly in the browser
+## Services
 
-## Docker Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     Docker Network                          │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│  │   PostgreSQL │  │    Server    │  │     Web      │      │
-│  │   :5432      │──│    :3000     │──│    :5173     │      │
-│  │              │  │  (Bun --hot) │  │  (Vite HMR)  │      │
-│  └──────────────┘  └──────────────┘  └──────────────┘      │
-│         │                  │                  │              │
-│         └──────────────────┴──────────────────┘              │
-│                      Host Machine                             │
-└─────────────────────────────────────────────────────────────┘
-```
-
-## Volume Mounts
-
-- **Server**: Entire project mounted (`./ → /app`)
-- **Web**: Selective mounts for hot reload efficiency
-  - `./apps/web → /app/apps/web`
-  - `./packages → /app/packages`
+| Service    | Port | Description |
+| ---------- | ---- | ----------- |
+| PostgreSQL | 5432 | Database    |
+| Server     | 3000 | API Backend |
+| Web        | 5174 | Frontend    |
 
 ## Troubleshooting
 
-### Port Already in Use
+**Port already in use:**
+\`\`\`bash
+lsof -i :3000 # Find process
+kill -9 <PID>
+\`\`\`
 
-If ports are already in use, modify them in `.env`:
-
-```env
-POSTGRES_PORT=5433
-SERVER_PORT=3001
-WEB_PORT=5174
-```
-
-### Containers Not Starting
-
-Check logs:
-
-```bash
-bun run docker:dev:logs
-```
-
-### Rebuild After Major Changes
-
-```bash
-# Stop containers
-bun run docker:dev:down
-
-# Remove built images
-docker rmi sambungchat-server sambungchat-web
-
-# Rebuild and start
+**Rebuild after dependency changes:**
+\`\`\`bash
 bun run docker:dev:build
-```
+\`\`\`
 
-## Production Deployment
+**View logs:**
+\`\`\`bash
+bun run docker:dev:logs
+\`\`\`
 
-For production, use the production compose file:
-
-```bash
-bun run docker:prod
-```
-
-This uses optimized multi-stage builds with minimal image sizes.
+---
