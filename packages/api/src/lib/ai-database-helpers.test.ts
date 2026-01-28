@@ -20,12 +20,10 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ORPCError } from '@orpc/server';
 
 // Mock the database and encryption modules BEFORE importing the functions under test
-const mockSelect = vi.fn();
-const mockDecrypt = vi.fn();
-
+// Note: vi.mock() is hoisted, so we must use factory functions that don't reference outer variables
 vi.mock('@sambung-chat/db', () => ({
   db: {
-    select: mockSelect,
+    select: vi.fn(),
   },
 }));
 
@@ -42,10 +40,16 @@ vi.mock('@sambung-chat/db/schema/api-key', () => ({
 }));
 
 vi.mock('./encryption', () => ({
-  decrypt: mockDecrypt,
+  decrypt: vi.fn(),
 }));
 
 import { getDecryptedApiKey, messageExists, getModelConfig } from './ai-database-helpers';
+import { db } from '@sambung-chat/db';
+import { decrypt } from './encryption';
+
+// Get mock references after importing
+const mockSelect = vi.mocked(db.select);
+const mockDecrypt = vi.mocked(decrypt);
 
 describe('AI Database Helpers', () => {
   describe('getDecryptedApiKey', () => {

@@ -81,7 +81,7 @@ services:
       EMAIL_PASSWORD_ENABLED: ${EMAIL_PASSWORD_ENABLED:-true}
 
       # Encryption Key (for API key encryption)
-      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-development-encryption-key-32-chars-long}
 
       # Keycloak (optional)
       KEYCLOAK_URL: ${KEYCLOAK_URL}
@@ -89,6 +89,9 @@ services:
       KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
       KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
+
+      # Dotenv config path for loading .env from project root
+      DOTENV_CONFIG_PATH: /app/.env
 
       # Note: AI providers are now configured via the web UI (Settings → Models)
       # No AI provider environment variables are needed here
@@ -170,14 +173,15 @@ services:
       - ~/.bun:/root/.bun
       - ~/.cache:/root/.cache
     depends_on:
-      - server
+      server:
+        condition: service_started
     networks:
       - sambungchat-network
     # Keep container running for development
     tty: true
     stdin_open: true
-    # Install deps in container, then run vite
-    command: ["sh", "-c", "cd /app/apps/web && bun install && bun run dev -- --host 0.0.0.0 --port 5174"]
+    # Run vite dev with hot reload
+    command: ["sh", "-c", "cd /app && bun install && cd /app/apps/web && bun run dev -- --host 0.0.0.0 --port 5174"]
 
 # =============================================================================
 # Volumes
