@@ -18,7 +18,15 @@
     animate = true,
   }: Props = $props();
 
-  const viewMode = $derived(chatViewMode().mode);
+  let viewMode = $state('flat' as 'flat' | 'rounded');
+
+  // Subscribe to store updates
+  $effect(() => {
+    const unsubscribe = chatViewMode.subscribe((value) => {
+      viewMode = value;
+    });
+    return unsubscribe;
+  });
 
   // Flat mode styles (document-like, clean)
   const flatUser = 'bg-primary/10 border-l-4 border-primary rounded-none px-6 py-4 max-w-[95%]';

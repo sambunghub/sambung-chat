@@ -6,8 +6,13 @@
  */
 
 import { browser } from '$app/environment';
+import { writable, type Writable } from 'svelte/store';
 
 type ViewMode = 'flat' | 'rounded';
+
+interface ChatViewModeStore extends Writable<ViewMode> {
+  toggle: () => void;
+}
 
 const STORAGE_KEY = 'chatBubbleMode';
 
@@ -27,32 +32,36 @@ function getInitialViewMode(): ViewMode {
   return 'flat'; // default
 }
 
-// Create view mode state
-let viewMode = $state<ViewMode>(getInitialViewMode());
+// Create writable store
+function createChatViewModeStore(): ChatViewModeStore {
+  const { set, update, subscribe } = writable<ViewMode>(getInitialViewMode());
 
-// Save to localStorage when changed
-if (browser) {
-  $effect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, viewMode);
-    } catch (error) {
-      console.warn('Failed to save chat bubble mode to localStorage:', error);
-    }
-  });
+  if (browser) {
+    // Subscribe to changes and save to localStorage
+    subscribe((value) => {
+      try {
+        localStorage.setItem(STORAGE_KEY, value);
+      } catch (error) {
+        console.warn('Failed to save chat bubble mode to localStorage:', error);
+      }
+    });
+  }
+
+  return {
+    set,
+    update,
+    subscribe,
+    toggle: () => update((mode) => (mode === 'flat' ? 'rounded' : 'flat')),
+  };
 }
 
-export function chatViewMode() {
-  return {
-    get mode() {
-      return viewMode;
-    },
-    set mode(value: ViewMode) {
-      if (value === 'flat' || value === 'rounded') {
-        viewMode = value;
-      }
-    },
-    toggle() {
-      viewMode = viewMode === 'flat' ? 'rounded' : 'flat';
-    },
-  };
+export const chatViewMode = createChatViewModeStore();
+
+// Helper functions
+export function toggleChatViewMode() {
+  chatViewMode.toggle();
+}
+
+export function setChatViewMode(mode: ViewMode) {
+  chatViewMode.set(mode);
 }

@@ -4,10 +4,18 @@
   import MessageCircleIcon from '@lucide/svelte/icons/message-circle';
   import SquareIcon from '@lucide/svelte/icons/square';
 
-  const viewMode = $derived(chatViewMode().mode);
+  let viewMode = $state('flat' as 'flat' | 'rounded');
+
+  // Subscribe to store updates
+  $effect(() => {
+    const unsubscribe = chatViewMode.subscribe((value) => {
+      viewMode = value;
+    });
+    return unsubscribe;
+  });
 
   function toggleViewMode() {
-    chatViewMode().toggle();
+    chatViewMode.toggle();
   }
 </script>
 
