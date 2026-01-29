@@ -49,9 +49,6 @@ describe('ApiKeyService', () => {
   beforeEach(() => {
     // Save original ENCRYPTION_KEY
     originalEncryptionKey = process.env.ENCRYPTION_KEY;
-
-    // Clear all mocks before each test
-    vi.clearAllMocks();
   });
 
   afterEach(() => {
