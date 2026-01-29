@@ -11,7 +11,7 @@
  * - Environment variable handling
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   encrypt,
   decrypt,

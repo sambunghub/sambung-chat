@@ -372,7 +372,7 @@ describe(`${PROVIDER_NAME} Error Handling`, () => {
 
     it('should sanitize sensitive data in logs', () => {
       const apiKey = 'sk-live-abc123';
-      const sanitized = apiKey.replace(/sk-live-./, 'sk-live-****');
+      const sanitized = apiKey.replace(/sk-live-.+/, 'sk-live-****');
 
       expect(sanitized).toBe('sk-live-****');
       expect(sanitized).not.toContain('abc123');

@@ -18,7 +18,7 @@ import { z } from 'zod';
 // Message schema (Zod example)
 const messageSchema = z.object({
   role: z.enum(['user', 'assistant', 'system']),
-  content: z.string().min(1),
+  content: z.string().trim().min(1),
 });
 
 const messagesSchema = z.array(messageSchema).min(1);
