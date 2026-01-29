@@ -27,6 +27,8 @@
   import ErrorDisplay from '$lib/components/error-display.svelte';
   import SecondarySidebarTrigger from '$lib/components/secondary-sidebar-trigger.svelte';
   import ChatSkeleton from '$lib/components/chat/chat-skeleton.svelte';
+  import MessageBubble from '$lib/components/chat/message-bubble.svelte';
+  import ViewModeToggle from '$lib/components/chat/view-mode-toggle.svelte';
 
   // Get backend API URL for AI endpoint
   // Use PUBLIC_API_URL (client-side environment variable)
@@ -731,6 +733,7 @@
         </div>
       </div>
       <div class="flex gap-2">
+        <ViewModeToggle />
         <DropdownMenu.Root>
           <DropdownMenu.Trigger
             class="bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-8 items-center justify-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors"
@@ -795,14 +798,7 @@
             (message.parts?.find((p): p is Extract<typeof p, { type: 'text' }> => p.type === 'text')
               ?.text as string) || ''}
           <div class="flex {message.role === 'user' ? 'justify-end' : 'justify-start'}">
-            <div
-              class="group max-w-[85%] rounded-2xl px-4 py-3 text-sm transition-all duration-200 hover:shadow-lg md:text-base {message.role ===
-              'user'
-                ? 'bg-accent text-accent-foreground rounded-tr-sm'
-                : 'bg-muted text-card-foreground rounded-tl-sm'} {isStreamingMessage
-                ? 'border-primary animate-pulse border-2 shadow-lg'
-                : ''}"
-            >
+            <MessageBubble role={message.role} streaming={isStreamingMessage}>
               <p
                 class="mb-1.5 text-xs font-medium opacity-70"
                 class:text-accent-foreground={message.role === 'user'}
@@ -866,7 +862,7 @@
               {:else}
                 <div class="whitespace-pre-wrap">{messageText}</div>
               {/if}
-            </div>
+            </MessageBubble>
 
             {#if isStoppedMessage}
               <div
