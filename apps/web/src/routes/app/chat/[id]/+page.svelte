@@ -66,9 +66,6 @@
     if (typeof input === 'string' && input.includes('/api/ai')) {
       const body = init?.body ? JSON.parse(init.body as string) : {};
 
-      console.log('[FETCH] 📤 Sending request to /api/ai');
-      console.log('[FETCH] Messages count:', body.messages?.length || 0);
-
       // Don't send modelId - let backend use the active model instead
       // This ensures chats always use the current active model, not outdated modelId
       delete body.modelId;
@@ -82,19 +79,6 @@
         },
         body: JSON.stringify(body),
       });
-
-      // Log response
-      fetchPromise
-        .then((response) => {
-          console.log('[FETCH] 📥 Response status:', response.status);
-          console.log('[FETCH] Response headers:', Object.fromEntries(response.headers.entries()));
-          if (!response.ok) {
-            console.error('[FETCH] ❌ Response not OK:', response.status, response.statusText);
-          }
-        })
-        .catch((err) => {
-          console.error('[FETCH] ❌ Fetch error:', err);
-        });
 
       return fetchPromise;
     }
@@ -401,12 +385,6 @@
     const text = input.trim();
     if (!text || isRetrying || isStreamingResponse || isSubmitting) return;
 
-    console.log('[CHAT] ========================================');
-    console.log('[CHAT] 📤 User submitting message...');
-    console.log('[CHAT] Message length:', text.length);
-    console.log('[CHAT] Chat ID:', chatId());
-    console.log('[CHAT] Active model:', activeModel?.name || 'none');
-
     clearError();
     retryCount = 0;
     wasStopped = false;
@@ -425,19 +403,11 @@
     abortController = new AbortController();
     const initialMessageCount = chat.messages.length;
 
-    console.log('[CHAT] Current message count:', initialMessageCount);
-
     try {
-      console.log('[CHAT] 📡 Calling chat.sendMessage...');
       // Send via AI SDK for streaming (optimistic UI - shows in chat, not saved to DB yet)
       await chat.sendMessage({ text: messageToSend });
 
-      console.log('[CHAT] ✅ chat.sendMessage completed!');
-      console.log('[CHAT] New message count:', chat.messages.length);
-      console.log('[CHAT] Messages added:', chat.messages.length - initialMessageCount);
-
       if (chat.messages.length === initialMessageCount) {
-        console.error('[CHAT] ❌ ERROR: No assistant response was received');
         throw new Error('No assistant response was received');
       }
 
@@ -446,8 +416,6 @@
       const newUserMessage = chat.messages[initialMessageCount];
       const assistantMessage = chat.messages[chat.messages.length - 1];
 
-      console.log('[CHAT] 💾 Saving messages to database...');
-
       if (chatId()) {
         // Save user message first
         if (newUserMessage && newUserMessage.role === 'user') {
@@ -455,12 +423,10 @@
             (p): p is Extract<typeof p, { type: 'text' }> => p.type === 'text'
           );
           const userContent = userTextPart && 'text' in userTextPart ? userTextPart.text : '';
-          console.log('[CHAT] Saving user message...');
           await orpc.message.create({
             chatId: chatId()!,
             content: userContent,
           });
-          console.log('[CHAT] ✅ User message saved');
         }
 
         // Save assistant message
@@ -471,14 +437,12 @@
           const assistantContent =
             assistantTextPart && 'text' in assistantTextPart ? assistantTextPart.text : '';
 
-          console.log('[CHAT] Saving assistant message...');
           // Create the message and get the database record with metadata
           const createdMessage = await orpc.message.create({
             chatId: chatId()!,
             content: assistantContent,
             role: 'assistant',
           });
-          console.log('[CHAT] ✅ Assistant message saved');
 
           // Extract token data from the saved message metadata
           if (
@@ -500,14 +464,7 @@
           }
         }
       }
-      console.log('[CHAT] ✅ Message submission completed successfully');
     } catch (error) {
-      console.error('[CHAT] ❌ ERROR in handleSubmit:', error);
-      console.error('[CHAT] Error details:', {
-        name: error instanceof Error ? error.name : 'Unknown',
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      });
       const errorObj = error instanceof Error ? error : new Error('Failed to send message');
 
       if (errorObj.name === 'AbortError') {
@@ -596,25 +553,12 @@
             }
           }
         } catch (retryError) {
-          console.error('[CHAT] ❌ Retry failed:', retryError);
-          console.error('[CHAT] Retry error details:', {
-            name: retryError instanceof Error ? retryError.name : 'Unknown',
-            message: retryError instanceof Error ? retryError.message : String(retryError),
-            retryAttempt: retryCount,
-          });
+          // Retry failed silently
         } finally {
-          console.log('[CHAT] Retry attempt completed, isRetrying = false');
           isRetrying = false;
         }
       }
     } finally {
-      console.log('[CHAT] ========================================');
-      console.log('[CHAT] Finishing handleSubmit...');
-      console.log('[CHAT] Final message count:', chat.messages.length);
-      console.log('[CHAT] Has error:', !!errorMessage);
-      if (errorMessage) {
-        console.log('[CHAT] Error message:', errorMessage);
-      }
       isStreamingResponse = false;
       isSubmitting = false;
       abortController = null;
