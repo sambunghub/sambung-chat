@@ -83,3 +83,4 @@ plan-reference/.notes
 .security-key
 logs/security/
 .worktrees/
+.devtools

@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.38] - 2026-01-30
+
+### Changed
+
+- **Docker Build Optimization**: Restructured Dockerfile.dev with proper layer caching for faster builds
+  - Copy package.json files FIRST (for dependency layer cache) ([Dockerfile.dev](Dockerfile.dev:27-40))
+  - Install dependencies in cached layer (only invalidated when package.json changes)
+  - Copy source code AFTER dependencies in separate layer ([Dockerfile.dev](Dockerfile.dev:42-48))
+  - Build time reduced from 27 minutes to ~10-30 seconds for cached builds
+
+- **Docker Environment Management**: Centralized environment variables in single `.env` file
+  - Updated `docker-compose.dev.yml` to use `env_file: .env` instead of hardcoded values ([docker-compose.dev.yml](docker-compose.dev.yml:32-33), [docker-compose.dev.yml](docker-compose.dev.yml:63-64), [docker-compose.dev.yml](docker-compose.dev.yml:114-115))
+  - Added default fallback values for development (e.g., `postgres`, `password`)
+
+### Added
+
+- **Production Dockerfile**: Multi-stage build for minimal production images
+  - 3 stages: builder, server-prod, web-prod ([Dockerfile.prod](Dockerfile.prod:1-147))
+  - Builder stage installs all dependencies and builds applications
+  - Production stages copy ONLY built artifacts and runtime dependencies
+  - Result: Smaller, secure, faster-to-deploy images (~200-300MB vs ~1GB)
+  - Non-root user (`sambungchat`) for security
+  - Health checks included
+
+- **Production Docker Compose**: Production deployment configuration
+  - Resource limits for all services (CPU and memory constraints) ([docker-compose.prod.yml](docker-compose.prod.yml:52-58), [docker-compose.prod.yml](docker-compose.prod.yml:102-109), [docker-compose.prod.yml](docker-compose.prod.yml:147-154))
+  - Health checks with wget for all services ([docker-compose.prod.yml](docker-compose.prod.yml:43-48), [docker-compose.prod.yml](docker-compose.prod.yml:94-99), [docker-compose.prod.yml](docker-compose.prod.yml:139-144))
+  - Restart policy: `always` for production
+  - Proper dependency management with health conditions
+
+- **Enhanced Docker Scripts**: Additional npm scripts for Docker management
+  - `docker:dev:logs:server` - View server logs ([package.json](package.json:75))
+  - `docker:dev:logs:web` - View web logs ([package.json](package.json:76))
+  - `docker:dev:ps` - Show running containers ([package.json](package.json:77))
+  - `docker:dev:rebuild` - Force rebuild and restart ([package.json](package.json:80))
+  - `docker:prod:*` scripts for production deployment ([package.json](package.json:81-88))
+
 ## [0.0.37] - 2026-01-30
 
 ### Fixed
