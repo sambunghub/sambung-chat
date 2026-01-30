@@ -32,7 +32,7 @@
 
   // Get backend API URL for AI endpoint
   // Use PUBLIC_API_URL (client-side environment variable)
-  const BACKEND_API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:5174';
+  const BACKEND_API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:3000';
 
   let input = $state('');
   let errorMessage = $state('');

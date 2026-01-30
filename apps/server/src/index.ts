@@ -229,9 +229,14 @@ app.post('/api/ai', async (c) => {
   const requestId = crypto.randomUUID?.()?.slice(0, 8) ?? Math.random().toString(36).slice(2, 10);
   const startTime = Date.now();
 
+  // IMMEDIATE LOG to verify request reaches this point
+  console.log(`\n========== AI REQUEST ==========`); // Force flush
   console.log(`[AI:${requestId}] ============================================`);
   console.log(`[AI:${requestId}] 📨 REQUEST RECEIVED`);
   console.log(`[AI:${requestId}] Timestamp: ${new Date().toISOString()}`);
+  console.log(`[AI:${requestId}] URL: ${c.req.url}`);
+  console.log(`[AI:${requestId}] Method: ${c.req.method}`);
+  console.log(`====================================\n`); // Force flush
 
   try {
     // Authentication check
