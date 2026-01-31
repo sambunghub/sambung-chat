@@ -4,7 +4,7 @@
   import KeyboardShortcutsDialog from '$lib/components/keyboard-shortcuts-dialog.svelte';
   import { browser } from '$app/environment';
 
-  let { children, data } = $props();
+  let { data } = $props();
 
   // Server-side protection handles auth check
   // data.user is available from +layout.server.ts (SSR-safe)
@@ -42,8 +42,8 @@
 <!-- Sidebar layout for app pages -->
 <Sidebar.Provider style="--sidebar-width: 280px; --sidebar-width-icon: 3rem;">
   <AppSidebar {user} />
-  <Sidebar.Inset id="main-content" tabindex={-1}>
-    {@render children()}
+  <Sidebar.Inset id="main-content">
+    <slot />
   </Sidebar.Inset>
 </Sidebar.Provider>
 

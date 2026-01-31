@@ -62,10 +62,10 @@ export async function loadKatexCss(): Promise<void> {
       }
 
       // Use CDN for KaTeX CSS (works in both dev and production)
-      // In production, you may want to bundle this or use your own CDN
+      // Match katex package version (v0.16.x)
       const link = document.createElement('link');
       link.rel = 'stylesheet';
-      link.href = 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css';
+      link.href = 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css'; // Using 0.16.11 for compatibility
       link.crossOrigin = 'anonymous';
 
       // Wait for load

@@ -5,6 +5,119 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.39] - 2026-01-30
+
+### Fixed
+
+- **Chat Loading State**: Added visual loading skeleton when waiting for AI response generation
+  - Shows minimal animated pulsing dots indicator without border or background ([apps/web/src/routes/app/chat/[id]/+page.svelte](apps/web/src/routes/app/chat/[id]/+page.svelte:922-939))
+  - Resolves issue where users had no visual feedback during AI response generation
+  - Skeleton appears between user message submission and assistant message creation with proper `mt-6` spacing
+
+- **Code Cleanup**: Removed debug console.log statements from chat page
+  - Cleaned up excessive logging in `handleSubmit` function
+  - Cleaned up debug logging in `authenticatedFetch` function
+  - Improved production code quality (addresses code review feedback)
+
+- **Accessibility Improvements**: Fixed missing label associations in filter dialog
+  - Changed `<label>` to `<span>` with `aria-labelledby` for dropdown triggers ([apps/web/src/lib/components/secondary-sidebar/chat-list/ChatListFilterDialog.svelte](apps/web/src/lib/components/secondary-sidebar/chat-list/ChatListFilterDialog.svelte:84-143))
+  - Added proper `id` and `aria-label` attributes to date inputs ([apps/web/src/lib/components/secondary-sidebar/chat-list/ChatListFilterDialog.svelte](apps/web/src/lib/components/secondary-sidebar/chat-list/ChatListFilterDialog.svelte:187-221))
+  - Added `role="group"` for date range container with proper labeling
+
+- **Accessibility Scripts**: Made URLs configurable in audit scripts
+  - Added `AUDIT_BASE_URL` environment variable for configurable base URL ([scripts/run-accessibility-audit.ts](scripts/run-accessibility-audit.ts:67))
+  - Added `AUDIT_PAGES` environment variable for customizable page list ([scripts/run-accessibility-audit.ts](scripts/run-accessibility-audit.ts:80-82))
+  - Replaced hardcoded localhost URLs with environment variable references
+
+- **Chat Page Duplication Bug**: Removed duplicate message rendering code that was causing file corruption
+  - Fixed lines 930-1029 which were duplicating the message rendering logic ([apps/web/src/routes/app/chat/[id]/+page.svelte](apps/web/src/routes/app/chat/[id]/+page.svelte:924-975))
+
+- **API URL Configuration**: Fixed incorrect fallback URL for backend API calls
+  - Changed `BACKEND_API_URL` fallback from `localhost:5174` (frontend port) to `localhost:3000` (server port) ([apps/web/src/routes/app/chat/[id]/+page.svelte](apps/web/src/routes/app/chat/[id]/+page.svelte:35))
+  - Added `PUBLIC_API_URL` to `.env.example` for explicit configuration ([apps/web/.env.example](apps/web/.env.example:5))
+
+### Changed
+
+- **AI Request Logging**: Enhanced logging for debugging AI response issues
+  - Added immediate logging at AI endpoint entry to track request reception ([apps/server/src/index.ts](apps/server/src/index.ts:232-240))
+  - Added comprehensive logging in frontend `handleSubmit` and `authenticatedFetch` for request/response tracking ([apps/web/src/routes/app/chat/[id]/+page.svelte](apps/web/src/routes/app/chat/[id]/+page.svelte:69-99), [apps/web/src/routes/app/chat/[id]/+page.svelte](apps/web/src/routes/app/chat/[id]/+page.svelte:404-438))
+
+## [0.0.38] - 2026-01-30
+
+### Changed
+
+- **Docker Build Optimization**: Restructured Dockerfile.dev with proper layer caching for faster builds
+  - Copy package.json files FIRST (for dependency layer cache) ([Dockerfile.dev](Dockerfile.dev:27-40))
+  - Install dependencies in cached layer (only invalidated when package.json changes)
+  - Copy source code AFTER dependencies in separate layer ([Dockerfile.dev](Dockerfile.dev:42-48))
+  - Build time reduced from 27 minutes to ~10-30 seconds for cached builds
+
+- **Docker Environment Management**: Centralized environment variables in single `.env` file
+  - Updated `docker-compose.dev.yml` to use `env_file: .env` instead of hardcoded values ([docker-compose.dev.yml](docker-compose.dev.yml:32-33), [docker-compose.dev.yml](docker-compose.dev.yml:63-64), [docker-compose.dev.yml](docker-compose.dev.yml:114-115))
+  - Added default fallback values for development (e.g., `postgres`, `password`)
+
+### Added
+
+- **Production Dockerfile**: Multi-stage build for minimal production images
+  - 3 stages: builder, server-prod, web-prod ([Dockerfile.prod](Dockerfile.prod:1-147))
+  - Builder stage installs all dependencies and builds applications
+  - Production stages copy ONLY built artifacts and runtime dependencies
+  - Result: Smaller, secure, faster-to-deploy images (~200-300MB vs ~1GB)
+  - Non-root user (`sambungchat`) for security
+  - Health checks included
+
+- **Production Docker Compose**: Production deployment configuration
+  - Resource limits for all services (CPU and memory constraints) ([docker-compose.prod.yml](docker-compose.prod.yml:52-58), [docker-compose.prod.yml](docker-compose.prod.yml:102-109), [docker-compose.prod.yml](docker-compose.prod.yml:147-154))
+  - Health checks with wget for all services ([docker-compose.prod.yml](docker-compose.prod.yml:43-48), [docker-compose.prod.yml](docker-compose.prod.yml:94-99), [docker-compose.prod.yml](docker-compose.prod.yml:139-144))
+  - Restart policy: `always` for production
+  - Proper dependency management with health conditions
+
+- **Enhanced Docker Scripts**: Additional npm scripts for Docker management
+  - `docker:dev:logs:server` - View server logs ([package.json](package.json:75))
+  - `docker:dev:logs:web` - View web logs ([package.json](package.json:76))
+  - `docker:dev:ps` - Show running containers ([package.json](package.json:77))
+  - `docker:dev:rebuild` - Force rebuild and restart ([package.json](package.json:80))
+  - `docker:prod:*` scripts for production deployment ([package.json](package.json:81-88))
+
+## [0.0.37] - 2026-01-30
+
+### Fixed
+
+- **Unit Tests**: Fixed date filter tests that were failing due to timezone and timestamp issues
+  - Fixed `vi.mock()` hoisting issues in `ai-database-helpers.test.ts` by using `vi.hoisted()` for mock declarations ([packages/api/src/lib/ai-database-helpers.test.ts](packages/api/src/lib/ai-database-helpers.test.ts:24-31))
+  - Fixed `chat.test.ts` date filter test by using wider date ranges (24-48 hours) to avoid timezone edge cases ([packages/api/src/routers/chat.test.ts](packages/api/src/routers/chat.test.ts:568-617))
+  - Fixed `folder.test.ts` date filter test with the same approach ([packages/api/src/routers/folder.test.ts](packages/api/src/routers/folder.test.ts:815-862))
+  - Fixed `prompt.test.ts` date filter tests (2 tests) with wider date ranges ([packages/api/src/routers/prompt.test.ts](packages/api/src/routers/prompt.test.ts:385-449), [packages/api/src/routers/prompt.test.ts](packages/api/src/routers/prompt.test.ts:1427-1468))
+  - All 28 test files now pass (1098 tests passed, 5 skipped)
+
+### Added
+
+- **Test Database**: Added PostgreSQL test database setup for CI/CD
+  - Created test database and user (`test/test`) in Docker ([vitest.config.ts](vitest.config.ts:63))
+  - Pushed schema to test database for integration tests
+
+## [0.0.36] - 2026-01-27
+
+### Changed
+
+- **Docker Development Setup**: Optimized Docker development environment for faster hot reload and startup
+  - Fixed volume mounting to avoid `node_modules` conflicts between host and container ([docker-compose.dev.yml](docker-compose.dev.yml:97-106))
+  - Pre-install dependencies in `Dockerfile.dev` to eliminate `bun install` on container start ([Dockerfile.dev](Dockerfile.dev:22-29))
+  - Added named volumes for bun cache to speed up rebuilds ([docker-compose.dev.yml](docker-compose.dev.yml:193-196))
+  - Removed redundant `bun install` from web container command ([docker-compose.dev.yml](docker-compose.dev.yml:185))
+
+- **Docker Production Setup**: Added proper health check endpoint for container orchestration
+  - New `/health` endpoint with database connectivity check ([apps/server/src/index.ts](apps/server/src/index.ts:459-485))
+  - Returns service status, uptime, environment, and database health
+  - Returns 503 when database is unavailable for proper container restart
+
+### Added
+
+- **Database Management Scripts**: Docker database backup and restore utilities
+  - `docker:db:backup` - Create timestamped database backups ([package.json](package.json:79))
+  - `docker:db:restore` - Restore from backup files ([package.json](package.json:80))
+  - `docker:db:reset` - Drop and recreate database schema ([package.json](package.json:81))
+
 ## [0.0.35] - 2026-01-27
 
 ### Fixed

@@ -6,6 +6,10 @@
  * Output: Generates detailed accessibility report with findings
  *
  * Usage: bun run scripts/run-accessibility-audit.ts
+ *
+ * Environment Variables:
+ *   - AUDIT_BASE_URL: Base URL for the application (default: http://localhost:5173)
+ *   - AUDIT_PAGES: JSON array of pages to audit (optional)
  */
 
 import { execSync } from 'child_process';
@@ -59,8 +63,11 @@ interface PageAuditResult {
 const auditResults: AuditResult[] = [];
 const pageResults: PageAuditResult[] = [];
 
-// Pages to audit
-const pagesToAudit = [
+// Configuration from environment variables
+const AUDIT_BASE_URL = process.env.AUDIT_BASE_URL || 'http://localhost:5173';
+
+// Pages to audit (can be overridden via AUDIT_PAGES env var as JSON)
+const defaultPagesToAudit = [
   { name: 'Homepage', url: '/' },
   { name: 'Login Page', url: '/login' },
   { name: 'Register Page', url: '/register' },
@@ -69,6 +76,10 @@ const pagesToAudit = [
   { name: 'Models Manager', url: '/app/settings/models' },
   { name: 'API Keys', url: '/app/settings/api-keys' },
 ];
+
+const pagesToAudit = process.env.AUDIT_PAGES
+  ? JSON.parse(process.env.AUDIT_PAGES)
+  : defaultPagesToAudit;
 
 function log(message: string, color: string = colors.reset) {
   console.log(`${color}${message}${colors.reset}`);
@@ -150,10 +161,11 @@ function generateLighthouseReport() {
 
   // Check if dev server is running
   log(
-    '\n⚠ Note: Lighthouse requires the dev server to be running on http://localhost:5173',
+    `\n⚠ Note: Lighthouse requires the dev server to be running on ${AUDIT_BASE_URL}`,
     colors.yellow
   );
-  log('   If this fails, start the server with: bun run dev:web', colors.yellow);
+  log(`   If this fails, start the server with: bun run dev:web`, colors.yellow);
+  log(`   Or set AUDIT_BASE_URL environment variable if using a different port`, colors.yellow);
 
   const passed = runCommand('bun run test:lighthouse', 'Lighthouse accessibility audit');
 

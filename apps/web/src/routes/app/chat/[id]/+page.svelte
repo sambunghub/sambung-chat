@@ -27,10 +27,12 @@
   import ErrorDisplay from '$lib/components/error-display.svelte';
   import SecondarySidebarTrigger from '$lib/components/secondary-sidebar-trigger.svelte';
   import ChatSkeleton from '$lib/components/chat/chat-skeleton.svelte';
+  import MessageBubble from '$lib/components/chat/message-bubble.svelte';
+  import ViewModeToggle from '$lib/components/chat/view-mode-toggle.svelte';
 
   // Get backend API URL for AI endpoint
   // Use PUBLIC_API_URL (client-side environment variable)
-  const BACKEND_API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:5174';
+  const BACKEND_API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:3000';
 
   let input = $state('');
   let errorMessage = $state('');
@@ -68,7 +70,7 @@
       // This ensures chats always use the current active model, not outdated modelId
       delete body.modelId;
 
-      return fetch(input, {
+      const fetchPromise = fetch(input, {
         ...init,
         credentials: 'include',
         headers: {
@@ -77,6 +79,8 @@
         },
         body: JSON.stringify(body),
       });
+
+      return fetchPromise;
     }
 
     return fetch(input, {
@@ -461,7 +465,6 @@
         }
       }
     } catch (error) {
-      console.error('Failed to send message:', error);
       const errorObj = error instanceof Error ? error : new Error('Failed to send message');
 
       if (errorObj.name === 'AbortError') {
@@ -550,7 +553,7 @@
             }
           }
         } catch (retryError) {
-          console.error('Retry failed:', retryError);
+          // Retry failed silently
         } finally {
           isRetrying = false;
         }
@@ -731,6 +734,7 @@
         </div>
       </div>
       <div class="flex gap-2">
+        <ViewModeToggle />
         <DropdownMenu.Root>
           <DropdownMenu.Trigger
             class="bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-8 items-center justify-center gap-2 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors"
@@ -795,14 +799,7 @@
             (message.parts?.find((p): p is Extract<typeof p, { type: 'text' }> => p.type === 'text')
               ?.text as string) || ''}
           <div class="flex {message.role === 'user' ? 'justify-end' : 'justify-start'}">
-            <div
-              class="group max-w-[85%] rounded-2xl px-4 py-3 text-sm transition-all duration-200 hover:shadow-lg md:text-base {message.role ===
-              'user'
-                ? 'bg-accent text-accent-foreground rounded-tr-sm'
-                : 'bg-muted text-card-foreground rounded-tl-sm'} {isStreamingMessage
-                ? 'border-primary animate-pulse border-2 shadow-lg'
-                : ''}"
-            >
+            <MessageBubble role={message.role} streaming={isStreamingMessage}>
               <p
                 class="mb-1.5 text-xs font-medium opacity-70"
                 class:text-accent-foreground={message.role === 'user'}
@@ -866,7 +863,7 @@
               {:else}
                 <div class="whitespace-pre-wrap">{messageText}</div>
               {/if}
-            </div>
+            </MessageBubble>
 
             {#if isStoppedMessage}
               <div
@@ -892,6 +889,29 @@
             {/if}
           </div>
         {/each}
+      </div>
+    {/if}
+
+    <!-- Loading skeleton when waiting for AI response -->
+    {#if isSubmitting && messages.length > 0 && messages[messages.length - 1].role === 'user'}
+      <div class="mx-auto mt-6 max-w-3xl">
+        <div class="flex justify-start">
+          <MessageBubble
+            role="assistant"
+            streaming={true}
+            class="!border-0 !bg-transparent px-4 py-3 !shadow-none"
+          >
+            <div class="flex items-center gap-2">
+              <span class="text-muted-foreground animate-pulse">●</span>
+              <span class="text-muted-foreground animate-pulse" style="animation-delay: 0.2s"
+                >●</span
+              >
+              <span class="text-muted-foreground animate-pulse" style="animation-delay: 0.4s"
+                >●</span
+              >
+            </div>
+          </MessageBubble>
+        </div>
       </div>
     {/if}
 

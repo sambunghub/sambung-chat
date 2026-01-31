@@ -16,12 +16,13 @@
  * - Error handling for missing resources
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi, afterAll } from 'vitest';
 import { ORPCError } from '@orpc/server';
 
 // Mock the database and encryption modules BEFORE importing the functions under test
-const mockSelect = vi.fn();
-const mockDecrypt = vi.fn();
+// Use vi.hoisted to make mocks available in both mock factory and tests
+const mockSelect = vi.hoisted(() => vi.fn());
+const mockDecrypt = vi.hoisted(() => vi.fn());
 
 vi.mock('@sambung-chat/db', () => ({
   db: {
@@ -48,6 +49,11 @@ vi.mock('./encryption', () => ({
 import { getDecryptedApiKey, messageExists, getModelConfig } from './ai-database-helpers';
 
 describe('AI Database Helpers', () => {
+  // Reset mock return values after each test to prevent polluting other test files
+  afterEach(() => {
+    mockDecrypt.mockReset();
+  });
+
   describe('getDecryptedApiKey', () => {
     const mockApiKey = {
       id: '01HJX123456789',
@@ -895,5 +901,10 @@ describe('AI Database Helpers', () => {
       });
       expect(mockDecrypt).not.toHaveBeenCalled();
     });
+  });
+
+  // Restore the original implementation after all tests to prevent polluting other test files
+  afterAll(() => {
+    mockDecrypt.mockRestore();
   });
 });

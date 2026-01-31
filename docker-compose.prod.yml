@@ -1,110 +1,158 @@
-# Docker Compose for SambaChat Production
-# Usage: docker-compose -f docker-compose.prod.yml up -d
+# =============================================================================
+# Docker Compose - Production
+# =============================================================================
+# Optimized for production deployment
+#
+# Usage:
+#   1. Build: docker-compose -f docker-compose.prod.yml build
+#   2. Start: docker-compose -f docker-compose.prod.yml up -d
+#   3. Logs: docker-compose -f docker-compose.prod.yml logs -f
+#   4. Stop: docker-compose -f docker-compose.prod.yml down
+#
+# Environment:
+#   All variables loaded from .env file
+#   WARNING: Ensure .env has production values before deploying
+#
+# =============================================================================
 
-version: '3.9'
+networks:
+  sambungchat-network:
+    driver: bridge
+
+name: sambungchat-prod
 
 services:
+  # ==========================================================================
   # PostgreSQL Database
+  # ==========================================================================
   postgres:
     image: postgres:16-alpine
-    container_name: sambungchat-db-prod
+    container_name: sambungchat-postgres
     restart: always
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-sambungchat}
+      POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB:-sambungchat}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_INITDB_ARGS: '--encoding=UTF-8 --lc-collate=C --lc-ctype=C'
     ports:
       - '${POSTGRES_PORT:-5432}:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-sambungchat} -d ${POSTGRES_DB:-sambungchat}']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER}']
       interval: 30s
       timeout: 10s
       retries: 5
+      start_period: 30s
     networks:
       - sambungchat-network
-    logging:
-      driver: 'json-file'
-      options:
-        max-size: '10m'
-        max-file: '3'
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
 
-  # Server (Hono API)
+  # ==========================================================================
+  # API Server (Production)
+  # ==========================================================================
   server:
     build:
       context: .
-      dockerfile: apps/server/Dockerfile
-      target: production
-    container_name: sambungchat-server-prod
+      dockerfile: Dockerfile.prod
+      target: server-prod
+    container_name: sambungchat-server
     restart: always
     ports:
       - '${SERVER_PORT:-3000}:3000'
+    env_file:
+      - .env
     environment:
       NODE_ENV: production
       PORT: 3000
-      DATABASE_URL: postgresql://${POSTGRES_USER:-sambungchat}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sambungchat}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
-      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      CORS_ORIGIN: ${CORS_ORIGIN}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      KEYCLOAK_URL: ${KEYCLOAK_URL}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     networks:
       - sambungchat-network
-    logging:
-      driver: 'json-file'
-      options:
-        max-size: '10m'
-        max-file: '3'
     deploy:
       resources:
         limits:
-          cpus: '1'
-          memory: 512M
+          cpus: '2.0'
+          memory: 1G
         reservations:
-          cpus: '0.5'
+          cpus: '0.25'
           memory: 256M
 
-  # Web (SvelteKit)
+  # ==========================================================================
+  # Web Frontend (Production)
+  # ==========================================================================
   web:
     build:
       context: .
-      dockerfile: apps/web/Dockerfile
-      target: production
-    container_name: sambungchat-web-prod
+      dockerfile: Dockerfile.prod
+      target: web-prod
+    container_name: sambungchat-web
     restart: always
     ports:
-      - '${WEB_PORT:-3001}:3000'
+      - '${WEB_PORT:-5174}:5174'
+    env_file:
+      - .env
     environment:
       NODE_ENV: production
-      PORT: 3000
-      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:3000}
-      # Note: AI providers are now configured via the web UI (Settings → Models)
-      # No AI provider environment variables are needed here
-      # Each provider requires an API key which is stored securely in the database
+      PORT: 5174
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      PUBLIC_SERVER_URL: ${PUBLIC_SERVER_URL}
+      PUBLIC_API_URL: ${PUBLIC_API_URL}
+      PUBLIC_KEYCLOAK_ENABLED: ${PUBLIC_KEYCLOAK_ENABLED:-false}
+      KEYCLOAK_URL: ${KEYCLOAK_URL}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
     depends_on:
       - server
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:5174/']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     networks:
       - sambungchat-network
-    logging:
-      driver: 'json-file'
-      options:
-        max-size: '10m'
-        max-file: '3'
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: '1.0'
           memory: 512M
         reservations:
-          cpus: '0.5'
-          memory: 256M
+          cpus: '0.25'
+          memory: 128M
 
 volumes:
   postgres_data:
     driver: local
-
-networks:
-  sambungchat-network:
-    driver: bridge

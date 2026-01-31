@@ -1,24 +1,69 @@
 # =============================================================================
 # Development Dockerfile for SambungChat
 # =============================================================================
-# Simplified Dockerfile for development with hot reload
+# Optimized for fast builds with hot reload
 #
-# Entire project is mounted as volume, so we only need base image with Bun
-# and proper runtime setup.
+# Strategy:
+# 1. Copy ONLY package files first for dependency layer cache
+# 2. Install dependencies (cached unless package.json changes)
+# 3. Copy source files AFTER dependencies
+# 4. Mount source code via volumes for hot reload
+#
+# Build time:
+# - First build: ~3-5 minutes (downloads all dependencies)
+# - Subsequent: ~10-30 seconds (uses cached layers)
+# - With code changes: 0 seconds (volumes bypass build)
 #
 # =============================================================================
 
-# -----------------------------------------------------------------------------
-# Base image with Bun
-# -----------------------------------------------------------------------------
-FROM oven/bun:1.2.23
+FROM oven/bun:1.2.23 AS base
+
 WORKDIR /app
 
 # Set development environment
-ENV NODE_ENV=development
+ENV NODE_ENV=development \
+    BUN_INSTALL_CACHE_DIR=/root/.bun/install/cache
 
-# Copy package files for context (not strictly needed but good for caching)
-COPY package.json bun.lock* ./
+# =============================================================================
+# Layer 1: Dependencies (CACHED unless package.json changes)
+# =============================================================================
+# Copy root package files (contains workspace configuration)
+COPY package.json bun.lockb ./
 
+# Copy ALL workspace package.json files (Bun needs these for workspaces)
+COPY packages/api/package.json ./packages/api/
+COPY packages/auth/package.json ./packages/auth/
+COPY packages/config/package.json ./packages/config/
+COPY packages/db/package.json ./packages/db/
+COPY packages/env/package.json ./packages/env/
+COPY apps/server/package.json ./apps/server/
+COPY apps/web/package.json ./apps/web/
+
+# Install dependencies (this layer is heavily cached)
+RUN bun install --frozen-lockfile
+
+# Ensure all transitive dependencies are installed (Bun workspace fix)
+RUN bun install
+
+# =============================================================================
+# Layer 2: Source code (invalidates cache on source changes)
+# =============================================================================
+# Only copy what's needed for runtime (tests, docs, etc. excluded by .dockerignore)
+COPY packages ./packages
+COPY apps ./apps
+COPY scripts ./scripts
+
+# =============================================================================
+# Final layer: Setup
+# =============================================================================
 # Expose ports
-EXPOSE 3000 5173
+EXPOSE 3000 5174
+
+WORKDIR /app
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD bun --version || exit 1
+
+# Default command (overridden by docker-compose)
+CMD ["sh", "-c", "echo 'SambungChat dev container ready. Use docker-compose to start services.'"]

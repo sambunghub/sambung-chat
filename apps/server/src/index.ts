@@ -1,3 +1,5 @@
+console.log('[SERVER LOADING] index.ts is being executed...');
+
 import { devToolsMiddleware } from '@ai-sdk/devtools';
 import { OpenAPIHandler } from '@orpc/openapi/fetch';
 import { OpenAPIReferencePlugin } from '@orpc/openapi/plugins';
@@ -17,6 +19,8 @@ import { cors } from 'hono/cors';
 import { z } from 'zod';
 
 const app = new Hono();
+const APP_ID = crypto.randomUUID();
+console.log('[INIT] Created Hono app with ID:', APP_ID);
 
 // ============================================================================
 // AI Provider Schema
@@ -59,6 +63,37 @@ app.use(
     maxAge: 86400,
   })
 );
+
+// Custom middleware to manually set Access-Control-Allow-Origin header
+// This fixes a bug in Hono's CORS middleware where the header is not set on actual endpoints
+// Must be AFTER the CORS middleware to ensure the header is set
+console.log('[INIT] Registering global CORS middleware...');
+app.use('/*', async (c, next) => {
+  console.log('[CORS FIX] Middleware called!');
+  const requestOrigin = c.req.header('Origin');
+
+  // Set Access-Control-Allow-Origin header
+  if (requestOrigin) {
+    // Check if the origin is allowed
+    const isAllowed =
+      allowedOrigins.length === 1 && allowedOrigins[0] === '*'
+        ? true
+        : allowedOrigins.includes(requestOrigin);
+
+    if (isAllowed) {
+      console.log('[CORS FIX] Setting Access-Control-Allow-Origin:', requestOrigin);
+      c.header('Access-Control-Allow-Origin', requestOrigin);
+    } else {
+      console.log('[CORS FIX] Origin NOT allowed:', requestOrigin);
+    }
+  } else {
+    console.log('[CORS FIX] No Origin header in request');
+  }
+
+  await next();
+  console.log('[CORS FIX] Request completed, response status:', c.res.status);
+});
+console.log('[INIT] Global CORS middleware registered');
 
 // ============================================================================
 // BETTER AUTH HANDLER
@@ -122,7 +157,25 @@ export const rpcHandler = new RPCHandler(appRouter, {
 });
 
 // RPC middleware - applies context to RPC routes
+console.log('[INIT] Registering RPC middleware...');
 app.use('/rpc/*', async (c, next) => {
+  console.log('[RPC CORS] Middleware called!');
+  // Fix: Set Access-Control-Allow-Origin header for RPC requests
+  // This fixes a bug in Hono's CORS middleware where the header is not set on actual endpoints
+  const requestOrigin = c.req.header('Origin');
+  console.log('[RPC CORS] Origin:', requestOrigin);
+  if (requestOrigin) {
+    const isAllowed =
+      allowedOrigins.length === 1 && allowedOrigins[0] === '*'
+        ? true
+        : allowedOrigins.includes(requestOrigin);
+    console.log('[RPC CORS] Allowed?', isAllowed, 'Origins:', allowedOrigins);
+    if (isAllowed) {
+      c.header('Access-Control-Allow-Origin', requestOrigin);
+      console.log('[RPC CORS] Set header on context:', requestOrigin);
+    }
+  }
+
   try {
     const context = await createContext({ context: c });
     const rpcResult = await rpcHandler.handle(c.req.raw, {
@@ -133,7 +186,20 @@ app.use('/rpc/*', async (c, next) => {
     if (rpcResult.matched) {
       // Pass through ORPC response without modification
       // ORPC uses its own encoding format, so we shouldn't parse/serialize it
-      return c.newResponse(rpcResult.response.body, rpcResult.response);
+      // IMPORTANT: Copy headers from context to response
+      const response = c.newResponse(rpcResult.response.body, rpcResult.response);
+      // Manually copy the Access-Control-Allow-Origin header if it was set
+      if (requestOrigin) {
+        const isAllowed =
+          allowedOrigins.length === 1 && allowedOrigins[0] === '*'
+            ? true
+            : allowedOrigins.includes(requestOrigin);
+        if (isAllowed) {
+          response.headers.set('Access-Control-Allow-Origin', requestOrigin);
+          console.log('[RPC CORS] Set header on response:', requestOrigin);
+        }
+      }
+      return response;
     }
   } catch (error) {
     console.error('[RPC] Error:', error);
@@ -163,9 +229,14 @@ app.post('/api/ai', async (c) => {
   const requestId = crypto.randomUUID?.()?.slice(0, 8) ?? Math.random().toString(36).slice(2, 10);
   const startTime = Date.now();
 
+  // IMMEDIATE LOG to verify request reaches this point
+  console.log(`\n========== AI REQUEST ==========`); // Force flush
   console.log(`[AI:${requestId}] ============================================`);
   console.log(`[AI:${requestId}] 📨 REQUEST RECEIVED`);
   console.log(`[AI:${requestId}] Timestamp: ${new Date().toISOString()}`);
+  console.log(`[AI:${requestId}] URL: ${c.req.url}`);
+  console.log(`[AI:${requestId}] Method: ${c.req.method}`);
+  console.log(`====================================\n`); // Force flush
 
   try {
     // Authentication check
@@ -385,8 +456,37 @@ app.post('/api/ai', async (c) => {
 // ============================================================================
 // HEALTH CHECK
 // ============================================================================
+// Root endpoint for basic connectivity test
 app.get('/', (c) => {
   return c.text('OK');
+});
+
+// Health check endpoint for Docker healthcheck probes
+// Returns detailed health status including database connectivity
+app.get('/health', async (c) => {
+  const health = {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime ? Math.floor(process.uptime()) : 0,
+    environment: env.NODE_ENV || 'unknown',
+    checks: {
+      database: 'unknown',
+    },
+  };
+
+  // Check database connectivity
+  try {
+    const { db } = await import('@sambung-chat/db');
+    await db.execute('SELECT 1 as test');
+    health.checks.database = 'ok';
+  } catch (error) {
+    health.checks.database = 'error';
+    health.status = 'degraded';
+    // Return 503 on database failure
+    return c.json(health, 503);
+  }
+
+  return c.json(health);
 });
 
 // Test database connection (development only)
@@ -471,11 +571,31 @@ app.get('/debug/session', async (c) => {
 });
 
 // ============================================================================
+// DEBUG ENDPOINT
+// ============================================================================
+console.log('[INIT] Registering /app-id route...');
+app.get('/app-id', (c) => {
+  console.log('[DEBUG /app-id] Route called!');
+  return c.json({ appId: APP_ID, message: 'This should match the logs' });
+});
+console.log('[INIT] /app-id route registered');
+console.log('[INIT] Registering /test-simple route...');
+app.get('/test-simple', (c) => {
+  console.log('[DEBUG /test-simple] Route called!');
+  return c.json({ message: 'Simple test works!' });
+});
+console.log('[INIT] /test-simple route registered');
+
+// ============================================================================
 // SERVER STARTUP
 // ============================================================================
 // Bun runtime uses export default with port and fetch properties
 // ============================================================================
 const port = env.PORT || 3000;
+
+console.log('[INIT] About to export app object with ID:', APP_ID);
+console.log('[INIT] App has', Object.keys(app).length, 'keys');
+console.log('[INIT] App fetch type:', typeof app.fetch);
 
 export default {
   port,

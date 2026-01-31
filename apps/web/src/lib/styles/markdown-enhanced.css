@@ -1,0 +1,587 @@
+/**
+ * Enhanced Markdown Typography
+ *
+ * GitHub-inspired markdown styling for better readability and visual hierarchy.
+ * Designed to work with TailwindCSS v4 and the existing prose classes.
+ */
+
+/* Base prose styles with GitHub-inspired improvements */
+.prose {
+  @apply text-foreground leading-relaxed;
+  max-width: none;
+}
+
+/* GitHub-style Headers */
+.prose h1 {
+  @apply border-border mt-6 mb-4 border-b pb-2 text-2xl font-bold first:mt-0;
+  scroll-margin-top: 80px; /* Account for fixed headers */
+}
+
+.prose h2 {
+  @apply border-border/50 mt-6 mb-3 border-b pb-1.5 text-xl font-semibold;
+  scroll-margin-top: 80px;
+}
+
+.prose h3 {
+  @apply mt-5 mb-2 text-lg font-semibold;
+  scroll-margin-top: 80px;
+}
+
+.prose h4,
+.prose h5,
+.prose h6 {
+  @apply mt-4 mb-2 text-base font-medium;
+  scroll-margin-top: 80px;
+}
+
+/* Paragraphs */
+.prose p {
+  @apply mb-4 leading-relaxed;
+}
+
+/* Lists */
+.prose ul,
+.prose ol {
+  @apply mb-4 ml-6 space-y-2;
+}
+
+.prose ul {
+  @apply list-disc;
+}
+
+.prose ol {
+  @apply list-decimal;
+}
+
+.prose li {
+  @apply leading-relaxed;
+}
+
+.prose li > ul,
+.prose li > ol {
+  @apply mt-2;
+}
+
+/* Nested lists */
+.prose ul ul,
+.prose ol ol,
+.prose ul ol,
+.prose ol ul {
+  @apply my-2 ml-4;
+}
+
+/* Blockquotes */
+.prose blockquote {
+  @apply border-primary/30 bg-muted/50 mb-4 rounded-r border-l-4 py-2 pl-4 italic;
+}
+
+.prose blockquote p {
+  @apply mb-0;
+}
+
+/* Horizontal rules */
+.prose hr {
+  @apply border-border my-6 border-t;
+}
+
+/* Inline elements */
+.prose strong {
+  @apply text-foreground font-semibold;
+}
+
+.prose em,
+.prose i {
+  @apply text-foreground/80 italic;
+}
+
+/* Inline code */
+.prose code:not(pre code) {
+  @apply bg-muted text-primary rounded px-1.5 py-0.5 font-mono text-sm;
+  @apply border-border/50 border;
+}
+
+/* Links */
+.prose a {
+  @apply text-primary underline-offset-4 transition-colors hover:underline;
+}
+
+.prose a:hover {
+  @apply text-primary/80;
+}
+
+/* Code blocks (basic styling, enhanced version in code-block.svelte) */
+.prose pre {
+  @apply mt-4 mb-4 overflow-x-auto rounded-lg bg-[#1e1e1e];
+  @apply border border-[#2d2d2d];
+  position: relative;
+}
+
+.prose pre code {
+  @apply bg-transparent p-4 font-mono text-sm leading-relaxed;
+  @apply block overflow-x-auto text-gray-100;
+  border: none;
+}
+
+/* Inline code in code blocks should be plain */
+.prose pre code code {
+  @apply border-none bg-transparent p-0 text-inherit;
+}
+
+/* Add copy button placeholder styling */
+.prose pre::before {
+  content: attr(data-language);
+  position: absolute;
+  top: 0;
+  right: 0;
+  @apply text-muted-foreground rounded-tr-lg rounded-bl-lg bg-[#2d2d2d] px-2 py-1 text-xs font-medium uppercase;
+  pointer-events: none;
+}
+
+/* Tables */
+.prose table {
+  @apply mt-4 mb-4 w-full border-collapse overflow-hidden;
+}
+
+.prose table thead {
+  @apply bg-muted/50;
+}
+
+.prose table th {
+  @apply border-border border px-4 py-2 text-left font-semibold;
+}
+
+.prose table td {
+  @apply border-border border px-4 py-2;
+}
+
+.prose table tr:nth-child(even) {
+  @apply bg-muted/20;
+}
+
+.prose table tr:hover {
+  @apply bg-muted/30;
+}
+
+/* Images */
+.prose img {
+  @apply my-4 rounded-lg shadow-sm;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Task lists */
+.prose input[type='checkbox'] {
+  @apply accent-primary border-border mr-2 h-4 w-4 rounded;
+}
+
+.prose li:has(input[type='checkbox']) {
+  @apply ml-0 list-none;
+}
+
+.prose ul:has(li input[type='checkbox']) {
+  @apply ml-0 list-none space-y-1;
+}
+
+/* Definition lists */
+.prose dt {
+  @apply mt-4 mb-1 font-semibold;
+}
+
+.prose dd {
+  @apply text-muted-foreground mb-4 ml-4;
+}
+
+/* Footnotes */
+.prose .footnote-ref {
+  @apply text-primary align-super text-xs;
+}
+
+.prose .footnote-backref {
+  @apply text-primary text-xs;
+}
+
+/*kbd element */
+.prose kbd {
+  @apply bg-muted border-border rounded border px-1.5 py-0.5 font-mono text-xs;
+  @apply shadow-sm;
+}
+
+/* Mark/highlight */
+.prose mark {
+  @apply bg-primary/20 text-foreground rounded px-1;
+}
+
+/* Sub and sup */
+.prose sub {
+  @apply text-xs;
+  vertical-align: baseline;
+}
+
+.prose sup {
+  @apply text-xs;
+  vertical-align: super;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .prose code:not(pre code) {
+    @apply bg-muted/80 text-primary-foreground;
+  }
+
+  .prose blockquote {
+    @apply bg-muted/30 border-primary/40;
+  }
+
+  .prose table thead {
+    @apply bg-muted/30;
+  }
+
+  .prose table tr:nth-child(even) {
+    @apply bg-muted/10;
+  }
+
+  .prose table tr:hover {
+    @apply bg-muted/20;
+  }
+}
+
+/* Print styles */
+@media print {
+  .prose a[href^='http'] {
+    @apply text-black underline;
+  }
+
+  .prose a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    @apply text-xs text-gray-500;
+  }
+
+  .prose pre {
+    @apply border border-gray-300;
+    page-break-inside: avoid;
+  }
+
+  .prose blockquote {
+    @apply border-l-4 border-gray-300;
+  }
+
+  .prose img {
+    @apply max-w-full;
+    page-break-inside: avoid;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .prose a,
+  .prose button {
+    @apply transition-none;
+  }
+
+  .message-enter,
+  .typing-dots span {
+    animation: none !important;
+  }
+}
+
+/* =============================================================================
+   Message Entry Animations
+   GPU-accelerated animations for smooth performance
+   ============================================================================= */
+
+.message-enter {
+  animation: messageSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* =============================================================================
+   Streaming Typing Indicator
+   Animated dots for showing AI is generating response
+   ============================================================================= */
+
+.typing-indicator {
+  @apply inline-flex items-center gap-1;
+}
+
+.typing-dots {
+  @apply inline-flex items-center gap-1;
+}
+
+.typing-dots span {
+  @apply h-2 w-2 rounded-full bg-current;
+  animation: typingBounce 1.4s infinite ease-in-out;
+  will-change: transform;
+}
+
+.typing-dots span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typing-dots span:nth-child(2) {
+  animation-delay: 0.16s;
+}
+
+.typing-dots span:nth-child(3) {
+  animation-delay: 0.32s;
+}
+
+@keyframes typingBounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-8px);
+  }
+}
+
+/* =============================================================================
+   Pulse Animation for Streaming Messages
+   ============================================================================= */
+
+.streaming-pulse {
+  animation: streamingPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes streamingPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* =============================================================================
+   Fade In Animation for Smooth Content Loading
+   ============================================================================= */
+
+.fade-in {
+  animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* =============================================================================
+   Scale In Animation for Modal-like Effects
+   ============================================================================= */
+
+.scale-in {
+  animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* =============================================================================
+   Shimmer Effect for Loading States
+   ============================================================================= */
+
+.shimmer {
+  animation: shimmer 2s linear infinite;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background-size: 200% 100%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* =============================================================================
+   KaTeX & Math Styling
+   ============================================================================= */
+
+/* Base KaTeX styles */
+.prose .katex {
+  @apply text-foreground;
+  font-size: 1em;
+}
+
+/* Inline math */
+.prose .katex-display:not(.katex) {
+  @apply px-1;
+}
+
+/* Display (block) math */
+.prose .katex-display {
+  @apply my-4 overflow-x-auto;
+  padding: 1rem 0;
+}
+
+.prose .katex-display > .katex {
+  @apply text-center;
+}
+
+/* KaTeX elements styling */
+.prose .katex-mathml {
+  @apply hidden;
+}
+
+/* Fraction bars */
+.prose .katex .mfrac .frac-line {
+  @apply border-border;
+}
+
+/* Subscripts and superscripts */
+.prose .katex .msupsub,
+.prose .katex .msub {
+  @apply relative;
+}
+
+/* =============================================================================
+   Mermaid Diagram Styling
+   ============================================================================= */
+
+/* Mermaid diagram containers */
+.prose .mermaid {
+  @apply my-4 overflow-hidden rounded-lg;
+}
+
+.prose .mermaid svg {
+  @apply h-auto max-w-full;
+}
+
+/* Mermaid node styling */
+.prose .mermaid .node rect,
+.prose .mermaid .node circle,
+.prose .mermaid .node ellipse,
+.prose .mermaid .node polygon,
+.prose .mermaid .node path {
+  @apply transition-colors duration-200;
+}
+
+/* Mermaid edges/lines */
+.prose .mermaid .edgePath .path,
+.prose .mermaid .edgeLabel {
+  @apply transition-colors duration-200;
+}
+
+/* Mermaid text labels */
+.prose .mermaid .nodeLabel,
+.prose .mermaid .edgeLabel {
+  @apply text-foreground;
+}
+
+/* Mermaid cluster backgrounds */
+.prose .mermaid .cluster rect {
+  @apply fill-muted/20;
+}
+
+.prose .mermaid .cluster path {
+  @apply stroke-border;
+}
+
+/* =============================================================================
+   Diagram Loading States
+   ============================================================================= */
+
+.mermaid-loading {
+  @apply bg-muted/30 flex items-center justify-center rounded-lg p-8;
+  min-height: 200px;
+}
+
+.mermaid-loading::after {
+  content: '';
+  @apply border-primary block h-8 w-8 animate-spin rounded-full border-4 border-t-transparent;
+}
+
+/* =============================================================================
+   Diagram Error States
+   ============================================================================= */
+
+.diagram-error {
+  @apply bg-destructive/10 border-destructive/30 rounded-lg border p-4;
+}
+
+.diagram-error summary {
+  @apply text-destructive hover:text-destructive/80 flex cursor-pointer items-center gap-2 font-medium transition-colors;
+}
+
+.diagram-error pre {
+  @apply border-border mt-2 overflow-x-auto rounded border bg-black/5 p-3 font-mono text-xs dark:bg-black/30;
+}
+
+/* =============================================================================
+   Responsive Math & Diagrams
+   ============================================================================= */
+
+@media (max-width: 640px) {
+  /* Scale down large formulas on mobile */
+  .prose .katex-display {
+    @apply text-sm;
+  }
+
+  /* Make diagrams scrollable on mobile */
+  .prose .mermaid {
+    @apply overflow-x-auto;
+  }
+}
+
+/* =============================================================================
+   Print Styles for Math & Diagrams
+   ============================================================================= */
+
+@media print {
+  /* Ensure math renders properly in print */
+  .prose .katex-mathml {
+    display: inline-block !important;
+  }
+
+  /* Ensure diagrams are visible in print */
+  .prose .mermaid svg {
+    @apply w-full;
+  }
+}
+
+/* =============================================================================
+   Copy Button Success Feedback Animation
+   ============================================================================= */
+
+.copy-success {
+  animation: copySuccess 0.3s ease-out;
+}
+
+@keyframes copySuccess {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

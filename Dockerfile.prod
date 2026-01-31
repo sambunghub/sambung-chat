@@ -1,0 +1,158 @@
+# =============================================================================
+# Production Dockerfile for SambungChat
+# =============================================================================
+# Multi-stage build for minimal production images
+#
+# Strategy:
+# 1. Builder stage: Install dependencies and build application
+# 2. Production stage: Copy ONLY built artifacts and runtime dependencies
+# 3. Result: Smaller, secure, faster-to-deploy images
+#
+# Build time: ~5-8 minutes
+# Image size: ~200-300MB (vs ~1GB+ with dev dependencies)
+#
+# =============================================================================
+
+# =============================================================================
+# Stage 1: Builder
+# =============================================================================
+FROM oven/bun:1.2.23 AS builder
+
+WORKDIR /app
+
+# Set production environment for build
+ENV NODE_ENV=production \
+    BUN_INSTALL_CACHE_DIR=/root/.bun/install/cache
+
+# Copy package files
+COPY package.json bun.lockb ./
+
+# Copy ALL workspace package.json files (Bun needs these for workspaces)
+COPY packages/api/package.json ./packages/api/
+COPY packages/auth/package.json ./packages/auth/
+COPY packages/config/package.json ./packages/config/
+COPY packages/db/package.json ./packages/db/
+COPY packages/env/package.json ./packages/env/
+COPY apps/server/package.json ./apps/server/
+COPY apps/web/package.json ./apps/web/
+
+# Install ALL dependencies (including devDependencies for build)
+RUN bun install --frozen-lockfile
+
+# Copy source code
+COPY packages ./packages
+COPY apps ./apps
+COPY scripts ./scripts
+
+# =============================================================================
+# Build Applications
+# =============================================================================
+# Build Server
+WORKDIR /app/apps/server
+RUN bun run build
+
+# Build Web (SSR + Client)
+WORKDIR /app/apps/web
+RUN bun run build
+
+# =============================================================================
+# Stage 2: Production Runner - Server
+# =============================================================================
+FROM oven/bun:1.2.23 AS server-prod
+
+WORKDIR /app
+
+# Set production environment
+ENV NODE_ENV=production \
+    PORT=3000
+
+# Copy package files and install ONLY production dependencies
+COPY package.json bun.lockb ./
+
+# Copy workspace package.json files needed for production
+COPY packages/api/package.json ./packages/api/
+COPY packages/auth/package.json ./packages/auth/
+COPY packages/config/package.json ./packages/config/
+COPY packages/db/package.json ./packages/db/
+COPY packages/env/package.json ./packages/env/
+COPY apps/server/package.json ./apps/server/
+
+RUN bun install --frozen-lockfile --production
+
+# Copy built server artifacts
+COPY --from=builder /app/apps/server/dist ./apps/server/dist
+COPY --from=builder /app/packages/api/dist ./packages/api/dist
+COPY --from=builder /app/packages/db ./packages/db
+COPY --from=builder /app/packages/env ./packages/env
+COPY --from=builder /app/packages/auth ./packages/auth
+COPY --from=builder /app/packages/config ./packages/config
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S sambungchat && \
+    adduser -S -D -H -u 1001 -s /bin/sh -G sambungchat sambungchat
+
+# Set ownership
+RUN chown -R sambungchat:sambungchat /app
+USER sambungchat
+
+EXPOSE 3000
+
+WORKDIR /app/apps/server
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+
+CMD ["node", "dist/index.js"]
+
+# =============================================================================
+# Stage 3: Production Runner - Web
+# =============================================================================
+FROM oven/bun:1.2.23 AS web-prod
+
+WORKDIR /app
+
+# Set production environment
+ENV NODE_ENV=production \
+    PORT=5174
+
+# Copy package files and install ONLY production dependencies
+COPY package.json bun.lockb ./
+
+# Copy workspace package.json files needed for production
+COPY packages/api/package.json ./packages/api/
+COPY packages/auth/package.json ./packages/auth/
+COPY packages/config/package.json ./packages/config/
+COPY packages/db/package.json ./packages/db/
+COPY packages/env/package.json ./packages/env/
+COPY apps/web/package.json ./apps/web/
+
+RUN bun install --frozen-lockfile --production
+
+# Copy built web artifacts
+COPY --from=builder /app/apps/web/.svelte-kit/output ./apps/web/.svelte-kit/output
+COPY --from=builder /app/apps/web/build ./apps/web/build
+COPY --from=builder /app/packages/db ./packages/db
+COPY --from=builder /app/packages/env ./packages/env
+COPY --from=builder /app/packages/auth ./packages/auth
+COPY --from=builder /app/packages/config ./packages/config
+COPY --from=builder /app/packages/api/dist ./packages/api/dist
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S sambungchat && \
+    adduser -S -D -H -u 1001 -s /bin/sh -G sambungchat sambungchat
+
+# Set ownership
+RUN chown -R sambungchat:sambungchat /app
+USER sambungchat
+
+EXPOSE 5174
+
+WORKDIR /app/apps/web
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:5174/ || exit 1
+
+# Use SvelteKit adapter-node for production
+CMD ["node", "build/index.js"]

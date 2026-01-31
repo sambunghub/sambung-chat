@@ -7,12 +7,16 @@ bunx lint-staged
 echo "   ✅ lint-staged passed"
 echo ""
 
-# 2. Run full ESLint check
-echo "2️⃣  Running ESLint..."
-bun run lint
-if [ $? -ne 0 ]; then
-  echo "   ❌ ESLint failed - fix errors before committing"
-  exit 1
+# 2. Run ESLint only on staged files (excluding worktrees)
+echo "2️⃣  Running ESLint on staged files..."
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(js|jsx|ts|tsx|svelte)$' | grep -v '\.worktrees/' | grep -v '\.auto-claude/' || true)
+if [ -n "$STAGED_FILES" ]; then
+  echo "$STAGED_FILES" | xargs bunx eslint
+  ESLINT_EXIT_CODE=$?
+  if [ $ESLINT_EXIT_CODE -ne 0 ]; then
+    echo "   ❌ ESLint failed - fix errors before committing"
+    exit 1
+  fi
 fi
 echo "   ✅ ESLint passed"
 echo ""

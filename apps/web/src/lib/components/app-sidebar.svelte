@@ -111,7 +111,7 @@
 </script>
 
 <!-- Flex container for dual sidebar layout -->
-<div id="navigation" tabindex={-1} class="flex overflow-hidden" {...restProps}>
+<div id="navigation" class="flex overflow-hidden" {...restProps}>
   <!-- Navigation Rail (64px) -->
   <Sidebar.Root collapsible="none" class="!w-[calc(var(--sidebar-width-icon)_+_1px)] border-e">
     <Sidebar.Header>
