@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.40] - 2026-01-31
+
+### Fixed
+
+- **Mermaid v11.12.2 Rendering**: Improve Mermaid diagram rendering with proper v11.x API compatibility ([apps/web/src/lib/utils/lazy-load.ts](apps/web/src/lib/utils/lazy-load.ts:121), [apps/web/src/lib/markdown-renderer.ts](apps/web/src/lib/markdown-renderer.ts:454-548))
+  - Pin Mermaid CDN to v11.12.2 for stability (was using generic @11)
+  - Add 100ms wait time after Mermaid load for full initialization
+  - Improve theme change handling with proper `mermaid.run()` fallback
+  - Better error handling with try-catch for initialization failures
+  - Enhanced error messages with helpful hints for special characters
+
+- **KaTeX Rendering**: Ensure markdown-enhanced.css is properly imported for LaTeX/Math rendering ([apps/web/src/app.css](apps/web/src/app.css:5))
+  - CSS was already imported, verified for proper styling
+  - KaTeX math formulas render correctly with display/inline modes
+
+### Changed
+
+- **Mermaid Error Messages**: Update error guidance with Mermaid v11.12.2 specific tips ([apps/web/src/lib/markdown-renderer.ts:634-639))
+  - Add hint to use `text:` prefix for labels with special characters
+  - Improve user understanding of Mermaid syntax requirements
+
 ## [0.0.39] - 2026-01-30
 
 ### Fixed
