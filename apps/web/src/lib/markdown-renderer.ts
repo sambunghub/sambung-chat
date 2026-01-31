@@ -461,6 +461,8 @@ export async function initMermaidDiagrams() {
   if (mermaidWindow && !mermaidWindow.mermaid) {
     try {
       await loadMermaid();
+      // Wait a bit for mermaid to be fully ready
+      await new Promise((resolve) => setTimeout(resolve, 100));
     } catch (error) {
       const isDev = import.meta.env?.DEV ?? process.env?.NODE_ENV === 'development';
       const errorName = error instanceof Error ? error.name : 'UnknownError';
@@ -488,10 +490,18 @@ export async function initMermaidDiagrams() {
     const previousTheme = mermaidWindow.mermaidTheme;
 
     // Re-initialize if theme changed
-    if (previousTheme !== currentTheme) {
+    if (previousTheme && previousTheme !== currentTheme) {
       // Clear previous initialization and cache
       if (mermaidWindow.mermaidInitialized) {
-        await mermaid.initialize({ startOnLoad: false });
+        // In Mermaid v11, we need to use run() to reinitialize
+        try {
+          await mermaid.run({
+            querySelector: 'pre.mermaid[data-mermaid]',
+          });
+        } catch {
+          // If run fails, fall back to full reinitialize
+          await mermaid.initialize({ startOnLoad: false });
+        }
         mermaidWindow.mermaidInitialized = false;
         cachedMermaidConfig = null;
         renderedDiagrams.clear();
@@ -504,9 +514,19 @@ export async function initMermaidDiagrams() {
       const config = cachedMermaidConfig || getMermaidTheme();
       cachedMermaidConfig = config;
 
-      await mermaid.initialize(config);
-      mermaidWindow.mermaidInitialized = true;
-      mermaidWindow.mermaidTheme = currentTheme;
+      try {
+        await mermaid.initialize(config);
+        mermaidWindow.mermaidInitialized = true;
+        mermaidWindow.mermaidTheme = currentTheme;
+      } catch (error) {
+        const isDev = import.meta.env?.DEV ?? process.env?.NODE_ENV === 'development';
+        if (isDev) {
+          console.error('Failed to initialize Mermaid:', error);
+        } else {
+          console.error('Failed to initialize Mermaid');
+        }
+        return;
+      }
     }
 
     // Render each diagram individually (skip already rendered)
@@ -524,6 +544,7 @@ export async function initMermaidDiagrams() {
         const id = diagramId || `mermaid-${Math.random().toString(36).substr(2, 9)}`;
 
         // Create SVG from mermaid definition
+        // In Mermaid v11, render() returns { svg } and handles the element replacement
         const { svg } = await mermaid.render(id, definition);
 
         // Sanitize SVG with DOMPurify before inserting (defense in depth)
@@ -614,6 +635,7 @@ export async function initMermaidDiagrams() {
                   <li>Incompatible syntax with Mermaid v11.12.2</li>
                   <li>Special characters in node labels that conflict with Mermaid keywords</li>
                   <li>Invalid diagram structure</li>
+                  <li>Try using <code class="bg-muted px-1 rounded">text:</code> for labels with special characters</li>
                 </ul>
                 <div class="text-xs text-muted-foreground mb-1">Original diagram code:</div>
                 <pre class="overflow-x-auto p-3 rounded bg-black/5 dark:bg-black/30 text-xs font-mono border border-border">${escapeHtml(originalCode)}</pre>

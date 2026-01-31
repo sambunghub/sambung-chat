@@ -116,9 +116,9 @@ export async function loadMermaid(): Promise<void> {
         return;
       }
 
-      // Inject Mermaid script tag
+      // Inject Mermaid script tag (pinned to v11.12.2 for stability)
       const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+      script.src = 'https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js';
       script.async = true;
 
       // Wait for load with polling for mermaid readiness
